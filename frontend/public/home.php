@@ -64,7 +64,7 @@ $basePath = '../../';
                         <i data-lucide="shield-check"></i>
                         Representatividade nacional
                     </span>
-                    <h1 class="sx-hero__title">Fortalecendo os tecnicos do Judiciario Estadual em todo o Brasil.</h1>
+                    <h1 class="sx-hero__title home-marquee" data-marquee>Fortalecendo os tecnicos do Judiciario Estadual em todo o Brasil.</h1>
                     <p class="sx-hero__text">
                         A ANATEJE conecta representatividade, beneficios reais e comunicacao ativa para apoiar o servidor
                         tecnico em sua carreira e no dia a dia.
@@ -165,31 +165,44 @@ $basePath = '../../';
                         <p class="sx-header__lead">Agenda institucional com encontros, oficinas e atualizacoes da associacao.</p>
                     </div>
                 </div>
-                <div class="sx-grid-3">
-                    <article class="px-card">
-                        <div class="px-card__media"><img src="<?php echo $basePath; ?>assets/images/cena5.jpg" alt="Encontro nacional"></div>
-                        <div class="px-card__body">
-                            <span class="px-date-chip">15 MAR 2026</span>
-                            <h3 class="px-card__title">Encontro Nacional de Tecnicos</h3>
-                            <p class="px-card__desc">Painel sobre carreira, desafios e estrategias coletivas da categoria.</p>
+                <div class="home-carousel" id="eventos-carousel" aria-label="Carrossel de eventos">
+                    <div class="home-carousel__viewport">
+                        <div class="home-carousel__track">
+                            <article class="px-card home-carousel__slide">
+                                <div class="px-card__media"><img src="<?php echo $basePath; ?>assets/images/cena5.jpg" alt="Encontro nacional"></div>
+                                <div class="px-card__body">
+                                    <span class="px-date-chip">15 MAR 2026</span>
+                                    <h3 class="px-card__title">Encontro Nacional de Tecnicos</h3>
+                                    <p class="px-card__desc">Painel sobre carreira, desafios e estrategias coletivas da categoria.</p>
+                                </div>
+                            </article>
+                            <article class="px-card home-carousel__slide">
+                                <div class="px-card__media"><img src="<?php echo $basePath; ?>assets/images/curso.jpg" alt="Webinar de beneficios"></div>
+                                <div class="px-card__body">
+                                    <span class="px-date-chip">02 ABR 2026</span>
+                                    <h3 class="px-card__title">Webinar Beneficios Ativos</h3>
+                                    <p class="px-card__desc">Apresentacao dos beneficios e fluxo de ativacao na area do associado.</p>
+                                </div>
+                            </article>
+                            <article class="px-card home-carousel__slide">
+                                <div class="px-card__media"><img src="<?php echo $basePath; ?>assets/images/cena6.jpg" alt="Forum de comunicacao"></div>
+                                <div class="px-card__body">
+                                    <span class="px-date-chip">28 ABR 2026</span>
+                                    <h3 class="px-card__title">Forum de Comunicacao Sindical</h3>
+                                    <p class="px-card__desc">Boas praticas de comunicacao e mobilizacao para entidades representativas.</p>
+                                </div>
+                            </article>
                         </div>
-                    </article>
-                    <article class="px-card">
-                        <div class="px-card__media"><img src="<?php echo $basePath; ?>assets/images/curso.jpg" alt="Webinar de beneficios"></div>
-                        <div class="px-card__body">
-                            <span class="px-date-chip">02 ABR 2026</span>
-                            <h3 class="px-card__title">Webinar Beneficios Ativos</h3>
-                            <p class="px-card__desc">Apresentacao dos beneficios e fluxo de ativacao na area do associado.</p>
-                        </div>
-                    </article>
-                    <article class="px-card">
-                        <div class="px-card__media"><img src="<?php echo $basePath; ?>assets/images/cena6.jpg" alt="Forum de comunicacao"></div>
-                        <div class="px-card__body">
-                            <span class="px-date-chip">28 ABR 2026</span>
-                            <h3 class="px-card__title">Forum de Comunicacao Sindical</h3>
-                            <p class="px-card__desc">Boas praticas de comunicacao e mobilizacao para entidades representativas.</p>
-                        </div>
-                    </article>
+                    </div>
+                    <div class="home-carousel__controls" aria-label="Controles do carrossel">
+                        <button type="button" class="home-carousel__btn home-carousel__btn--prev" data-carousel-prev aria-label="Evento anterior">
+                            <i data-lucide="chevron-left"></i>
+                        </button>
+                        <div class="home-carousel__dots" data-carousel-dots aria-label="Indicadores de slide"></div>
+                        <button type="button" class="home-carousel__btn home-carousel__btn--next" data-carousel-next aria-label="Proximo evento">
+                            <i data-lucide="chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="sx-band" id="filiacao" style="margin-top: 0.95rem;">
@@ -257,25 +270,187 @@ $basePath = '../../';
 
     <script>
         (function () {
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            document.body.classList.add('is-enhanced');
+
             if (window.lucide && typeof window.lucide.createIcons === 'function') {
                 window.lucide.createIcons();
             }
 
             const toggle = document.getElementById('home-mobile-toggle');
             const panel = document.getElementById('home-mobile-panel');
-            if (!toggle || !panel) {
+            if (toggle && panel) {
+                toggle.addEventListener('click', function () {
+                    panel.classList.toggle('is-open');
+                });
+
+                panel.querySelectorAll('a').forEach((link) => {
+                    link.addEventListener('click', function () {
+                        panel.classList.remove('is-open');
+                    });
+                });
+            }
+
+            const marquee = document.querySelector('[data-marquee]');
+            if (marquee && !prefersReducedMotion) {
+                const sourceText = marquee.textContent.trim();
+                const words = sourceText.split(' ').filter(Boolean);
+                marquee.textContent = '';
+                marquee.setAttribute('aria-label', sourceText);
+                marquee.setAttribute('role', 'text');
+
+                let charIndex = 0;
+                words.forEach(function (word, wordIndex) {
+                    const wordElement = document.createElement('span');
+                    wordElement.className = 'home-marquee__word';
+                    wordElement.setAttribute('aria-hidden', 'true');
+
+                    Array.from(word).forEach(function (char) {
+                        const charElement = document.createElement('span');
+                        charElement.className = 'home-marquee__char';
+                        charElement.textContent = char;
+                        charElement.setAttribute('aria-hidden', 'true');
+                        charElement.style.setProperty('--char-index', charIndex);
+                        wordElement.appendChild(charElement);
+                        charIndex += 1;
+                    });
+
+                    marquee.appendChild(wordElement);
+                    if (wordIndex !== words.length - 1) {
+                        const space = document.createTextNode(' ');
+                        marquee.appendChild(space);
+                    }
+                });
+
+                window.requestAnimationFrame(function () {
+                    marquee.classList.add('is-mounted');
+                });
+            }
+
+            const revealTargets = Array.from(document.querySelectorAll(
+                'main .sx-header, main .sx-stage, main .px-card, main .home-benefit-item, main .sx-band, main .home-faq details'
+            ));
+
+            revealTargets.forEach(function (target, index) {
+                target.classList.add('home-reveal');
+                target.style.setProperty('--reveal-delay', ((index % 7) * 120) + 'ms');
+            });
+
+            if (!prefersReducedMotion && 'IntersectionObserver' in window) {
+                const revealObserver = new IntersectionObserver(function (entries, observer) {
+                    entries.forEach(function (entry) {
+                        if (!entry.isIntersecting) {
+                            return;
+                        }
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    });
+                }, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' });
+
+                revealTargets.forEach(function (target) {
+                    revealObserver.observe(target);
+                });
+            } else {
+                revealTargets.forEach(function (target) {
+                    target.classList.add('is-visible');
+                });
+            }
+
+            const carousel = document.getElementById('eventos-carousel');
+            if (!carousel) {
                 return;
             }
 
-            toggle.addEventListener('click', function () {
-                panel.classList.toggle('is-open');
+            const track = carousel.querySelector('.home-carousel__track');
+            const slides = Array.from(carousel.querySelectorAll('.home-carousel__slide'));
+            const dotsContainer = carousel.querySelector('[data-carousel-dots]');
+            const prevButton = carousel.querySelector('[data-carousel-prev]');
+            const nextButton = carousel.querySelector('[data-carousel-next]');
+            if (!track || slides.length === 0) {
+                return;
+            }
+
+            let currentIndex = 0;
+            let timerId = null;
+            const dots = [];
+
+            function updateCarousel(nextIndex) {
+                currentIndex = (nextIndex + slides.length) % slides.length;
+                track.style.transform = 'translate3d(-' + (currentIndex * 100) + '%, 0, 0)';
+
+                slides.forEach(function (slide, index) {
+                    slide.classList.toggle('is-active', index === currentIndex);
+                });
+
+                dots.forEach(function (dot, index) {
+                    const isCurrent = index === currentIndex;
+                    dot.classList.toggle('is-active', isCurrent);
+                    dot.setAttribute('aria-current', isCurrent ? 'true' : 'false');
+                });
+            }
+
+            function stopAutoPlay() {
+                if (!timerId) {
+                    return;
+                }
+                clearInterval(timerId);
+                timerId = null;
+            }
+
+            function startAutoPlay() {
+                if (prefersReducedMotion || slides.length < 2) {
+                    return;
+                }
+                stopAutoPlay();
+                timerId = setInterval(function () {
+                    updateCarousel(currentIndex + 1);
+                }, 5000);
+            }
+
+            if (dotsContainer) {
+                slides.forEach(function (slide, index) {
+                    const dot = document.createElement('button');
+                    dot.type = 'button';
+                    dot.className = 'home-carousel__dot';
+                    dot.setAttribute('aria-label', 'Ir para evento ' + (index + 1));
+                    dot.addEventListener('click', function () {
+                        updateCarousel(index);
+                        startAutoPlay();
+                    });
+                    dotsContainer.appendChild(dot);
+                    dots.push(dot);
+                });
+            }
+
+            if (prevButton) {
+                prevButton.addEventListener('click', function () {
+                    updateCarousel(currentIndex - 1);
+                    startAutoPlay();
+                });
+            }
+
+            if (nextButton) {
+                nextButton.addEventListener('click', function () {
+                    updateCarousel(currentIndex + 1);
+                    startAutoPlay();
+                });
+            }
+
+            carousel.addEventListener('mouseenter', stopAutoPlay);
+            carousel.addEventListener('mouseleave', startAutoPlay);
+            carousel.addEventListener('focusin', stopAutoPlay);
+            carousel.addEventListener('focusout', startAutoPlay);
+            document.addEventListener('visibilitychange', function () {
+                if (document.hidden) {
+                    stopAutoPlay();
+                    return;
+                }
+                startAutoPlay();
             });
 
-            panel.querySelectorAll('a').forEach((link) => {
-                link.addEventListener('click', function () {
-                    panel.classList.remove('is-open');
-                });
-            });
+            updateCarousel(0);
+            startAutoPlay();
         })();
     </script>
 </body>
