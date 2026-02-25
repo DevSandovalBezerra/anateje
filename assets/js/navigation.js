@@ -589,7 +589,7 @@
             if (headerTitle) {
                 headerTitle.textContent = data.title;
             }
-            document.title = `${data.title} - LiderGest`;
+            document.title = `${data.title} - ANATEJE`;
             updateActiveLinks(data.page);
             if (typeof abrirSubmenuAtual === 'function') {
                 abrirSubmenuAtual();

@@ -55,10 +55,6 @@ $rbac = new RBAC();
 $menu = $rbac->generateMenu($perfilId);
 
 $router = new PageRouter();
-if ($requestedPage === '') {
-    $requestedPage = 'home';
-}
-
 $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
 $route = $router->resolve($requestedPage, $perfilId);
 
@@ -82,7 +78,18 @@ $pageFile = $route['file'];
 
 $pageTitles = [
     'home' => 'Home',
-    'dashboard/admin' => 'Dashboard',
+    'dashboard/admin' => 'Dashboard Admin',
+    'dashboard/user' => 'Dashboard do Usuario',
+    'associado/perfil' => 'Meu Perfil',
+    'associado/meus_beneficios' => 'Meus Beneficios',
+    'associado/meus_eventos' => 'Meus Eventos',
+    'associado/comunicados' => 'Comunicados',
+    'admin/associados' => 'Admin - Associados',
+    'admin/beneficios' => 'Admin - Beneficios',
+    'admin/eventos' => 'Admin - Eventos',
+    'admin/comunicados' => 'Admin - Comunicados',
+    'admin/campanhas' => 'Admin - Campanhas',
+    'admin/integracoes' => 'Admin - Integracoes',
     'admin/permissoes' => 'Gerenciamento de Permissoes',
     'cadastros/usuarios' => 'Gerenciamento de Usuarios'
 ];

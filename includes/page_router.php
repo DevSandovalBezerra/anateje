@@ -1,5 +1,5 @@
 <?php
-// Template Base - Sistema de Roteamento de Páginas
+// Template Base - Sistema de roteamento de paginas
 
 require_once __DIR__ . '/rbac.php';
 
@@ -7,55 +7,79 @@ class PageRouter
 {
     private $rbac;
     private $basePath;
+    private $pageMapping;
 
     public function __construct()
     {
         $this->rbac = new RBAC();
         $this->basePath = __DIR__ . '/../frontend';
+        $this->pageMapping = $this->getPageMapping();
     }
 
     /**
-     * Mapeia nomes de páginas para arquivos físicos
+     * Whitelist de paginas permitidas para include no wrapper
      */
     private function getPageMapping()
     {
         return [
             'home' => 'home.php',
+
             'dashboard/admin' => 'dashboard/admin.php',
             'dashboard/user' => 'dashboard/user.php',
+
+            'associado/perfil' => 'associado/perfil.php',
+            'associado/meus_beneficios' => 'associado/meus_beneficios.php',
+            'associado/meus_eventos' => 'associado/meus_eventos.php',
+            'associado/comunicados' => 'associado/comunicados.php',
+
+            'admin/associados' => 'admin/associados.php',
+            'admin/beneficios' => 'admin/beneficios.php',
+            'admin/eventos' => 'admin/eventos.php',
+            'admin/comunicados' => 'admin/comunicados.php',
+            'admin/campanhas' => 'admin/campanhas.php',
+            'admin/integracoes' => 'admin/integracoes.php',
             'admin/permissoes' => 'admin/permissoes.php',
+
             'cadastros/usuarios' => 'cadastros/usuarios.php'
         ];
     }
 
     /**
-     * Obtém a página padrão baseada no perfil do usuário
+     * Obtem a pagina padrao baseada no perfil do usuario
      */
     public function getDefaultPage($perfil_id)
     {
-        // 1 = Admin, Outros = User Comum
+        // 1 = Admin, outros = User comum
         return ($perfil_id == 1) ? 'home' : 'dashboard/user';
     }
 
+    private function isValidPageFormat($page)
+    {
+        if ($page === 'home') {
+            return true;
+        }
+
+        return (bool) preg_match('/^[a-z0-9_]+\/[a-z0-9_]+$/', $page);
+    }
+
     /**
-     * Valida se o usuário tem permissão para acessar a página
+     * Valida se o usuario tem permissao para acessar a pagina
      */
     public function validatePage($perfil_id, $page)
     {
         if ($page === 'home') {
-            return true; // Todos que logarem podem ter acesso se liberado, mas vamos verificar com RBAC no arquivo
+            return true;
         }
 
         $parts = explode('/', $page);
         if (count($parts) !== 2) {
-            // Home ou página solta
-            return true;
+            return false;
         }
 
         $module = $parts[0];
         $pageName = $parts[1];
 
-        // Página de usuários: apenas Admin Global
+        // Pagina de usuarios: apenas Admin global
         if ($module === 'cadastros' && $pageName === 'usuarios') {
             return $perfil_id == 1;
         }
@@ -72,6 +96,20 @@ class PageRouter
             $page = $this->getDefaultPage($perfil_id);
         }
 
+        if (!$this->isValidPageFormat($page)) {
+            return [
+                'success' => false,
+                'redirect' => $this->getDefaultPage($perfil_id)
+            ];
+        }
+
+        if (!isset($this->pageMapping[$page])) {
+            return [
+                'success' => false,
+                'redirect' => $this->getDefaultPage($perfil_id)
+            ];
+        }
+
         if (!$this->validatePage($perfil_id, $page)) {
             return [
                 'success' => false,
@@ -79,14 +117,7 @@ class PageRouter
             ];
         }
 
-        $mapping = $this->getPageMapping();
-
-        // Se a página não está no mapeamento rígido, mas segue um padrão
-        if (!isset($mapping[$page])) {
-            $filePath = $this->basePath . '/' . $page . '.php';
-        } else {
-            $filePath = $this->basePath . '/' . $mapping[$page];
-        }
+        $filePath = $this->basePath . '/' . $this->pageMapping[$page];
 
         if (!file_exists($filePath)) {
             return [

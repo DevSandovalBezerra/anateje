@@ -186,17 +186,9 @@
         function buildDashboardUrl(perfilId) {
             const basePath = getBasePath();
             const normalizedBase = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
-            
-            const dashboardMap = {
-                1: 'home',
-                2: 'dashboard/financeiro',
-                3: 'dashboard/coordenacao',
-                4: 'dashboard/professor',
-                5: 'dashboard/atendente',
-                6: 'dashboard/responsavel'
-            };
-            
-            const page = dashboardMap[perfilId] || 'dashboard/admin';
+
+            // Fluxo padrao do wrapper: admin vai para home, demais perfis para dashboard/user
+            const page = perfilId === 1 ? 'home' : 'dashboard/user';
             const url = normalizedBase ? `${normalizedBase}/index.php?page=${page}` : `index.php?page=${page}`;
             return url.startsWith('/') ? url : `/${url}`;
         }

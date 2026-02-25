@@ -9,13 +9,16 @@ class RBAC
     private $db;
     private $permissionsCache = [];
 
-    // Estrutura genérica de fallback
+    // Estrutura generica de fallback
     private $permissionsFallback = [
         1 => [ // Admin Global
             'dashboard' => ['admin'],
+            'admin' => ['associados', 'beneficios', 'eventos', 'comunicados', 'campanhas', 'integracoes'],
+            'associado' => ['perfil', 'meus_beneficios', 'meus_eventos', 'comunicados'],
         ],
         2 => [ // User
             'dashboard' => ['user'],
+            'associado' => ['perfil', 'meus_beneficios', 'meus_eventos', 'comunicados'],
         ]
     ];
 
@@ -54,7 +57,7 @@ class RBAC
                     if (!isset($permissoesDB[$modulo])) {
                         $permissoesDB[$modulo] = [];
                     }
-                    if (!in_array($page, $permissoesDB[$modulo])) {
+                    if (!in_array($page, $permissoesDB[$modulo], true)) {
                         $permissoesDB[$modulo][] = $page;
                     }
                 }
@@ -78,7 +81,7 @@ class RBAC
             return $permissions;
 
         } catch (Exception $e) {
-            logError("Erro ao carregar permissões do banco: " . $e->getMessage());
+            logError("Erro ao carregar permissoes do banco: " . $e->getMessage());
             $permissions = $this->permissionsFallback[$perfil_id] ?? [];
             $this->permissionsCache[$perfil_id] = $permissions;
             return $permissions;
@@ -105,7 +108,7 @@ class RBAC
             return true;
         }
 
-        return in_array($page, $userPermissions[$module]);
+        return in_array($page, $userPermissions[$module], true);
     }
 
     public function canAccessDashboard($perfil_id, $dashboard)
@@ -113,10 +116,13 @@ class RBAC
         if ($perfil_id == 1) {
             return true;
         }
+
         $userPermissions = $this->loadPermissionsFromDB($perfil_id);
-        if (!isset($userPermissions['dashboard']))
+        if (!isset($userPermissions['dashboard'])) {
             return false;
-        return in_array($dashboard, $userPermissions['dashboard']);
+        }
+
+        return in_array($dashboard, $userPermissions['dashboard'], true);
     }
 
     public function getUserPermissions($perfil_id)
@@ -130,6 +136,7 @@ class RBAC
             header('Location: ' . lidergest_base_prefix() . 'frontend/auth/login.html');
             exit;
         }
+
         $perfil_id = $_SESSION['perfil_id'];
         if (!$this->hasPermission($perfil_id, $module, $page)) {
             $this->redirectToDashboard($perfil_id);
@@ -142,6 +149,7 @@ class RBAC
             header('Location: ' . lidergest_base_prefix() . 'frontend/auth/login.html');
             exit;
         }
+
         $perfil_id = $_SESSION['perfil_id'];
         if (!$this->canAccessDashboard($perfil_id, $dashboard)) {
             $this->redirectToDashboard($perfil_id);
@@ -153,6 +161,7 @@ class RBAC
         if ($module === 'dashboard') {
             return $this->canAccessDashboard($perfil_id, $page);
         }
+
         return $this->hasPermission($perfil_id, $module, $page);
     }
 
@@ -197,11 +206,13 @@ class RBAC
             $dashboardMap = [1 => 'admin', 2 => 'user'];
             $userDashboard = $dashboardMap[$perfil_id] ?? null;
             $dashboardsPermitidos = [];
-            if ($userDashboard && in_array($userDashboard, $permissions['dashboard'])) {
+
+            if ($userDashboard && in_array($userDashboard, $permissions['dashboard'], true)) {
                 $dashboardsPermitidos = [$userDashboard];
             } else {
                 $dashboardsPermitidos = !empty($permissions['dashboard']) ? [reset($permissions['dashboard'])] : [];
             }
+
             if (!empty($dashboardsPermitidos)) {
                 $menu['dashboard'] = [
                     'name' => 'Dashboard',
@@ -211,13 +222,26 @@ class RBAC
             }
         }
 
-        // Outros módulos extraídos do DB
+        $iconMap = [
+            'admin' => 'shield',
+            'associado' => 'user-round',
+            'cadastros' => 'users',
+            'beneficios' => 'gift',
+            'eventos' => 'calendar',
+            'comunicados' => 'megaphone',
+            'campanhas' => 'send',
+            'integracoes' => 'plug'
+        ];
+
+        // Outros modulos extraidos do DB/fallback
         foreach ($permissions as $mod => $pages) {
             if ($mod !== 'dashboard' && !empty($pages)) {
-                // Remove underscores para name e escolhe um icone generico
+                $name = ucfirst(str_replace('_', ' ', $mod));
+                $icon = $iconMap[$mod] ?? 'folder';
+
                 $menu[$mod] = [
-                    'name' => ucfirst(str_replace('_', ' ', $mod)),
-                    'icon' => 'folder',
+                    'name' => $name,
+                    'icon' => $icon,
                     'pages' => $pages
                 ];
             }

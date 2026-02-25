@@ -15,6 +15,24 @@ if (!empty($currentPage)) {
     $parts = explode('/', $currentPage);
     $currentModule = $parts[0] ?: '';
 }
+
+function sidebar_page_exists($page)
+{
+    $frontendBase = realpath(__DIR__ . '/../frontend');
+    if ($frontendBase === false) {
+        return false;
+    }
+
+    if ($page === 'home') {
+        return file_exists($frontendBase . DIRECTORY_SEPARATOR . 'home.php');
+    }
+
+    if (!preg_match('/^[a-z0-9_]+\/[a-z0-9_]+$/', $page)) {
+        return false;
+    }
+
+    return file_exists($frontendBase . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $page) . '.php');
+}
 ?>
 <aside id="sidebar"
     class="fixed inset-y-0 left-0 z-50 w-64 sidebar-primary shadow-lg sidebar-transition transform -translate-x-full lg:translate-x-0">
@@ -30,23 +48,29 @@ if (!empty($currentPage)) {
     <nav id="sidebar-scroll" class="mt-8 flex-1 overflow-y-auto overflow-x-hidden">
         <div id="sidebar-groups" class="px-4 space-y-2 pb-4">
             <?php if (isset($user) && $user['perfil_id'] == 1): ?>
-                <a href="<?php echo $prefix; ?>index.php?page=home"
-                    class="nav-item flex items-center <?php echo ($currentPage === "home") ? 'active' : ''; ?>">
-                    <i data-lucide="home" class="w-5 h-5 mr-3"></i>
-                    <span class="font-medium">Início</span>
-                </a>
+                <?php if (sidebar_page_exists('home')): ?>
+                    <a href="<?php echo $prefix; ?>index.php?page=home"
+                        class="nav-item flex items-center <?php echo ($currentPage === "home") ? 'active' : ''; ?>">
+                        <i data-lucide="home" class="w-5 h-5 mr-3"></i>
+                        <span class="font-medium">Inicio</span>
+                    </a>
+                <?php endif; ?>
 
-                <a href="<?php echo $prefix; ?>index.php?page=admin/permissoes"
-                    class="nav-item flex items-center <?php echo ($currentPage === "admin/permissoes") ? 'active' : ''; ?>">
-                    <i data-lucide="shield" class="w-5 h-5 mr-3"></i>
-                    <span class="font-medium">Permissões</span>
-                </a>
+                <?php if (sidebar_page_exists('admin/permissoes')): ?>
+                    <a href="<?php echo $prefix; ?>index.php?page=admin/permissoes"
+                        class="nav-item flex items-center <?php echo ($currentPage === "admin/permissoes") ? 'active' : ''; ?>">
+                        <i data-lucide="shield" class="w-5 h-5 mr-3"></i>
+                        <span class="font-medium">Permissoes</span>
+                    </a>
+                <?php endif; ?>
 
-                <a href="<?php echo $prefix; ?>index.php?page=cadastros/usuarios"
-                    class="nav-item flex items-center <?php echo ($currentPage === "cadastros/usuarios") ? 'active' : ''; ?>">
-                    <i data-lucide="users" class="w-5 h-5 mr-3"></i>
-                    <span class="font-medium">Usuários</span>
-                </a>
+                <?php if (sidebar_page_exists('cadastros/usuarios')): ?>
+                    <a href="<?php echo $prefix; ?>index.php?page=cadastros/usuarios"
+                        class="nav-item flex items-center <?php echo ($currentPage === "cadastros/usuarios") ? 'active' : ''; ?>">
+                        <i data-lucide="users" class="w-5 h-5 mr-3"></i>
+                        <span class="font-medium">Usuarios</span>
+                    </a>
+                <?php endif; ?>
             <?php endif; ?>
 
             <?php
@@ -57,6 +81,9 @@ if (!empty($currentPage)) {
                 if ($module === 'dashboard'):
                     foreach ($moduleData['pages'] as $page):
                         if (!$rbac->hasPermissionForPage($userPerfilId, $module, $page))
+                            continue;
+                        $dashboardRoute = "dashboard/{$page}";
+                        if (!sidebar_page_exists($dashboardRoute))
                             continue;
                         ?>
                         <a href="<?php echo $prefix; ?>index.php?page=dashboard/<?php echo htmlspecialchars($page); ?>"
@@ -70,7 +97,8 @@ if (!empty($currentPage)) {
                     $paginasComPermissao = [];
 
                     foreach ($moduleData['pages'] as $page) {
-                        if ($rbac->hasPermissionForPage($userPerfilId, $module, $page)) {
+                        $routeName = "{$module}/{$page}";
+                        if ($rbac->hasPermissionForPage($userPerfilId, $module, $page) && sidebar_page_exists($routeName)) {
                             $temPermissaoModulo = true;
                             $paginasComPermissao[] = $page;
                         }
