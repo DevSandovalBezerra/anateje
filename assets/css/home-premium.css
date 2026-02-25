@@ -1,0 +1,225 @@
+/* Home page composition using premium kit */
+
+.home-mobile-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--border-secondary);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-primary);
+}
+
+.home-mobile-panel {
+    display: none;
+}
+
+.home-full {
+    --home-gutter: clamp(2rem, 4.8vw, 6.5rem);
+}
+
+.home-full .px-container {
+    width: calc(100% - (2 * var(--home-gutter)));
+    max-width: none;
+    margin-inline: auto;
+    padding-inline: 0;
+    box-sizing: border-box;
+}
+
+.home-full .sx-section {
+    padding-top: clamp(64px, 8vh, 96px);
+    padding-bottom: clamp(54px, 7vh, 82px);
+}
+
+.home-full .sx-hero {
+    min-height: calc(100vh - 78px);
+    display: flex;
+    align-items: center;
+}
+
+.home-full .sx-hero__grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: clamp(0.8rem, 1.8vw, 1.4rem);
+}
+
+.home-full .sx-grid-3 {
+    gap: clamp(0.75rem, 1.4vw, 1rem);
+}
+
+.home-full .sx-band {
+    border-radius: clamp(16px, 2vw, 24px);
+}
+
+.home-full .sx-stage {
+    min-height: clamp(320px, 50vh, 560px);
+}
+
+.home-full .sx-stage img {
+    object-position: center 22%;
+}
+
+.home-full .px-card__media {
+    aspect-ratio: 16 / 9;
+}
+
+.home-metrics {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.72rem;
+}
+
+.home-metrics strong {
+    display: block;
+    font-family: var(--an-font-heading);
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+.home-metrics span {
+    display: block;
+    margin-top: 0.25rem;
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+}
+
+.home-benefits-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.72rem;
+}
+
+.home-benefit-item {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    align-items: start;
+    gap: 0.62rem;
+}
+
+.home-benefit-item i {
+    width: 34px;
+    height: 34px;
+    padding: 8px;
+    border-radius: 999px;
+    background: rgba(166, 118, 76, 0.2);
+    color: #f3dbc2;
+}
+
+.home-benefit-item h3 {
+    margin: 0;
+    font-size: 1.02rem;
+    font-family: var(--an-font-heading);
+}
+
+.home-benefit-item p {
+    margin: 0.3rem 0 0;
+    color: var(--text-secondary);
+    line-height: 1.56;
+    font-size: 0.92rem;
+}
+
+.home-faq {
+    display: grid;
+    gap: 0.72rem;
+}
+
+.home-faq details {
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 0.85rem 0.95rem;
+}
+
+.home-faq summary {
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.home-faq p {
+    margin: 0.65rem 0 0;
+    color: var(--text-secondary);
+    line-height: 1.66;
+}
+
+.home-faq-aside {
+    min-height: 320px;
+}
+
+.home-faq-aside img {
+    width: 100%;
+    max-width: 260px;
+    margin: 0 auto 0.9rem;
+    display: block;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+}
+
+.home-footer {
+    margin-top: 1.2rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.home-footer-brand {
+    color: var(--text-primary);
+    font-family: var(--an-font-heading);
+}
+
+@media (max-width: 1120px) {
+    .home-metrics,
+    .home-benefits-list {
+        grid-template-columns: 1fr;
+    }
+
+    .home-full .sx-hero {
+        min-height: auto;
+        display: block;
+    }
+}
+
+@media (max-width: 920px) {
+    .home-full {
+        --home-gutter: clamp(1rem, 3.6vw, 1.6rem);
+    }
+
+    .home-mobile-toggle {
+        display: inline-flex;
+    }
+
+    .home-mobile-panel {
+        position: absolute;
+        top: 78px;
+        right: 1.2rem;
+        min-width: 190px;
+        display: none;
+        flex-direction: column;
+        gap: 0.2rem;
+        padding: 0.78rem;
+        border-radius: 12px;
+        border: 1px solid var(--border-primary);
+        background: var(--bg-secondary);
+        box-shadow: var(--an-shadow-md);
+    }
+
+    .home-mobile-panel a {
+        border-radius: 8px;
+        color: var(--text-secondary);
+        font-weight: 700;
+        padding: 0.45rem 0.52rem;
+    }
+
+    .home-mobile-panel a:hover {
+        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .home-mobile-panel.is-open {
+        display: flex;
+    }
+}

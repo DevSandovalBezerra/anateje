@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ANATEJE</title>
+    <link rel="stylesheet" href="../../assets/css/main-compiled.css">
+    <link rel="stylesheet" href="../../assets/css/tokens.css">
+    <script src="../../assets/vendor/lucide/lucide.min.js"></script>
+    <script src="../../assets/js/api-config.js"></script>
+    <link rel="stylesheet" href="../../assets/css/colors.css">
+    <link rel="stylesheet" href="../../assets/css/themes.css">
+    <link rel="icon" href="../../assets/images/favicon.ico" type="image/x-icon">
+    <style>
+        .gradient-bg { background: var(--an-grad-hero); }
+        .login-card {
+            background: rgba(29, 21, 16, 0.94);
+            border: 1px solid var(--border-primary);
+            backdrop-filter: blur(10px);
+        }
+        .login-card .field-label {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        .login-card .muted-text {
+            color: var(--text-secondary);
+        }
+        .login-card .action-link {
+            color: #e9c7a4;
+        }
+        .login-card .action-link:hover {
+            color: #f5dcc2;
+        }
+        .login-card input[type="checkbox"] {
+            accent-color: var(--primary-purple);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+    <div class="login-card rounded-2xl shadow-2xl w-full max-w-md p-8">
+        <!-- Logo e Título -->
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <img src="../../assets/images/logo.png" alt="Logo ANATEJE" class="w-16 h-16 rounded-full object-cover border border-white/20 shadow-lg">
+            </div>
+            <h1 class="text-2xl font-bold text-primary-dark" style="font-family: var(--an-font-heading); color: var(--text-primary);">ANATEJE</h1>
+            <p class="text-secondary-gray-600 mt-2" style="color: var(--text-secondary);">Area de membros</p>
+        </div>
+
+        <!-- Formulário de Login -->
+        <form id="loginForm" class="space-y-5" method="post" onsubmit="return false;">
+            <div>
+                <label for="email" class="field-label block text-sm font-medium text-secondary-gray-700 mb-2">
+                    Email
+                </label>
+                <div class="relative">
+                    <input type="email" id="email" name="email" required
+                           class="input-primary w-full"
+                           placeholder="seu@email.com">
+                    <i data-lucide="mail" class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-secondary-gray-400"></i>
+                </div>
+            </div>
+
+            <div>
+                <label for="password" class="field-label block text-sm font-medium text-secondary-gray-700 mb-2">
+                    Senha
+                </label>
+                <div class="relative">
+                    <input type="password" id="password" name="password" required
+                           class="input-primary w-full"
+                           placeholder="Sua senha">
+                    <i data-lucide="lock" class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-secondary-gray-400"></i>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+                <label class="flex items-center">
+                    <input type="checkbox" class="rounded border-secondary-gray-300 text-primary-blue focus:ring-primary-blue">
+                    <span class="muted-text ml-2 text-sm text-secondary-gray-600">Lembrar-me</span>
+                </label>
+                <a href="#" class="action-link text-sm text-primary-blue hover:text-primary-dark transition-colors">
+                    Esqueceu a senha?
+                </a>
+            </div>
+
+            <button type="submit" id="loginBtn"
+                    class="btn-primary w-full flex items-center justify-center space-x-2">
+                <span id="loginBtnText">Entrar</span>
+                <i data-lucide="loader-2" id="loginSpinner" class="w-5 h-5 animate-spin hidden"></i>
+            </button>
+        </form>
+
+        <!-- Link para Cadastro -->
+        <div class="mt-8 text-center">
+            <p class="muted-text text-secondary-gray-600">
+                Não tem uma conta?
+                <a href="register.html" class="action-link text-primary-blue hover:text-primary-dark font-medium transition-colors">
+                    Cadastre-se aqui
+                </a>
+            </p>
+        </div>
+
+        <!-- Alertas -->
+        <div id="alertContainer" class="mt-6"></div>
+    </div>
+
+    <script>
+        (function sanitizeUrlQuery() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                if (params.has('password') || params.has('email')) {
+                    params.delete('password');
+                    params.delete('email');
+                    const newQuery = params.toString();
+                    const newUrl = window.location.pathname + (newQuery ? `?${newQuery}` : '') + window.location.hash;
+                    window.history.replaceState({}, document.title, newUrl);
+                }
+            } catch (e) {}
+        })();
+
+        function renderIcons() {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
+        }
+
+        renderIcons();
+
+        // Elementos do DOM
+        const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginBtnText = document.getElementById('loginBtnText');
+        const loginSpinner = document.getElementById('loginSpinner');
+        const alertContainer = document.getElementById('alertContainer');
+
+        // Função para mostrar alertas
+        function showAlert(message, type = 'error') {
+            const alertClass = type === 'success' ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700';
+            
+            const alertHTML = `
+                <div class="border-l-4 p-4 rounded ${alertClass} mb-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm">${message}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            alertContainer.innerHTML = alertHTML;
+            renderIcons();
+            
+            // Remover alerta após 5 segundos
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        // Função para alternar estado do botão
+        function toggleButtonLoading(loading) {
+            if (loading) {
+                loginBtn.disabled = true;
+                loginBtnText.classList.add('hidden');
+                loginSpinner.classList.remove('hidden');
+                loginBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            } else {
+                loginBtn.disabled = false;
+                loginBtnText.classList.remove('hidden');
+                loginSpinner.classList.add('hidden');
+                loginBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }
+
+        function getBasePath() {
+            const path = window.location.pathname;
+            const frontendIndex = path.indexOf('/frontend/');
+            if (frontendIndex === -1) {
+                return '';
+            }
+            return path.substring(0, frontendIndex);
+        }
+
+        function buildDashboardUrl(perfilId) {
+            const basePath = getBasePath();
+            const normalizedBase = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+            
+            const dashboardMap = {
+                1: 'home',
+                2: 'dashboard/financeiro',
+                3: 'dashboard/coordenacao',
+                4: 'dashboard/professor',
+                5: 'dashboard/atendente',
+                6: 'dashboard/responsavel'
+            };
+            
+            const page = dashboardMap[perfilId] || 'dashboard/admin';
+            const url = normalizedBase ? `${normalizedBase}/index.php?page=${page}` : `index.php?page=${page}`;
+            return url.startsWith('/') ? url : `/${url}`;
+        }
+
+        // Event listener para o formulário
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            toggleButtonLoading(true);
+            
+            try {
+                const result = await login(email, password);
+                
+                if (result.success) {
+                    showAlert('Login realizado com sucesso! Redirecionando...', 'success');
+                    
+                // Redirecionar baseado no perfil do usuário
+                setTimeout(() => {
+                    const perfilId = result.user?.perfil_id || 1;
+                    
+                    const redirectUrl = buildDashboardUrl(perfilId);
+                    
+                    window.location.href = redirectUrl;
+                }, 1500);
+                } else {
+                    showAlert(result.message || 'Erro ao fazer login');
+                }
+            } catch (error) {
+                showAlert('Erro de conexão. Tente novamente.');
+            } finally {
+                toggleButtonLoading(false);
+            }
+        });
+
+        // Verificar se já está logado
+        async function checkUserAuth() {
+            // Não verificar sessão automaticamente - sempre mostrar login
+        }
+
+        // Verificar autenticação ao carregar a página
+        checkUserAuth();
+
+        // Adicionar efeitos visuais
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.classList.add('ring-2', 'ring-blue-500');
+            });
+            
+            input.addEventListener('blur', () => {
+                input.parentElement.classList.remove('ring-2', 'ring-blue-500');
+            });
+        });
+    </script>
+</body>
+</html>

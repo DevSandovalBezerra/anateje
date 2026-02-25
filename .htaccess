@@ -1,0 +1,15 @@
+# ANATEJE - Apache Rewrite Rules (local/prod friendly)
+
+RewriteEngine On
+RewriteBase /anateje/
+
+# Serve existing files/directories directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Optional public alias kept for legacy links
+RewriteRule ^matricula\.php$ frontend/public/matricula.php [QSA,L]
+
+# Front controller fallback
+RewriteRule ^ index.php [QSA,L]

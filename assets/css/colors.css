@@ -1,0 +1,552 @@
+/* LiderGest - Nova Paleta de Cores */
+/* Sistema de Gestão Pedagógico-Financeira Líder School */
+
+:root {
+    /* Cores Primárias - Paleta Roxa LíderGest */
+    --primary-purple-dark: #5B21B6;      /* Roxo escuro - sidebar, headers */
+    --primary-purple: #8B5CF6;           /* Roxo vibrante - botões, links ativos */
+    --primary-purple-light: #EDE9FE;     /* Roxo claro - backgrounds, tabelas */
+    --primary-purple-medium: #7B3ED6;     /* Roxo médio - elementos secundários */
+    
+    /* Cores Secundárias */
+    --secondary-white: #ffffff;
+    --secondary-gray-50: #f8fafc;
+    --secondary-gray-100: #f1f5f9;
+    --secondary-gray-200: #e2e8f0;
+    --secondary-gray-300: #cbd5e1;
+    --secondary-gray-400: #94a3b8;
+    --secondary-gray-500: #64748b;
+    --secondary-gray-600: #475569;
+    --secondary-gray-700: #334155;
+    --secondary-gray-800: #1e293b;
+    --secondary-gray-900: #0f172a;
+    
+    /* Cores de Status */
+    --success-green: #10b981;
+    --warning-yellow: #f59e0b;
+    --error-red: #ef4444;
+    --info-purple: var(--primary-purple);
+    
+    /* Cores de Texto */
+    --text-primary: var(--secondary-gray-900);
+    --text-secondary: var(--secondary-gray-600);
+    --text-light: var(--secondary-gray-400);
+    --text-inverse: #ffffff;
+    
+    /* Cores de Fundo */
+    --bg-primary: var(--secondary-white);
+    --bg-secondary: var(--secondary-gray-50);
+    --bg-tertiary: var(--secondary-gray-100);
+    
+    /* Gradientes */
+    --gradient-primary: linear-gradient(135deg, var(--primary-purple-dark) 0%, var(--primary-purple) 100%);
+    --gradient-dark: linear-gradient(135deg, var(--primary-purple-dark) 0%, var(--primary-purple-medium) 100%);
+    
+    /* Sombras */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    
+    /* Bordas */
+    --border-radius-sm: 0.375rem;
+    --border-radius-md: 0.5rem;
+    --border-radius-lg: 0.75rem;
+    --border-radius-xl: 1rem;
+}
+
+/* =========================================================
+   Ajustes de contraste e layout (Matrículas)
+   ========================================================= */
+
+/* Garantir contraste em botões primários (evita variável indefinida) */
+.btn-primary,
+.btn-primary:visited {
+    color: var(--text-inverse) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    color: var(--text-inverse) !important;
+}
+
+/* Modal "Nova Matrícula" mais elegante (não ocupar tela inteira) */
+#modalNovaMatricula {
+    /* Backdrop mais moderno */
+    background-color: rgba(15, 23, 42, 0.45) !important;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    animation: lgModalBackdropFade 160ms ease-out;
+}
+
+#modalNovaMatricula > div {
+    /* Um pouco menor para não “esticar” demais em telas grandes */
+    width: min(860px, calc(100% - 2rem));
+    max-height: 85vh;
+    overflow: hidden;
+    animation: lgModalPop 180ms ease-out;
+}
+
+#modalNovaMatricula > div > .bg-white {
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+#modalNovaMatricula form {
+    max-height: calc(85vh - 140px);
+    overflow-y: auto;
+}
+
+@keyframes lgModalBackdropFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes lgModalPop {
+    from { transform: translateY(10px) scale(0.985); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Classes utilitárias para cores */
+.bg-primary-purple-dark { background-color: var(--primary-purple-dark); }
+.bg-primary-purple { background-color: var(--primary-purple); }
+.bg-primary-purple-light { background-color: var(--primary-purple-light); }
+.bg-primary-purple-medium { background-color: var(--primary-purple-medium); }
+
+.text-primary-purple-dark { color: var(--primary-purple-dark); }
+.text-primary-purple { color: var(--primary-purple); }
+.text-primary-purple-light { color: var(--primary-purple-light); }
+.text-primary-purple-medium { color: var(--primary-purple-medium); }
+
+.border-primary-purple-dark { border-color: var(--primary-purple-dark); }
+.border-primary-purple { border-color: var(--primary-purple); }
+.border-primary-purple-light { border-color: var(--primary-purple-light); }
+.border-primary-purple-medium { border-color: var(--primary-purple-medium); }
+
+/* Gradientes */
+.bg-gradient-primary { background: var(--gradient-primary); }
+.bg-gradient-dark { background: var(--gradient-dark); }
+
+/* Botões com nova paleta */
+.btn-primary {
+    background: var(--gradient-primary);
+    border: none;
+    color: var(--text-inverse);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius-md);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+    background: var(--primary-purple-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    color: var(--primary-purple-dark);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius-md);
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: var(--bg-hover);
+    color: var(--primary-purple-dark);
+    border-color: var(--primary-purple);
+}
+
+/* Cards com nova paleta */
+.card-primary {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+    color: var(--text-primary);
+}
+
+.card-primary:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-purple);
+}
+
+/* Sidebar com nova paleta */
+.sidebar-primary {
+    background: var(--bg-sidebar);
+    background-image: var(--gradient-sidebar);
+    color: var(--text-inverse);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.sidebar-primary nav {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.sidebar-primary nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-primary nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-primary nav::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.sidebar-primary nav::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+.sidebar-primary .nav-item {
+    color: var(--text-sidebar);
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius-sm);
+    margin: 0.25rem 0;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.sidebar-primary .nav-item:hover {
+    background: var(--primary-purple-medium);
+    color: var(--text-sidebar);
+}
+
+.sidebar-primary .nav-item.active {
+    background: var(--primary-purple);
+    color: var(--text-sidebar);
+    font-weight: 600;
+}
+
+/* Submenu items */
+.sidebar-primary .nav-submenu {
+    color: var(--text-sidebar-muted);
+    padding: 0.5rem 1rem 0.5rem 2rem;
+    border-radius: var(--border-radius-sm);
+    margin: 0.125rem 0;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.sidebar-primary .nav-submenu:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: var(--text-sidebar);
+    transform: translateX(2px);
+}
+
+.sidebar-primary .nav-submenu.active,
+.sidebar-primary .nav-submenu.financeiro-active {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.14));
+    color: var(--text-sidebar);
+    font-weight: 600;
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28), inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    border-left: 4px solid rgba(255, 255, 255, 0.75);
+    padding-left: calc(2rem - 4px);
+    transform: translateX(3px);
+}
+
+/* Header com nova paleta */
+.header-primary {
+    background: var(--bg-header);
+    border-bottom: 1px solid var(--border-primary);
+    box-shadow: var(--shadow-sm);
+    color: var(--text-primary);
+}
+
+/* Gráficos com nova paleta */
+.chart-primary {
+    --chart-color-1: var(--primary-purple-dark);
+    --chart-color-2: var(--primary-purple);
+    --chart-color-3: var(--primary-purple-medium);
+    --chart-color-4: var(--success-green);
+    --chart-color-5: var(--warning-yellow);
+}
+
+/* Tabelas com nova paleta */
+.table-primary {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    color: var(--text-primary);
+}
+
+.table-primary th {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-weight: 600;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.table-primary td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-primary);
+    color: var(--text-primary);
+}
+
+.table-primary tr:hover {
+    background: var(--bg-hover);
+}
+
+/* Status badges */
+.badge-success {
+    background: var(--success-green);
+    color: var(--text-inverse);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.badge-warning {
+    background: var(--warning-yellow);
+    color: var(--text-inverse);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.badge-error {
+    background: var(--error-red);
+    color: var(--text-inverse);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.badge-info {
+    background: var(--info-purple);
+    color: var(--text-inverse);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+/* Input fields */
+.input-primary {
+    border: 2px solid var(--border-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    width: 100%;
+}
+
+.input-primary::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+.input-primary:focus {
+    border-color: var(--border-focus);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-purple-light);
+    background: var(--bg-input);
+    color: var(--text-primary);
+}
+
+.input-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--bg-tertiary);
+}
+
+.input-primary[readonly] {
+    background: var(--bg-tertiary);
+    cursor: default;
+}
+
+/* Ícones de busca dentro dos inputs */
+.relative svg.lucide-search {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1rem;
+    height: 1rem;
+    color: var(--secondary-dark-gray);
+    pointer-events: none;
+}
+
+.relative svg.lucide-search + .input-primary {
+    padding-left: 2.5rem;
+}
+
+/* Menu Financeiro Diferenciado - Cores com melhor contraste */
+.financeiro-menu-header {
+    background: transparent;
+    border-left: none;
+    color: var(--text-sidebar);
+}
+
+.financeiro-menu-header:hover {
+    background: var(--primary-purple-medium);
+    color: var(--text-sidebar);
+}
+
+.financeiro-icon {
+    color: inherit;
+    filter: none;
+}
+
+.financeiro-text {
+    color: inherit;
+    text-shadow: none;
+}
+
+#financeiro-submenu {
+    border-left: none;
+    padding-left: 0.5rem;
+}
+
+#financeiro-submenu > div {
+    margin-bottom: 0.75rem;
+}
+
+#financeiro-submenu .text-xs {
+    color: var(--text-sidebar-muted);
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+#financeiro-submenu .text-xs i {
+    color: var(--financeiro-icon);
+    margin-right: 0.5rem;
+}
+
+.financeiro-submenu-item {
+    padding: 0.5rem 0.75rem;
+    margin-left: 0.5rem;
+    margin-bottom: 0.25rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    color: var(--text-sidebar-muted);
+    border-left: none;
+}
+
+.financeiro-submenu-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-sidebar);
+    transform: none;
+}
+
+.financeiro-submenu-item.financeiro-active {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: var(--text-sidebar);
+    font-weight: 500;
+    box-shadow: none;
+}
+
+.financeiro-submenu-item i {
+    width: 0.875rem;
+    height: 0.875rem;
+    margin-right: 0.5rem;
+    opacity: 0.8;
+    color: inherit;
+}
+
+.financeiro-submenu-item:hover i,
+.financeiro-submenu-item.financeiro-active i {
+    opacity: 1;
+    color: inherit;
+    filter: none;
+}
+
+/* Scroll customizado para submenu financeiro */
+.financeiro-submenu-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    padding-right: 0.25rem;
+}
+
+.financeiro-submenu-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.financeiro-submenu-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.financeiro-submenu-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+}
+
+.financeiro-submenu-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Garantir que todos os submenus tenham scroll quando necessário */
+#financeiro-submenu,
+[id$="-submenu"] {
+    max-height: 70vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+[id$="-submenu"]::-webkit-scrollbar {
+    width: 5px;
+}
+
+[id$="-submenu"]::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+[id$="-submenu"]::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 2.5px;
+}
+
+[id$="-submenu"]::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Cabeçalhos ordenáveis – destaque verde bebê semi-transparente (carregado aqui para garantir aplicação) */
+.sortable-header {
+    background-color: rgba(200, 230, 210, 0.45);
+    border-radius: 0.25rem;
+}
+.sortable-header:hover {
+    background-color: rgba(200, 230, 210, 0.65);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .card-primary {
+        padding: 1rem;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        padding: 0.625rem 1.25rem;
+        font-size: 0.875rem;
+    }
+}

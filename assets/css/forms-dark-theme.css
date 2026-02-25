@@ -1,0 +1,244 @@
+/* LiderGest - Estilos de Formulários para Temas Dark */
+/* Sistema de Gestão Pedagógico-Financeira Líder School */
+
+/* Modais - Substituir bg-white por variáveis */
+.fixed.inset-0.bg-black.bg-opacity-50 ~ div,
+[id*="modal"] > div:first-child,
+.modal-container {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Headers de modais */
+.modal-header,
+.sticky.top-0.bg-white,
+[id*="modal"] .sticky.top-0 {
+    background: var(--bg-card) !important;
+    border-bottom-color: var(--border-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Títulos de modais */
+.modal-title,
+[id*="modal"] h2,
+.text-xl.font-bold.text-secondary-black {
+    color: var(--text-primary) !important;
+}
+
+/* Botões de fechar modal */
+[id*="modal"] button.text-secondary-dark-gray,
+[id*="modal"] button.hover\:text-secondary-black {
+    color: var(--text-secondary) !important;
+}
+
+[id*="modal"] button.text-secondary-dark-gray:hover,
+[id*="modal"] button.hover\:text-secondary-black:hover {
+    color: var(--text-primary) !important;
+}
+
+/* Labels de formulários */
+label.block.text-sm.font-medium.text-secondary-dark-gray,
+.form-label,
+label {
+    color: var(--text-primary) !important;
+}
+
+/* Inputs - Garantir que usem variáveis */
+input.input-primary,
+textarea.input-primary,
+select.input-primary,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+textarea,
+select {
+    background: var(--bg-input) !important;
+    border-color: var(--border-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+input.input-primary::placeholder,
+textarea.input-primary::placeholder,
+select.input-primary::placeholder,
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder,
+input[type="number"]::placeholder,
+textarea::placeholder {
+    color: var(--text-muted) !important;
+}
+
+input.input-primary:focus,
+textarea.input-primary:focus,
+select.input-primary:focus,
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+textarea:focus,
+select:focus {
+    background: var(--bg-input) !important;
+    border-color: var(--border-focus) !important;
+    color: var(--text-primary) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px var(--primary-purple-light) !important;
+}
+
+/* Checkboxes */
+input[type="checkbox"] {
+    accent-color: var(--primary-purple) !important;
+    background-color: var(--bg-input) !important;
+    border-color: var(--border-primary) !important;
+}
+
+input[type="checkbox"]:checked {
+    background-color: var(--primary-purple) !important;
+    border-color: var(--primary-purple) !important;
+}
+
+/* Radios */
+input[type="radio"] {
+    accent-color: var(--primary-purple) !important;
+}
+
+/* Selects - Garantir que o dropdown também use as cores corretas */
+select option {
+    background: var(--bg-input) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Divisores e bordas */
+.border-t,
+.border-b,
+.border-gray-200,
+.border-gray-300 {
+    border-color: var(--border-primary) !important;
+}
+
+/* Textos de ajuda e erros */
+.text-secondary-dark-gray,
+.text-gray-500,
+.text-gray-600,
+.form-help {
+    color: var(--text-secondary) !important;
+}
+
+.text-xs.text-secondary-dark-gray {
+    color: var(--text-muted) !important;
+}
+
+/* Botões secundários em modais */
+.btn-secondary {
+    background: var(--bg-secondary) !important;
+    border-color: var(--border-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+.btn-secondary:hover {
+    background: var(--bg-hover) !important;
+    border-color: var(--primary-purple) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Listas e containers dentro de modais */
+.space-y-4 > *,
+.space-y-2 > * {
+    color: var(--text-primary);
+}
+
+/* Scrollbars em modais */
+[id*="modal"]::-webkit-scrollbar {
+    width: 8px;
+}
+
+[id*="modal"]::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+}
+
+[id*="modal"]::-webkit-scrollbar-thumb {
+    background: var(--border-secondary);
+    border-radius: 4px;
+}
+
+[id*="modal"]::-webkit-scrollbar-thumb:hover {
+    background: var(--border-primary);
+}
+
+/* Overlay de modais */
+.fixed.inset-0.bg-black.bg-opacity-50 {
+    background: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Ajustes específicos para dark-blue */
+:root[data-theme="dark-blue"] .fixed.inset-0.bg-black.bg-opacity-50 {
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Ajustes específicos para monokai */
+:root[data-theme="monokai"] .fixed.inset-0.bg-black.bg-opacity-50 {
+    background: rgba(0, 0, 0, 0.75) !important;
+}
+
+/* Garantir que todos os elementos de formulário dentro de modais usem as cores corretas */
+[id*="modal"] * {
+    color: inherit;
+}
+
+/* Textos específicos que precisam de ajuste */
+[id*="modal"] .text-secondary-black {
+    color: var(--text-primary) !important;
+}
+
+[id*="modal"] .text-secondary-dark-gray {
+    color: var(--text-secondary) !important;
+}
+
+/* Grids dentro de modais */
+.grid.grid-cols-2 {
+    gap: 1rem;
+}
+
+/* Áreas de texto */
+textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Inputs de data e número */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+    color-scheme: dark;
+}
+
+:root[data-theme="light"] input[type="date"],
+:root[data-theme="light"] input[type="time"],
+:root[data-theme="light"] input[type="datetime-local"] {
+    color-scheme: light;
+}
+
+/* Placeholders com melhor contraste */
+input::placeholder,
+textarea::placeholder {
+    opacity: 0.7;
+}
+
+/* Estados disabled */
+input:disabled,
+textarea:disabled,
+select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--bg-tertiary) !important;
+}
+
+/* Estados readonly */
+input[readonly],
+textarea[readonly] {
+    background: var(--bg-tertiary) !important;
+    cursor: default;
+}
+

@@ -1,0 +1,246 @@
+<?php
+// Template Base - Sistema RBAC (Role-Based Access Control)
+
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/base_path.php';
+
+class RBAC
+{
+    private $db;
+    private $permissionsCache = [];
+
+    // Estrutura genérica de fallback
+    private $permissionsFallback = [
+        1 => [ // Admin Global
+            'dashboard' => ['admin'],
+        ],
+        2 => [ // User
+            'dashboard' => ['user'],
+        ]
+    ];
+
+    public function __construct()
+    {
+        $this->db = getDB();
+    }
+
+    private function loadPermissionsFromDB($perfil_id)
+    {
+        if (isset($this->permissionsCache[$perfil_id])) {
+            return $this->permissionsCache[$perfil_id];
+        }
+
+        try {
+            $permissions = $this->permissionsFallback[$perfil_id] ?? [];
+
+            $stmt = $this->db->prepare("
+                SELECT p.codigo, p.modulo, pp.concedida
+                FROM perfil_permissoes pp
+                INNER JOIN permissoes p ON pp.permissao_id = p.id
+                WHERE pp.perfil_id = ? AND p.ativo = 1 AND pp.concedida = 1
+                ORDER BY p.modulo, p.ordem
+            ");
+            $stmt->execute([$perfil_id]);
+            $permissoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $permissoesDB = [];
+            foreach ($permissoes as $perm) {
+                $modulo = $perm['modulo'];
+                $codigo = $perm['codigo'];
+
+                $parts = explode('.', $codigo);
+                if (count($parts) === 2) {
+                    $page = $parts[1];
+                    if (!isset($permissoesDB[$modulo])) {
+                        $permissoesDB[$modulo] = [];
+                    }
+                    if (!in_array($page, $permissoesDB[$modulo])) {
+                        $permissoesDB[$modulo][] = $page;
+                    }
+                }
+            }
+
+            foreach ($permissions as $modulo => $pagesFallback) {
+                if (isset($permissoesDB[$modulo])) {
+                    $permissions[$modulo] = array_unique(array_merge($permissoesDB[$modulo], $pagesFallback));
+                } else {
+                    $permissions[$modulo] = $pagesFallback;
+                }
+            }
+
+            foreach ($permissoesDB as $modulo => $pages) {
+                if (!isset($permissions[$modulo])) {
+                    $permissions[$modulo] = $pages;
+                }
+            }
+
+            $this->permissionsCache[$perfil_id] = $permissions;
+            return $permissions;
+
+        } catch (Exception $e) {
+            logError("Erro ao carregar permissões do banco: " . $e->getMessage());
+            $permissions = $this->permissionsFallback[$perfil_id] ?? [];
+            $this->permissionsCache[$perfil_id] = $permissions;
+            return $permissions;
+        }
+    }
+
+    public function hasPermission($perfil_id, $module, $page = null)
+    {
+        if ($perfil_id == 1) {
+            return true; // Admin sempre tem acesso a tudo
+        }
+
+        if ($module === 'admin') {
+            return false;
+        }
+
+        $userPermissions = $this->loadPermissionsFromDB($perfil_id);
+
+        if (!isset($userPermissions[$module])) {
+            return false;
+        }
+
+        if ($page === null) {
+            return true;
+        }
+
+        return in_array($page, $userPermissions[$module]);
+    }
+
+    public function canAccessDashboard($perfil_id, $dashboard)
+    {
+        if ($perfil_id == 1) {
+            return true;
+        }
+        $userPermissions = $this->loadPermissionsFromDB($perfil_id);
+        if (!isset($userPermissions['dashboard']))
+            return false;
+        return in_array($dashboard, $userPermissions['dashboard']);
+    }
+
+    public function getUserPermissions($perfil_id)
+    {
+        return $this->loadPermissionsFromDB($perfil_id);
+    }
+
+    public function protectPage($module, $page = null)
+    {
+        if (!isset($_SESSION['user_id']) || !isset($_SESSION['perfil_id'])) {
+            header('Location: ' . lidergest_base_prefix() . 'frontend/auth/login.html');
+            exit;
+        }
+        $perfil_id = $_SESSION['perfil_id'];
+        if (!$this->hasPermission($perfil_id, $module, $page)) {
+            $this->redirectToDashboard($perfil_id);
+        }
+    }
+
+    public function protectDashboard($dashboard)
+    {
+        if (!isset($_SESSION['user_id']) || !isset($_SESSION['perfil_id'])) {
+            header('Location: ' . lidergest_base_prefix() . 'frontend/auth/login.html');
+            exit;
+        }
+        $perfil_id = $_SESSION['perfil_id'];
+        if (!$this->canAccessDashboard($perfil_id, $dashboard)) {
+            $this->redirectToDashboard($perfil_id);
+        }
+    }
+
+    public function canAccessPage($perfil_id, $module, $page = null)
+    {
+        if ($module === 'dashboard') {
+            return $this->canAccessDashboard($perfil_id, $page);
+        }
+        return $this->hasPermission($perfil_id, $module, $page);
+    }
+
+    public function hasPermissionForPage($perfil_id, $module, $page)
+    {
+        if ($module === 'dashboard') {
+            $dashboardMap = [1 => 'admin', 2 => 'user'];
+            $userDashboard = $dashboardMap[$perfil_id] ?? null;
+            return $userDashboard === $page;
+        }
+
+        if ($perfil_id == 1) {
+            return true;
+        }
+
+        if ($module === 'admin') {
+            return false;
+        }
+
+        return $this->hasPermission($perfil_id, $module, $page);
+    }
+
+    private function redirectToDashboard($perfil_id)
+    {
+        $prefix = lidergest_base_prefix();
+        switch ($perfil_id) {
+            case 1:
+                header("Location: {$prefix}index.php?page=home");
+                break;
+            default:
+                header("Location: {$prefix}index.php?page=dashboard/user");
+        }
+        exit;
+    }
+
+    public function generateMenu($perfil_id)
+    {
+        $permissions = $this->getUserPermissions($perfil_id);
+        $menu = [];
+
+        if (isset($permissions['dashboard'])) {
+            $dashboardMap = [1 => 'admin', 2 => 'user'];
+            $userDashboard = $dashboardMap[$perfil_id] ?? null;
+            $dashboardsPermitidos = [];
+            if ($userDashboard && in_array($userDashboard, $permissions['dashboard'])) {
+                $dashboardsPermitidos = [$userDashboard];
+            } else {
+                $dashboardsPermitidos = !empty($permissions['dashboard']) ? [reset($permissions['dashboard'])] : [];
+            }
+            if (!empty($dashboardsPermitidos)) {
+                $menu['dashboard'] = [
+                    'name' => 'Dashboard',
+                    'icon' => 'layout-dashboard',
+                    'pages' => $dashboardsPermitidos
+                ];
+            }
+        }
+
+        // Outros módulos extraídos do DB
+        foreach ($permissions as $mod => $pages) {
+            if ($mod !== 'dashboard' && !empty($pages)) {
+                // Remove underscores para name e escolhe um icone generico
+                $menu[$mod] = [
+                    'name' => ucfirst(str_replace('_', ' ', $mod)),
+                    'icon' => 'folder',
+                    'pages' => $pages
+                ];
+            }
+        }
+
+        return $menu;
+    }
+}
+
+function checkPermission($module, $page = null)
+{
+    $rbac = new RBAC();
+    $rbac->protectPage($module, $page);
+}
+
+function checkDashboardAccess($dashboard)
+{
+    $rbac = new RBAC();
+    $rbac->protectDashboard($dashboard);
+}
+
+function getUserMenu($perfil_id)
+{
+    $rbac = new RBAC();
+    return $rbac->generateMenu($perfil_id);
+}

@@ -1,0 +1,303 @@
+/* ANATEJE Premium Components
+   Reusable UI primitives for public pages and member/admin surfaces.
+*/
+
+:root {
+    --px-glass-bg: rgba(22, 16, 10, 0.74);
+    --px-glass-border: rgba(255, 255, 255, 0.12);
+    --px-focus-ring: 0 0 0 3px rgba(166, 118, 76, 0.3);
+}
+
+.px-theme-shell {
+    background:
+        radial-gradient(circle at 10% -20%, rgba(166, 118, 76, 0.2), transparent 45%),
+        radial-gradient(circle at 100% 0%, rgba(38, 35, 83, 0.3), transparent 45%),
+        var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.px-container {
+    width: min(1220px, calc(100% - 2.4rem));
+    margin: 0 auto;
+}
+
+.px-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 70;
+    backdrop-filter: blur(14px);
+    background: rgba(13, 7, 2, 0.72);
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.px-navbar__inner {
+    min-height: 78px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.px-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.px-brand__mark {
+    width: 46px;
+    height: 46px;
+    border-radius: 999px;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.px-brand__name {
+    font-family: var(--an-font-heading);
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    font-size: 1.3rem;
+}
+
+.px-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.95rem;
+}
+
+.px-nav__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    padding: 0 0.65rem;
+    border-radius: 999px;
+    color: var(--text-secondary);
+    font-weight: 700;
+    font-size: 0.94rem;
+    transition: all var(--an-speed-fast) var(--an-ease-standard);
+}
+
+.px-nav__link:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.px-nav__link[aria-current="page"] {
+    color: var(--text-primary);
+    background: rgba(166, 118, 76, 0.2);
+}
+
+.px-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.px-btn {
+    border: 1px solid transparent;
+    border-radius: 999px;
+    height: 42px;
+    padding: 0 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.44rem;
+    font-weight: 700;
+    font-size: 0.92rem;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--an-speed-fast) var(--an-ease-standard);
+}
+
+.px-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--px-focus-ring);
+}
+
+.px-btn--primary {
+    color: var(--an-text-dark);
+    background: var(--an-grad-cta);
+    box-shadow: var(--an-shadow-sm);
+}
+
+.px-btn--primary:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--an-shadow-md);
+}
+
+.px-btn--outline {
+    color: var(--text-primary);
+    border-color: var(--border-secondary);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.px-btn--outline:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.px-btn--ghost {
+    color: var(--text-secondary);
+    border-color: transparent;
+    background: transparent;
+}
+
+.px-btn--ghost:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.px-btn--danger {
+    color: #fff;
+    border-color: var(--error-red);
+    background: linear-gradient(120deg, var(--error-red), #912f2f);
+}
+
+.px-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    height: 28px;
+    padding: 0 0.65rem;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    border: 1px solid var(--border-primary);
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.px-badge--gold {
+    color: #f3dbc2;
+    border-color: rgba(166, 118, 76, 0.45);
+    background: rgba(166, 118, 76, 0.16);
+}
+
+.px-card {
+    border: 1px solid var(--border-primary);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.042) 0%, rgba(255, 255, 255, 0) 100%), var(--bg-card);
+    box-shadow: var(--an-shadow-sm);
+    overflow: clip;
+}
+
+.px-card--glass {
+    background: var(--px-glass-bg);
+    border-color: var(--px-glass-border);
+    backdrop-filter: blur(10px);
+}
+
+.px-card--elevated {
+    box-shadow: var(--an-shadow-md);
+}
+
+.px-card--feature {
+    position: relative;
+    isolation: isolate;
+}
+
+.px-card--feature::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+        radial-gradient(520px 90px at 90% 0%, rgba(38, 35, 83, 0.35), transparent 70%),
+        radial-gradient(380px 120px at 0% 100%, rgba(166, 118, 76, 0.25), transparent 75%);
+}
+
+.px-card__media {
+    aspect-ratio: 16 / 10;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: #1d1510;
+}
+
+.px-card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 18%;
+}
+
+.px-card__body {
+    padding: 0.95rem;
+}
+
+.px-card__title {
+    margin: 0;
+    font-family: var(--an-font-heading);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    font-size: 1.1rem;
+}
+
+.px-card__desc {
+    margin: 0.45rem 0 0;
+    color: var(--text-secondary);
+    line-height: 1.62;
+}
+
+.px-card__footer {
+    margin-top: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+}
+
+.px-date-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 26px;
+    padding: 0 0.58rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #e8c7a6;
+    border: 1px solid rgba(166, 118, 76, 0.46);
+}
+
+.px-input,
+.px-select,
+.px-textarea {
+    width: 100%;
+    border: 1px solid var(--border-secondary);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    border-radius: 12px;
+    min-height: 44px;
+    padding: 0.68rem 0.76rem;
+}
+
+.px-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.px-input::placeholder,
+.px-textarea::placeholder {
+    color: var(--text-muted);
+}
+
+.px-input:focus,
+.px-select:focus,
+.px-textarea:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: var(--px-focus-ring);
+}
+
+.px-divider {
+    height: 1px;
+    border: 0;
+    background: linear-gradient(90deg, transparent, rgba(166, 118, 76, 0.5), transparent);
+}
+
+@media (max-width: 920px) {
+    .px-nav {
+        display: none;
+    }
+}

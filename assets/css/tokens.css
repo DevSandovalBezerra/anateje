@@ -1,0 +1,130 @@
+/* ANATEJE Design Tokens */
+
+:root {
+    /* Typography */
+    --an-font-heading: "League Spartan", "Segoe UI", sans-serif;
+    --an-font-body: "Open Sans", "Segoe UI", sans-serif;
+
+    /* Brand palette */
+    --an-color-bg: #0d0702;
+    --an-color-neutral: #696969;
+    --an-color-wine: #5c2620;
+    --an-color-gold: #a6764c;
+    --an-color-blue: #262353;
+
+    /* Surfaces */
+    --an-surface-1: #16100a;
+    --an-surface-2: #1d1510;
+    --an-surface-3: #251b14;
+
+    /* Text */
+    --an-text-primary: #f6f2ef;
+    --an-text-secondary: #c9bfb8;
+    --an-text-muted: #9a918b;
+    --an-text-dark: #2a2019;
+
+    /* Borders */
+    --an-border-subtle: #3a2b22;
+    --an-border-strong: #5a4638;
+
+    /* Feedback */
+    --an-success: #1f8f5f;
+    --an-warning: #b9862f;
+    --an-danger: #b74242;
+    --an-info: #3a69d8;
+
+    /* Radius */
+    --an-radius-sm: 8px;
+    --an-radius-md: 12px;
+    --an-radius-lg: 16px;
+    --an-radius-xl: 24px;
+
+    /* Shadows */
+    --an-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.18);
+    --an-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.24);
+    --an-shadow-lg: 0 18px 40px rgba(0, 0, 0, 0.30);
+
+    /* Motion */
+    --an-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --an-speed-fast: 120ms;
+    --an-speed-medium: 200ms;
+    --an-speed-slow: 300ms;
+
+    /* Gradients */
+    --an-grad-hero: linear-gradient(135deg, #262353 0%, #5c2620 55%, #a6764c 100%);
+    --an-grad-cta: linear-gradient(90deg, #a6764c 0%, #c08a5a 100%);
+    --an-grad-card: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0) 100%);
+
+    /* Semantic app aliases */
+    --bg-primary: var(--an-color-bg);
+    --bg-secondary: var(--an-surface-1);
+    --bg-tertiary: var(--an-surface-2);
+    --bg-card: var(--an-surface-1);
+    --bg-header: var(--an-surface-2);
+    --bg-sidebar: var(--an-surface-2);
+    --bg-input: var(--an-surface-3);
+    --bg-hover: #2b2019;
+
+    --text-primary: var(--an-text-primary);
+    --text-secondary: var(--an-text-secondary);
+    --text-light: var(--an-text-muted);
+    --text-muted: var(--an-text-muted);
+    --text-inverse: #ffffff;
+    --text-sidebar: var(--an-text-primary);
+    --text-sidebar-muted: var(--an-text-secondary);
+
+    --border-primary: var(--an-border-subtle);
+    --border-secondary: var(--an-border-strong);
+    --border-focus: var(--an-color-gold);
+
+    /* Legacy aliases (compatibility while migrating) */
+    --primary-purple-dark: var(--an-color-wine);
+    --primary-purple: var(--an-color-gold);
+    --primary-purple-light: rgba(166, 118, 76, 0.22);
+    --primary-purple-medium: var(--an-color-blue);
+
+    --secondary-white: #ffffff;
+    --secondary-gray-50: #f7f3ef;
+    --secondary-gray-100: #ede6df;
+    --secondary-gray-200: #dccfc3;
+    --secondary-gray-300: #c1af9f;
+    --secondary-gray-400: #a48f7d;
+    --secondary-gray-500: #866f5c;
+    --secondary-gray-600: #6c5748;
+    --secondary-gray-700: #534235;
+    --secondary-gray-800: #3d3027;
+    --secondary-gray-900: #211a15;
+
+    --success-green: var(--an-success);
+    --warning-yellow: var(--an-warning);
+    --error-red: var(--an-danger);
+    --info-purple: var(--an-info);
+
+    --gradient-primary: var(--an-grad-cta);
+    --gradient-dark: linear-gradient(135deg, var(--an-color-blue) 0%, var(--an-color-wine) 100%);
+    --gradient-sidebar: linear-gradient(180deg, #1d1510 0%, #0d0702 100%);
+
+    --shadow-sm: var(--an-shadow-sm);
+    --shadow-md: var(--an-shadow-md);
+    --shadow-lg: var(--an-shadow-lg);
+    --shadow-xl: var(--an-shadow-lg);
+
+    --border-radius-sm: var(--an-radius-sm);
+    --border-radius-md: var(--an-radius-md);
+    --border-radius-lg: var(--an-radius-lg);
+    --border-radius-xl: var(--an-radius-xl);
+}
+
+html,
+body {
+    font-family: var(--an-font-body);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--an-font-heading);
+}

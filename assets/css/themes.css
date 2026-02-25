@@ -1,0 +1,146 @@
+/* ANATEJE Theme Overrides
+   The canonical tokens are defined in assets/css/tokens.css.
+*/
+
+:root,
+:root[data-theme="light"] {
+    --an-color-bg: #0d0702;
+    --an-surface-1: #16100a;
+    --an-surface-2: #1d1510;
+    --an-surface-3: #251b14;
+
+    --an-text-primary: #f6f2ef;
+    --an-text-secondary: #c9bfb8;
+    --an-text-muted: #9a918b;
+    --an-text-dark: #2a2019;
+
+    --an-color-wine: #5c2620;
+    --an-color-gold: #a6764c;
+    --an-color-blue: #262353;
+
+    --an-border-subtle: #3a2b22;
+    --an-border-strong: #5a4638;
+}
+
+:root[data-theme="dark-blue"] {
+    --an-color-bg: #0a1020;
+    --an-surface-1: #11192b;
+    --an-surface-2: #172238;
+    --an-surface-3: #1f2c45;
+
+    --an-text-primary: #edf2ff;
+    --an-text-secondary: #c0cce7;
+    --an-text-muted: #95a5c8;
+    --an-text-dark: #172238;
+
+    --an-color-wine: #24315a;
+    --an-color-gold: #7ca1ff;
+    --an-color-blue: #2e61d3;
+
+    --an-border-subtle: #2a3e69;
+    --an-border-strong: #46619c;
+}
+
+:root[data-theme="monokai"] {
+    --an-color-bg: #1f1f1a;
+    --an-surface-1: #272822;
+    --an-surface-2: #302f29;
+    --an-surface-3: #3b3a32;
+
+    --an-text-primary: #f8f8f2;
+    --an-text-secondary: #d6d2b3;
+    --an-text-muted: #a7a38a;
+    --an-text-dark: #2f2e27;
+
+    --an-color-wine: #6b2f2a;
+    --an-color-gold: #e6db74;
+    --an-color-blue: #66d9ef;
+
+    --an-border-subtle: #4b493f;
+    --an-border-strong: #66614f;
+}
+
+/* Compatibility aliases consumed by legacy components */
+:root,
+:root[data-theme="light"],
+:root[data-theme="dark-blue"],
+:root[data-theme="monokai"] {
+    --bg-primary: var(--an-color-bg);
+    --bg-secondary: var(--an-surface-1);
+    --bg-tertiary: var(--an-surface-2);
+    --bg-card: var(--an-surface-1);
+    --bg-header: var(--an-surface-2);
+    --bg-sidebar: var(--an-surface-2);
+    --bg-input: var(--an-surface-3);
+    --bg-hover: #2b2019;
+
+    --text-primary: var(--an-text-primary);
+    --text-secondary: var(--an-text-secondary);
+    --text-light: var(--an-text-muted);
+    --text-muted: var(--an-text-muted);
+    --text-inverse: #ffffff;
+    --text-sidebar: var(--an-text-primary);
+    --text-sidebar-muted: var(--an-text-secondary);
+
+    --primary-purple-dark: var(--an-color-wine);
+    --primary-purple: var(--an-color-gold);
+    --primary-purple-light: rgba(166, 118, 76, 0.22);
+    --primary-purple-medium: var(--an-color-blue);
+
+    --success-green: var(--an-success);
+    --warning-yellow: var(--an-warning);
+    --error-red: var(--an-danger);
+    --info-purple: var(--an-info);
+
+    --border-primary: var(--an-border-subtle);
+    --border-secondary: var(--an-border-strong);
+    --border-focus: var(--an-color-gold);
+
+    --gradient-primary: var(--an-grad-cta);
+    --gradient-dark: linear-gradient(135deg, var(--an-color-blue) 0%, var(--an-color-wine) 100%);
+    --gradient-sidebar: linear-gradient(180deg, var(--an-surface-2) 0%, var(--an-color-bg) 100%);
+}
+
+/* Finance menu variables consumed by existing styles */
+:root,
+:root[data-theme="light"] {
+    --financeiro-bg: linear-gradient(135deg, rgba(166, 118, 76, 0.16) 0%, rgba(92, 38, 32, 0.2) 100%);
+    --financeiro-border: #c08a5a;
+    --financeiro-icon: #d5a275;
+    --financeiro-text: var(--text-sidebar);
+    --financeiro-hover-bg: rgba(166, 118, 76, 0.18);
+    --financeiro-active-bg: rgba(166, 118, 76, 0.24);
+    --financeiro-active-text: #f3d0a7;
+}
+
+:root[data-theme="dark-blue"] {
+    --financeiro-bg: linear-gradient(135deg, rgba(124, 161, 255, 0.2) 0%, rgba(46, 97, 211, 0.24) 100%);
+    --financeiro-border: #7ca1ff;
+    --financeiro-icon: #a4bfff;
+    --financeiro-text: var(--text-sidebar);
+    --financeiro-hover-bg: rgba(124, 161, 255, 0.22);
+    --financeiro-active-bg: rgba(124, 161, 255, 0.28);
+    --financeiro-active-text: #d3e1ff;
+}
+
+:root[data-theme="monokai"] {
+    --financeiro-bg: linear-gradient(135deg, rgba(230, 219, 116, 0.2) 0%, rgba(166, 226, 46, 0.22) 100%);
+    --financeiro-border: #e6db74;
+    --financeiro-icon: #e6db74;
+    --financeiro-text: var(--text-sidebar);
+    --financeiro-hover-bg: rgba(230, 219, 116, 0.22);
+    --financeiro-active-bg: rgba(166, 226, 46, 0.25);
+    --financeiro-active-text: #f6efad;
+}
+
+* {
+    transition: background-color var(--an-speed-medium) var(--an-ease-standard),
+        color var(--an-speed-medium) var(--an-ease-standard),
+        border-color var(--an-speed-medium) var(--an-ease-standard),
+        box-shadow var(--an-speed-medium) var(--an-ease-standard);
+}
+
+html,
+body {
+    transition: none;
+}
