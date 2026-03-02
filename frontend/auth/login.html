@@ -78,7 +78,7 @@
                     <input type="checkbox" class="rounded border-secondary-gray-300 text-primary-blue focus:ring-primary-blue">
                     <span class="muted-text ml-2 text-sm text-secondary-gray-600">Lembrar-me</span>
                 </label>
-                <a href="#" class="action-link text-sm text-primary-blue hover:text-primary-dark transition-colors">
+                <a href="forgot-password.html" class="action-link text-sm text-primary-blue hover:text-primary-dark transition-colors">
                     Esqueceu a senha?
                 </a>
             </div>
@@ -94,7 +94,7 @@
         <div class="mt-8 text-center">
             <p class="muted-text text-secondary-gray-600">
                 Não tem uma conta?
-                <a href="register.html" class="action-link text-primary-blue hover:text-primary-dark font-medium transition-colors">
+                <a href="../public/filiacao.php" class="action-link text-primary-blue hover:text-primary-dark font-medium transition-colors">
                     Cadastre-se aqui
                 </a>
             </p>
@@ -187,8 +187,8 @@
             const basePath = getBasePath();
             const normalizedBase = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
 
-            // Fluxo padrao do wrapper: admin vai para home, demais perfis para dashboard/user
-            const page = perfilId === 1 ? 'home' : 'dashboard/user';
+            // Fluxo padrao do wrapper: admin para dashboard/admin, demais perfis para dashboard/user
+            const page = perfilId === 1 ? 'dashboard/admin' : 'dashboard/user';
             const url = normalizedBase ? `${normalizedBase}/index.php?page=${page}` : `index.php?page=${page}`;
             return url.startsWith('/') ? url : `/${url}`;
         }

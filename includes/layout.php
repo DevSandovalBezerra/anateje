@@ -105,6 +105,12 @@ $baseUrl = lidergest_base_url();
                 transform: rotate(360deg);
             }
         }
+
+        .user-avatar-badge {
+            background: var(--profile-badge-bg);
+            color: var(--profile-badge-text);
+            border: 1px solid var(--sidebar-item-active-border);
+        }
     </style>
     <script src="<?php echo $baseUrl; ?>/assets/vendor/lucide/lucide.min.js"></script>
     <script src="<?php echo $baseUrl; ?>/assets/vendor/chartjs/chart.umd.min.js"></script>
@@ -147,8 +153,7 @@ $baseUrl = lidergest_base_url();
                         <p class="text-xs text-secondary-dark-gray" style="color: var(--text-light);">
                             <?php echo htmlspecialchars($user['perfil_nome'] ?? ''); ?></p>
                     </div>
-                    <div class="w-8 h-8 bg-primary-blue rounded-full flex items-center justify-center text-white text-sm font-medium"
-                        style="background: var(--primary-purple);">
+                    <div class="user-avatar-badge w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium">
                         <?php echo strtoupper(substr($user['nome'], 0, 2)); ?>
                     </div>
                 </div>

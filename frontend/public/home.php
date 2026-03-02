@@ -29,11 +29,11 @@ $basePath = '../../';
             </a>
 
             <nav class="px-nav" aria-label="Principal">
-                <a class="px-nav__link" href="#sobre">Sobre</a>
-                <a class="px-nav__link" href="#beneficios">Beneficios</a>
-                <a class="px-nav__link" href="#eventos">Eventos</a>
-                <a class="px-nav__link" href="#faq">FAQ</a>
-                <a class="px-nav__link" href="#contato">Contato</a>
+                <a class="px-nav__link" href="<?php echo $basePath; ?>frontend/public/sobre.php">Sobre</a>
+                <a class="px-nav__link" href="<?php echo $basePath; ?>frontend/public/beneficios.php">Beneficios</a>
+                <a class="px-nav__link" href="<?php echo $basePath; ?>frontend/public/eventos.php">Eventos</a>
+                <a class="px-nav__link" href="<?php echo $basePath; ?>frontend/public/blog.php">Blog</a>
+                <a class="px-nav__link" href="<?php echo $basePath; ?>frontend/public/contato.php">Contato</a>
             </nav>
 
             <div class="px-actions">
@@ -41,15 +41,15 @@ $basePath = '../../';
                     <i data-lucide="menu"></i>
                 </button>
                 <a href="<?php echo $basePath; ?>frontend/auth/login.html" class="px-btn px-btn--outline">Entrar</a>
-                <a href="#filiacao" class="px-btn px-btn--primary">Associe-se</a>
+                <a href="<?php echo $basePath; ?>frontend/public/filiacao.php" class="px-btn px-btn--primary">Associe-se</a>
             </div>
 
             <nav class="home-mobile-panel" id="home-mobile-panel" aria-label="Principal móvel">
-                <a href="#sobre">Sobre</a>
-                <a href="#beneficios">Beneficios</a>
-                <a href="#eventos">Eventos</a>
-                <a href="#faq">FAQ</a>
-                <a href="#contato">Contato</a>
+                <a href="<?php echo $basePath; ?>frontend/public/sobre.php">Sobre</a>
+                <a href="<?php echo $basePath; ?>frontend/public/beneficios.php">Beneficios</a>
+                <a href="<?php echo $basePath; ?>frontend/public/eventos.php">Eventos</a>
+                <a href="<?php echo $basePath; ?>frontend/public/blog.php">Blog</a>
+                <a href="<?php echo $basePath; ?>frontend/public/contato.php">Contato</a>
             </nav>
         </div>
     </header>
@@ -70,8 +70,8 @@ $basePath = '../../';
                         tecnico em sua carreira e no dia a dia.
                     </p>
                     <div class="sx-hero__actions">
-                        <a href="#filiacao" class="px-btn px-btn--primary">Quero me filiar</a>
-                        <a href="#beneficios" class="px-btn px-btn--outline">Ver beneficios</a>
+                        <a href="<?php echo $basePath; ?>frontend/public/filiacao.php" class="px-btn px-btn--primary">Quero me filiar</a>
+                        <a href="<?php echo $basePath; ?>frontend/public/beneficios.php" class="px-btn px-btn--outline">Ver beneficios</a>
                     </div>
                     <div class="home-metrics">
                         <article class="px-card px-card__body">
@@ -211,7 +211,7 @@ $basePath = '../../';
                             <h3 class="sx-band__title">Pronto para se associar?</h3>
                             <p class="sx-band__text">Complete sua filiacao e acompanhe beneficios, eventos e comunicados em um unico painel.</p>
                             <div class="sx-hero__actions">
-                                <a href="<?php echo $basePath; ?>frontend/auth/login.html" class="px-btn px-btn--primary">Iniciar filiacao</a>
+                                <a href="<?php echo $basePath; ?>frontend/public/filiacao.php" class="px-btn px-btn--primary">Iniciar filiacao</a>
                                 <a href="<?php echo $basePath; ?>frontend/auth/login.html" class="px-btn px-btn--outline">Ja sou associado</a>
                             </div>
                         </div>

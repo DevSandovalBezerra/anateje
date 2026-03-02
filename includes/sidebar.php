@@ -33,112 +33,102 @@ function sidebar_page_exists($page)
 
     return file_exists($frontendBase . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $page) . '.php');
 }
+
+function sidebar_sequence_for_profile($perfilId)
+{
+    if ((int) $perfilId === 1) {
+        return [
+            'dashboard/admin',
+            'admin/associados',
+            'admin/beneficios',
+            'admin/eventos',
+            'admin/comunicados',
+            'admin/campanhas',
+            'admin/integracoes',
+            'admin/permissoes',
+            'cadastros/usuarios',
+        ];
+    }
+
+    return [
+        'dashboard/user',
+        'associado/perfil',
+        'associado/meus_beneficios',
+        'associado/meus_eventos',
+        'associado/comunicados',
+    ];
+}
+
+function sidebar_route_meta($route)
+{
+    $map = [
+        'dashboard/admin' => ['Dashboard Admin', 'layout-dashboard'],
+        'dashboard/user' => ['Dashboard Membro', 'layout-dashboard'],
+        'associado/perfil' => ['Meu Perfil', 'user-round'],
+        'associado/meus_beneficios' => ['Meus Beneficios', 'gift'],
+        'associado/meus_eventos' => ['Meus Eventos', 'calendar'],
+        'associado/comunicados' => ['Comunicados', 'megaphone'],
+        'admin/associados' => ['Associados', 'users'],
+        'admin/beneficios' => ['Beneficios', 'gift'],
+        'admin/eventos' => ['Eventos', 'calendar'],
+        'admin/comunicados' => ['Comunicados', 'megaphone'],
+        'admin/campanhas' => ['Campanhas', 'send'],
+        'admin/integracoes' => ['Integracoes', 'plug'],
+        'admin/permissoes' => ['Permissoes', 'shield'],
+        'cadastros/usuarios' => ['Usuarios', 'user-cog'],
+    ];
+
+    if (isset($map[$route])) {
+        return $map[$route];
+    }
+
+    $parts = explode('/', $route);
+    $label = ucfirst(str_replace('_', ' ', $parts[1] ?? $route));
+    return [$label, 'folder'];
+}
 ?>
 <aside id="sidebar"
     class="fixed inset-y-0 left-0 z-50 w-64 sidebar-primary shadow-lg sidebar-transition transform -translate-x-full lg:translate-x-0">
-    <div class="flex items-center justify-center h-16 bg-gradient-primary">
+    <div class="sidebar-brand-strip flex items-center justify-center h-20">
         <a href="<?php echo $prefix; ?>index.php"
-            class="flex items-center space-x-2 hover:opacity-90 transition-opacity">
+            class="sidebar-brand-link flex items-center space-x-3 hover:opacity-95 transition-opacity">
             <img src="<?php echo $baseUrl; ?>/assets/images/logo.png" alt="Logo ANATEJE"
-                class="w-8 h-8 rounded-full object-cover border border-white/25">
-            <span class="text-white font-bold text-lg">ANATEJE</span>
+                class="sidebar-brand-logo w-10 h-10 rounded-full object-cover">
+            <span class="sidebar-brand-text font-bold text-2xl">ANATEJE</span>
         </a>
     </div>
 
     <nav id="sidebar-scroll" class="mt-8 flex-1 overflow-y-auto overflow-x-hidden">
         <div id="sidebar-groups" class="px-4 space-y-2 pb-4">
-            <?php if (isset($user) && $user['perfil_id'] == 1): ?>
-                <?php if (sidebar_page_exists('home')): ?>
-                    <a href="<?php echo $prefix; ?>index.php?page=home"
-                        class="nav-item flex items-center <?php echo ($currentPage === "home") ? 'active' : ''; ?>">
-                        <i data-lucide="home" class="w-5 h-5 mr-3"></i>
-                        <span class="font-medium">Inicio</span>
-                    </a>
-                <?php endif; ?>
-
-                <?php if (sidebar_page_exists('admin/permissoes')): ?>
-                    <a href="<?php echo $prefix; ?>index.php?page=admin/permissoes"
-                        class="nav-item flex items-center <?php echo ($currentPage === "admin/permissoes") ? 'active' : ''; ?>">
-                        <i data-lucide="shield" class="w-5 h-5 mr-3"></i>
-                        <span class="font-medium">Permissoes</span>
-                    </a>
-                <?php endif; ?>
-
-                <?php if (sidebar_page_exists('cadastros/usuarios')): ?>
-                    <a href="<?php echo $prefix; ?>index.php?page=cadastros/usuarios"
-                        class="nav-item flex items-center <?php echo ($currentPage === "cadastros/usuarios") ? 'active' : ''; ?>">
-                        <i data-lucide="users" class="w-5 h-5 mr-3"></i>
-                        <span class="font-medium">Usuarios</span>
-                    </a>
-                <?php endif; ?>
-            <?php endif; ?>
-
             <?php
             $rbac = new RBAC();
             $userPerfilId = isset($user) ? $user['perfil_id'] : 0;
-
-            foreach ($menu as $module => $moduleData):
-                if ($module === 'dashboard'):
-                    foreach ($moduleData['pages'] as $page):
-                        if (!$rbac->hasPermissionForPage($userPerfilId, $module, $page))
-                            continue;
-                        $dashboardRoute = "dashboard/{$page}";
-                        if (!sidebar_page_exists($dashboardRoute))
-                            continue;
-                        ?>
-                        <a href="<?php echo $prefix; ?>index.php?page=dashboard/<?php echo htmlspecialchars($page); ?>"
-                            class="nav-item flex items-center <?php echo ($currentPage === "dashboard/{$page}") ? 'active' : ''; ?>">
-                            <i data-lucide="<?php echo htmlspecialchars($moduleData['icon']); ?>" class="w-5 h-5 mr-3"></i>
-                            <span class="font-medium">Dashboard <?php echo ucfirst($page); ?></span>
-                        </a>
-                    <?php endforeach; ?>
-                <?php else:
-                    $temPermissaoModulo = false;
-                    $paginasComPermissao = [];
-
-                    foreach ($moduleData['pages'] as $page) {
-                        $routeName = "{$module}/{$page}";
-                        if ($rbac->hasPermissionForPage($userPerfilId, $module, $page) && sidebar_page_exists($routeName)) {
-                            $temPermissaoModulo = true;
-                            $paginasComPermissao[] = $page;
-                        }
-                    }
-
-                    if (!$temPermissaoModulo)
-                        continue;
-                    $isCurrentModule = ($currentModule === $module);
-                    ?>
-                    <div class="space-y-1" id="sidebar-group-<?php echo htmlspecialchars($module); ?>">
-                        <button onclick="toggleSubmenu('<?php echo $module; ?>')"
-                            class="nav-item flex items-center justify-between w-full">
-                            <div class="flex items-center">
-                                <i data-lucide="<?php echo htmlspecialchars($moduleData['icon']); ?>" class="w-5 h-5 mr-3"></i>
-                                <span><?php echo htmlspecialchars($moduleData['name']); ?></span>
-                            </div>
-                            <i data-lucide="chevron-down"
-                                class="w-4 h-4 transform transition-transform <?php echo $isCurrentModule ? 'rotate-180' : ''; ?>"
-                                id="<?php echo $module; ?>-arrow"></i>
-                        </button>
-                        <div id="<?php echo $module; ?>-submenu"
-                            class="<?php echo $isCurrentModule ? '' : 'hidden '; ?>ml-4 space-y-1">
-                            <?php foreach ($paginasComPermissao as $page): ?>
-                                <?php
-                                $pageName = ucfirst(str_replace('_', ' ', $page));
-                                $isActive = ($currentPage === "{$module}/{$page}");
-                                ?>
-                                <a href="<?php echo $prefix; ?>index.php?page=<?php echo $module; ?>/<?php echo htmlspecialchars($page); ?>"
-                                    class="nav-submenu block <?php echo $isActive ? 'active' : ''; ?>">
-                                    <?php echo htmlspecialchars($pageName); ?>
-                                </a>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                <?php endif; ?>
+            $routes = sidebar_sequence_for_profile((int) $userPerfilId);
+            foreach ($routes as $route):
+                if (!preg_match('/^[a-z0-9_]+\/[a-z0-9_]+$/', $route)) {
+                    continue;
+                }
+                [$module, $page] = explode('/', $route, 2);
+                if (!$rbac->hasPermissionForPage((int) $userPerfilId, $module, $page)) {
+                    continue;
+                }
+                if (!sidebar_page_exists($route)) {
+                    continue;
+                }
+                [$label, $icon] = sidebar_route_meta($route);
+                $isActive = $currentPage === $route;
+                ?>
+                <a href="<?php echo $prefix; ?>index.php?page=<?php echo htmlspecialchars($route); ?>"
+                    class="nav-item flex items-center <?php echo $isActive ? 'active' : ''; ?>"
+                    data-sidebar-route="<?php echo htmlspecialchars($route); ?>">
+                    <i data-lucide="<?php echo htmlspecialchars($icon); ?>" class="w-5 h-5 mr-3"></i>
+                    <span class="font-medium"><?php echo htmlspecialchars($label); ?></span>
+                </a>
             <?php endforeach; ?>
         </div>
     </nav>
 
-    <div class="px-4 pb-6 pt-4 border-t border-white border-opacity-10 mt-4">
+    <div class="sidebar-footer px-4 pb-6 pt-4 border-t mt-4">
         <button onclick="userLogout()"
             class="nav-item flex items-center w-full text-red-300 hover:text-red-100 hover:bg-red-500 hover:bg-opacity-20">
             <i data-lucide="log-out" class="w-5 h-5 mr-3"></i>

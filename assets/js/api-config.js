@@ -202,14 +202,25 @@ async function login(email, password) {
     formData.append('password', password);
 
     try {
-        const response = await apiRequest('auth/login.php', {
+        const response = await fetch(getApiUrl('auth/login.php'), {
             method: 'POST',
+            credentials: 'include',
             body: formData.toString(),
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
         });
-        return response;
+        const json = await response.json().catch(() => null);
+
+        if (json && typeof json === 'object') {
+            return json;
+        }
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return { success: false, message: 'Resposta invalida da API de login' };
     } catch (error) {
         apiDebugLog('Login API Error', error);
         throw error;

@@ -4,22 +4,32 @@
 
 :root,
 :root[data-theme="light"] {
-    --an-color-bg: #0d0702;
-    --an-surface-1: #16100a;
-    --an-surface-2: #1d1510;
-    --an-surface-3: #251b14;
+    --an-color-bg: #f5f7fb;
+    --an-surface-1: #ffffff;
+    --an-surface-2: #eef3fa;
+    --an-surface-3: #e4ebf6;
 
-    --an-text-primary: #f6f2ef;
-    --an-text-secondary: #c9bfb8;
-    --an-text-muted: #9a918b;
-    --an-text-dark: #2a2019;
+    --an-text-primary: #1d2430;
+    --an-text-secondary: #4d5b6d;
+    --an-text-muted: #75849a;
+    --an-text-dark: #151b24;
 
-    --an-color-wine: #5c2620;
+    --an-color-wine: #7a3d36;
     --an-color-gold: #a6764c;
-    --an-color-blue: #262353;
+    --an-color-blue: #2f3d8f;
 
-    --an-border-subtle: #3a2b22;
-    --an-border-strong: #5a4638;
+    --an-border-subtle: #d4dce8;
+    --an-border-strong: #bcc9dc;
+
+    --theme-bg-hover: #e6edf8;
+    --theme-gradient-sidebar: linear-gradient(180deg, #f8fbff 0%, #ebf1f9 100%);
+    --theme-text-sidebar: #253246;
+    --theme-text-sidebar-muted: #586981;
+    --theme-sidebar-item-hover-bg: #2a140d;
+    --theme-sidebar-item-active-bg: #3a1c12;
+    --theme-sidebar-item-active-border: #a6764c;
+    --theme-profile-badge-bg: #2a140d;
+    --theme-profile-badge-text: #f6f2ef;
 }
 
 :root[data-theme="dark-blue"] {
@@ -39,6 +49,16 @@
 
     --an-border-subtle: #2a3e69;
     --an-border-strong: #46619c;
+
+    --theme-bg-hover: #203255;
+    --theme-gradient-sidebar: linear-gradient(180deg, #172238 0%, #0a1020 100%);
+    --theme-text-sidebar: #edf2ff;
+    --theme-text-sidebar-muted: #c0cce7;
+    --theme-sidebar-item-hover-bg: #243a63;
+    --theme-sidebar-item-active-bg: #2f4a7e;
+    --theme-sidebar-item-active-border: #7ca1ff;
+    --theme-profile-badge-bg: #24315a;
+    --theme-profile-badge-text: #edf2ff;
 }
 
 :root[data-theme="monokai"] {
@@ -58,6 +78,16 @@
 
     --an-border-subtle: #4b493f;
     --an-border-strong: #66614f;
+
+    --theme-bg-hover: #3b3a32;
+    --theme-gradient-sidebar: linear-gradient(180deg, #302f29 0%, #1f1f1a 100%);
+    --theme-text-sidebar: #f8f8f2;
+    --theme-text-sidebar-muted: #d6d2b3;
+    --theme-sidebar-item-hover-bg: #4a392a;
+    --theme-sidebar-item-active-bg: #5a4632;
+    --theme-sidebar-item-active-border: #e6db74;
+    --theme-profile-badge-bg: #4a392a;
+    --theme-profile-badge-text: #f8f8f2;
 }
 
 /* Compatibility aliases consumed by legacy components */
@@ -72,15 +102,15 @@
     --bg-header: var(--an-surface-2);
     --bg-sidebar: var(--an-surface-2);
     --bg-input: var(--an-surface-3);
-    --bg-hover: #2b2019;
+    --bg-hover: var(--theme-bg-hover);
 
     --text-primary: var(--an-text-primary);
     --text-secondary: var(--an-text-secondary);
     --text-light: var(--an-text-muted);
     --text-muted: var(--an-text-muted);
     --text-inverse: #ffffff;
-    --text-sidebar: var(--an-text-primary);
-    --text-sidebar-muted: var(--an-text-secondary);
+    --text-sidebar: var(--theme-text-sidebar);
+    --text-sidebar-muted: var(--theme-text-sidebar-muted);
 
     --primary-purple-dark: var(--an-color-wine);
     --primary-purple: var(--an-color-gold);
@@ -98,19 +128,24 @@
 
     --gradient-primary: var(--an-grad-cta);
     --gradient-dark: linear-gradient(135deg, var(--an-color-blue) 0%, var(--an-color-wine) 100%);
-    --gradient-sidebar: linear-gradient(180deg, var(--an-surface-2) 0%, var(--an-color-bg) 100%);
+    --gradient-sidebar: var(--theme-gradient-sidebar);
+    --sidebar-item-hover-bg: var(--theme-sidebar-item-hover-bg);
+    --sidebar-item-active-bg: var(--theme-sidebar-item-active-bg);
+    --sidebar-item-active-border: var(--theme-sidebar-item-active-border);
+    --profile-badge-bg: var(--theme-profile-badge-bg);
+    --profile-badge-text: var(--theme-profile-badge-text);
 }
 
 /* Finance menu variables consumed by existing styles */
 :root,
 :root[data-theme="light"] {
-    --financeiro-bg: linear-gradient(135deg, rgba(166, 118, 76, 0.16) 0%, rgba(92, 38, 32, 0.2) 100%);
+    --financeiro-bg: linear-gradient(135deg, rgba(166, 118, 76, 0.18) 0%, rgba(166, 118, 76, 0.1) 100%);
     --financeiro-border: #c08a5a;
-    --financeiro-icon: #d5a275;
+    --financeiro-icon: #8c5e3a;
     --financeiro-text: var(--text-sidebar);
     --financeiro-hover-bg: rgba(166, 118, 76, 0.18);
     --financeiro-active-bg: rgba(166, 118, 76, 0.24);
-    --financeiro-active-text: #f3d0a7;
+    --financeiro-active-text: #1f2a38;
 }
 
 :root[data-theme="dark-blue"] {

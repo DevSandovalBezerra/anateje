@@ -1,6 +1,6 @@
 # ANATEJE Design System
 
-Status: v1.0 (baseline para desenvolvimento)
+Status: v1.1 (baseline para desenvolvimento)
 Escopo: Site institucional + area do associado + painel admin
 
 ## 1) Objetivo
@@ -23,10 +23,22 @@ Personalidade visual:
 - Foco em conversao (CTA forte e recorrente)
 
 Direcao estetica:
-- Base dark
+- Base institucional com suporte a dois temas:
+  - `light` (obrigatoriamente claro)
+  - `dark` (dark-blue / monokai)
 - Gradientes em pontos de destaque
 - Blocos amplos com cards
 - Contraste alto e leitura facil
+
+### 2.1 Regra obrigatoria de tema claro
+
+Quando o tema ativo for `light`, os fundos de pagina devem ser realmente claros:
+- Fundo principal claro (nao preto/cafe escuro)
+- Superficies claras para cards e formularios
+- Texto principal escuro para contraste
+- Sidebar e header em tons claros coerentes com o restante da tela
+
+Nao e permitido manter paleta escura no tema `light`.
 
 ## 3) Fundamentos oficiais (MIV/PRD)
 
@@ -45,26 +57,41 @@ Paleta base:
 
 Todos os estilos devem usar tokens, nunca hex hardcoded em componentes.
 
-### 4.1 Cores semanticas
+### 4.1 Cores semanticas por tema
 
 ```css
-:root {
-  --bg-primary: #0d0702;
-  --bg-secondary: #16100a;
-  --surface-1: #1d1510;
-  --surface-2: #251b14;
-  --surface-3: #2f221a;
+:root[data-theme="light"] {
+  --bg-primary: #f5f7fb;
+  --bg-secondary: #eef3fa;
+  --surface-1: #ffffff;
+  --surface-2: #eef3fa;
+  --surface-3: #e4ebf6;
 
-  --text-primary: #f6f2ef;
-  --text-secondary: #c9bfb8;
-  --text-muted: #9a918b;
+  --text-primary: #1d2430;
+  --text-secondary: #4d5b6d;
+  --text-muted: #75849a;
 
-  --brand-primary: #a6764c;
-  --brand-secondary: #5c2620;
-  --brand-tertiary: #262353;
+  --border-subtle: #d4dce8;
+  --border-strong: #bcc9dc;
+}
 
-  --border-subtle: #3a2b22;
-  --border-strong: #5a4638;
+:root[data-theme="dark-blue"] {
+  --bg-primary: #0a1020;
+  --bg-secondary: #11192b;
+  --surface-1: #172238;
+  --surface-2: #1f2c45;
+  --surface-3: #243553;
+
+  --text-primary: #edf2ff;
+  --text-secondary: #c0cce7;
+  --text-muted: #95a5c8;
+
+  --brand-primary: #7ca1ff;
+  --brand-secondary: #24315a;
+  --brand-tertiary: #2e61d3;
+
+  --border-subtle: #2a3e69;
+  --border-strong: #46619c;
 
   --success: #1f8f5f;
   --warning: #b9862f;
@@ -72,6 +99,10 @@ Todos os estilos devem usar tokens, nunca hex hardcoded em componentes.
   --info: #3a69d8;
 }
 ```
+
+Observacao:
+- `light` e o tema claro oficial e deve ser usado como referencia para contraste e legibilidade em ambiente administrativo.
+- Temas escuros sao opcionais e nao podem contaminar os tokens do `light`.
 
 ### 4.2 Gradientes
 
@@ -310,6 +341,7 @@ Antes de aprovar uma tela:
 5. Estados de hover/focus/disabled existem?
 6. Mobile (320px+) esta funcional?
 7. Contraste e foco atendem acessibilidade?
+8. Tema `light` esta realmente claro (fundo e superficies)?
 
 ## 14) Governanca
 

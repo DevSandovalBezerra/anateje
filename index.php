@@ -16,13 +16,34 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $requestedPage = $_GET['page'] ?? '';
-$publicPages = ['', 'public/home'];
+$publicRouteMap = [
+    'public/home' => 'home',
+    'public/sobre' => 'sobre',
+    'public/beneficios' => 'beneficios',
+    'public/eventos' => 'eventos',
+    'public/blog' => 'blog',
+    'public/contato' => 'contato',
+    'public/filiacao' => 'filiacao',
+];
 $prefix = lidergest_base_prefix();
 
+function public_target_for_page(string $prefix, string $slug): string
+{
+    return "{$prefix}frontend/public/{$slug}.php";
+}
+
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['token'])) {
-    $target = in_array($requestedPage, $publicPages, true)
-        ? "{$prefix}frontend/public/home.php"
-        : "{$prefix}frontend/auth/login.html";
+    if ($requestedPage === '') {
+        header("Location: " . public_target_for_page($prefix, 'home'));
+        exit;
+    }
+
+    if (isset($publicRouteMap[$requestedPage])) {
+        header("Location: " . public_target_for_page($prefix, $publicRouteMap[$requestedPage]));
+        exit;
+    }
+
+    $target = "{$prefix}frontend/auth/login.html";
     header("Location: {$target}");
     exit;
 }
@@ -30,15 +51,19 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['token'])) {
 $tokenData = verifyToken($_SESSION['token']);
 if (!$tokenData || (int)($tokenData['user_id'] ?? 0) !== (int)$_SESSION['user_id']) {
     session_destroy();
-    $target = in_array($requestedPage, $publicPages, true)
-        ? "{$prefix}frontend/public/home.php"
-        : "{$prefix}frontend/auth/login.html";
+    if ($requestedPage === '' || isset($publicRouteMap[$requestedPage])) {
+        $slug = $requestedPage === '' ? 'home' : $publicRouteMap[$requestedPage];
+        header("Location: " . public_target_for_page($prefix, $slug));
+        exit;
+    }
+
+    $target = "{$prefix}frontend/auth/login.html";
     header("Location: {$target}");
     exit;
 }
 
-if ($requestedPage === 'public/home') {
-    header("Location: {$prefix}frontend/public/home.php");
+if (isset($publicRouteMap[$requestedPage])) {
+    header("Location: " . public_target_for_page($prefix, $publicRouteMap[$requestedPage]));
     exit;
 }
 
