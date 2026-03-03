@@ -79,10 +79,18 @@ $basePrefix = isset($prefix) ? $prefix : '/';
 (function () {
     const base = (window.LIDERGEST_BASE_URL || '').replace(/\/$/, '');
     const ep = (path) => `${base}${path}`;
+    const perms = window.anatejePerms || null;
+    const can = (code) => !perms || typeof perms.can !== 'function' ? true : perms.can(code);
+    const deny = (code) => perms && typeof perms.denyMessage === 'function'
+        ? perms.denyMessage(code)
+        : 'Acesso negado para esta acao.';
+    const canEdit = can('admin.permissoes.edit');
+    const ui = window.anatejeUi || null;
 
     const perfilRows = document.getElementById('perfilRows');
     const permissionsGrid = document.getElementById('permissionsGrid');
     const msg = document.getElementById('permMsg');
+    const perfilForm = document.getElementById('perfilForm');
 
     const el = (id) => document.getElementById(id);
 
@@ -159,7 +167,7 @@ $basePrefix = isset($prefix) ? $prefix : '/';
                 const checked = selected.has(parseInt(perm.id, 10)) ? 'checked' : '';
                 return `
                     <label class="flex items-center gap-2 py-1 text-sm text-gray-700">
-                        <input type="checkbox" data-perm-id="${perm.id}" ${checked}>
+                        <input type="checkbox" data-perm-id="${perm.id}" ${checked} ${canEdit ? '' : 'disabled'}>
                         <span>${perm.nome} <span class="text-gray-400">(${perm.codigo})</span></span>
                     </label>
                 `;
@@ -218,7 +226,14 @@ $basePrefix = isset($prefix) ? $prefix : '/';
 
     async function saveProfile(event) {
         event.preventDefault();
+        if (ui && typeof ui.clearFieldErrors === 'function') {
+            ui.clearFieldErrors(perfilForm);
+        }
         setMsg('', 'ok');
+        if (!canEdit) {
+            setMsg(deny('admin.permissoes.edit'), 'err');
+            return;
+        }
 
         const body = {
             id: el('perfil_id').value ? parseInt(el('perfil_id').value, 10) : 0,
@@ -228,6 +243,9 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         };
 
         if (!body.nome) {
+            if (ui && typeof ui.setFieldError === 'function') {
+                ui.setFieldError(perfilForm, 'perfil_nome', 'Informe o nome do perfil.');
+            }
             setMsg('Informe o nome do perfil.', 'err');
             return;
         }
@@ -241,17 +259,30 @@ $basePrefix = isset($prefix) ? $prefix : '/';
             setMsg('Perfil salvo com sucesso.', 'ok');
             await load();
         } catch (err) {
+            if (ui && typeof ui.applyValidationError === 'function') {
+                ui.applyValidationError(perfilForm, err, [
+                    { pattern: /nome/i, field: 'perfil_nome' },
+                    { pattern: /descricao/i, field: 'perfil_descricao' }
+                ]);
+            }
             setMsg(err.message || 'Falha ao salvar perfil', 'err');
         }
     }
 
     async function deleteProfile() {
+        if (!canEdit) {
+            setMsg(deny('admin.permissoes.edit'), 'err');
+            return;
+        }
         const id = el('perfil_id').value ? parseInt(el('perfil_id').value, 10) : 0;
         if (!id) {
             setMsg('Selecione um perfil para excluir.', 'err');
             return;
         }
-        if (!confirm('Deseja excluir este perfil?')) {
+        const confirmed = ui && typeof ui.confirmDelete === 'function'
+            ? await ui.confirmDelete('este perfil')
+            : confirm('Deseja excluir este perfil?');
+        if (!confirmed) {
             return;
         }
 
@@ -269,6 +300,10 @@ $basePrefix = isset($prefix) ? $prefix : '/';
     }
 
     async function saveProfilePermissions() {
+        if (!canEdit) {
+            setMsg(deny('admin.permissoes.edit'), 'err');
+            return;
+        }
         if (!selectedProfileId) {
             setMsg('Selecione um perfil para salvar permissoes.', 'err');
             return;
@@ -300,7 +335,15 @@ $basePrefix = isset($prefix) ? $prefix : '/';
     el('salvarPermissoes').addEventListener('click', saveProfilePermissions);
     el('permReload').addEventListener('click', load);
 
+    if (!canEdit) {
+        el('perfil_nome').setAttribute('readonly', 'readonly');
+        el('perfil_descricao').setAttribute('readonly', 'readonly');
+        el('perfil_ativo').setAttribute('disabled', 'disabled');
+        el('perfilNovo').classList.add('hidden');
+        el('perfilDelete').classList.add('hidden');
+        el('salvarPermissoes').classList.add('hidden');
+    }
+
     load();
 })();
 </script>
-

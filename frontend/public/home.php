@@ -234,7 +234,7 @@ $basePath = '../../';
                     <div class="home-faq">
                         <details>
                             <summary>Quais documentos sao necessarios para filiacao?</summary>
-                            <p>Dados pessoais, CPF, matricula institucional e informacoes funcionais para validacao cadastral.</p>
+                            <p>Dados pessoais, CPF, registro associativo e informacoes funcionais para validacao cadastral.</p>
                         </details>
                         <details>
                             <summary>Como funciona a contribuicao mensal?</summary>

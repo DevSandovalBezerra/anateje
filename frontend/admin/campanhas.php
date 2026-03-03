@@ -7,21 +7,39 @@ if (!defined('TEMPLATE_ROUTED')) {
 }
 
 $basePrefix = isset($prefix) ? $prefix : '/';
+require_once __DIR__ . '/../../includes/admin_components.php';
 ?>
 <div class="p-6">
     <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">Admin - Campanhas</h1>
-                <p class="text-gray-600">Disparos segmentados por categoria, status, UF e beneficio ativo.</p>
+        <?php
+        admin_render_toolbar(
+            'Admin - Campanhas',
+            'Disparos segmentados por categoria, status, UF e beneficio ativo.',
+            [
+                ['id' => 'novaCampanha', 'label' => 'Nova Campanha', 'class' => 'btn-primary px-4 py-2 text-sm'],
+            ]
+        );
+        ?>
+
+        <div class="mb-4 p-3 rounded border border-indigo-200 bg-indigo-50 flex flex-col md:flex-row md:items-center gap-2">
+            <div class="text-xs text-gray-700" id="campBulkMeta">Nenhum item selecionado</div>
+            <div class="flex items-center gap-2 md:ml-auto">
+                <select id="campBulkStatus" class="input-primary text-sm">
+                    <option value="queued">Marcar como na fila</option>
+                    <option value="draft">Marcar como rascunho</option>
+                    <option value="done">Marcar como concluida</option>
+                    <option value="failed">Marcar como falhou</option>
+                </select>
+                <input id="campBulkReason" class="input-primary text-sm" placeholder="Motivo (opcional)">
+                <button id="campBulkApply" class="btn-secondary px-3 py-2 text-xs">Aplicar em lote</button>
             </div>
-            <button id="novaCampanha" class="btn-primary px-4 py-2 text-sm">Nova Campanha</button>
         </div>
 
         <div class="overflow-auto mb-6">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="text-left text-gray-600 border-b">
+                        <th class="py-2 pr-3"><input id="selectAllCampRows" type="checkbox"></th>
                         <th class="py-2 pr-3">ID</th>
                         <th class="py-2 pr-3">Titulo</th>
                         <th class="py-2 pr-3">Canal</th>
@@ -101,8 +119,10 @@ $basePrefix = isset($prefix) ? $prefix : '/';
 
             <div class="flex flex-wrap gap-2">
                 <button class="btn-primary px-4 py-2 text-sm" type="submit">Salvar Campanha</button>
+                <button class="btn-secondary px-4 py-2 text-sm" type="button" id="previewCampanha">Simular Publico</button>
                 <button class="btn-secondary px-4 py-2 text-sm" type="button" id="cancelCamp">Cancelar</button>
             </div>
+            <p id="campPreviewMsg" class="text-xs text-gray-700"></p>
         </form>
 
         <div id="campLogsBox" class="hidden mt-6 p-4 rounded-lg border border-amber-200 bg-amber-50">
@@ -134,6 +154,8 @@ $basePrefix = isset($prefix) ? $prefix : '/';
                     <div class="flex gap-2">
                         <input id="camp_logs_q" class="input-primary w-full" placeholder="Buscar...">
                         <button id="camp_logs_apply" type="button" class="btn-secondary px-3 py-1 text-xs">Aplicar</button>
+                        <button id="camp_logs_save_filter" type="button" class="btn-secondary px-3 py-1 text-xs">Salvar filtros</button>
+                        <button id="camp_logs_load_filter" type="button" class="btn-secondary px-3 py-1 text-xs">Usar salvos</button>
                     </div>
                 </label>
             </div>
@@ -170,10 +192,23 @@ $basePrefix = isset($prefix) ? $prefix : '/';
 (function () {
     const base = (window.LIDERGEST_BASE_URL || '').replace(/\/$/, '');
     const ep = (path) => `${base}${path}`;
+    const FILTERS_MODULE_CAMPAIGNS_LOGS = 'admin.campanhas.logs';
+    const perms = window.anatejePerms || null;
+    const can = (code) => !perms || typeof perms.can !== 'function' ? true : perms.can(code);
+    const deny = (code) => perms && typeof perms.denyMessage === 'function'
+        ? perms.denyMessage(code)
+        : 'Acesso negado para esta acao.';
+    const canBulkEdit = can('admin.campanhas.edit');
+    const ui = window.anatejeUi || null;
 
     const rows = document.getElementById('campRows');
     const msg = document.getElementById('campMsg');
     const form = document.getElementById('campForm');
+    const campBulkMeta = document.getElementById('campBulkMeta');
+    const campBulkStatus = document.getElementById('campBulkStatus');
+    const campBulkReason = document.getElementById('campBulkReason');
+    const campBulkApply = document.getElementById('campBulkApply');
+    const selectAllCampRows = document.getElementById('selectAllCampRows');
     const logsBox = document.getElementById('campLogsBox');
     const logsRows = document.getElementById('campLogsRows');
     const logsMeta = document.getElementById('campLogsMeta');
@@ -182,12 +217,17 @@ $basePrefix = isset($prefix) ? $prefix : '/';
     const logsStatus = document.getElementById('camp_logs_status');
     const logsQ = document.getElementById('camp_logs_q');
     const logsApply = document.getElementById('camp_logs_apply');
+    const logsSaveFilter = document.getElementById('camp_logs_save_filter');
+    const logsLoadFilter = document.getElementById('camp_logs_load_filter');
     const logsPageMeta = document.getElementById('campLogsPageMeta');
     const logsPrev = document.getElementById('campLogsPrev');
     const logsNext = document.getElementById('campLogsNext');
+    const previewMsg = document.getElementById('campPreviewMsg');
 
     const el = (id) => document.getElementById(id);
     let cache = [];
+    const selectedIds = new Set();
+    let savedLogsFilters = { run_id: 0, status: '', q: '' };
     let activeCampaignId = 0;
     let logsState = {
         runId: 0,
@@ -203,6 +243,45 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         msg.className = type === 'ok' ? 'text-sm mt-4 text-green-600' : 'text-sm mt-4 text-red-600';
     }
 
+    function updateBulkMeta() {
+        const count = selectedIds.size;
+        campBulkMeta.textContent = count > 0
+            ? `${count} item(ns) selecionado(s)`
+            : 'Nenhum item selecionado';
+        campBulkApply.disabled = count === 0 || !canBulkEdit;
+    }
+
+    function normalizeLogsFilterPayload(raw) {
+        const f = raw && typeof raw === 'object' ? raw : {};
+        const allowed = ['', 'queued', 'sent', 'failed', 'skipped'];
+        const status = typeof f.status === 'string' ? f.status : '';
+        const q = typeof f.q === 'string' ? f.q.trim() : '';
+        const runIdRaw = parseInt(f.run_id || f.runId || 0, 10) || 0;
+        return {
+            run_id: runIdRaw > 0 ? runIdRaw : 0,
+            status: allowed.includes(status) ? status : '',
+            q: q
+        };
+    }
+
+    async function fetchSavedLogsFilters() {
+        if (!can('admin.campanhas.view')) return;
+        try {
+            const params = new URLSearchParams();
+            params.set('action', 'get');
+            params.set('module', FILTERS_MODULE_CAMPAIGNS_LOGS);
+            params.set('key', 'default');
+            const data = await window.anatejeApi(ep('/api/v1/filters.php?' + params.toString()));
+            if (data && data.found && data.filters && typeof data.filters === 'object') {
+                savedLogsFilters = normalizeLogsFilterPayload(data.filters);
+            } else {
+                savedLogsFilters = { run_id: 0, status: '', q: '' };
+            }
+        } catch (err) {
+            savedLogsFilters = { run_id: 0, status: '', q: '' };
+        }
+    }
+
     function dtLabel(v) {
         if (!v) return '-';
         const d = new Date(String(v).replace(' ', 'T'));
@@ -212,12 +291,20 @@ $basePrefix = isset($prefix) ? $prefix : '/';
 
     function renderTable() {
         if (!cache.length) {
-            rows.innerHTML = '<tr><td colspan="6" class="py-3 text-gray-500">Nenhuma campanha cadastrada.</td></tr>';
+            rows.innerHTML = '<tr><td colspan="7" class="py-3 text-gray-500">Nenhuma campanha cadastrada.</td></tr>';
+            selectAllCampRows.checked = false;
+            updateBulkMeta();
             return;
         }
 
+        const pageIds = cache.map((c) => parseInt(c.id, 10)).filter((id) => id > 0);
+        selectAllCampRows.checked = pageIds.length > 0 && pageIds.every((id) => selectedIds.has(id));
+
         rows.innerHTML = cache.map((c) => `
             <tr class="border-b border-gray-100">
+                <td class="py-2 pr-3">
+                    <input type="checkbox" data-row-select="1" data-id="${c.id}" ${selectedIds.has(parseInt(c.id, 10)) ? 'checked' : ''} ${canBulkEdit ? '' : 'disabled'}>
+                </td>
                 <td class="py-2 pr-3">${c.id}</td>
                 <td class="py-2 pr-3">${c.titulo}</td>
                 <td class="py-2 pr-3">${c.canal}</td>
@@ -225,21 +312,35 @@ $basePrefix = isset($prefix) ? $prefix : '/';
                 <td class="py-2 pr-3">T:${c.total_logs || 0} / S:${c.sent_logs || 0} / Q:${c.queued_logs || 0} / K:${c.skipped_logs || 0}</td>
                 <td class="py-2 pr-3">
                     <div class="flex flex-wrap gap-2">
-                        <button class="btn-secondary px-2 py-1 text-xs" data-act="edit" data-id="${c.id}">Editar</button>
-                        <button class="btn-secondary px-2 py-1 text-xs" data-act="run" data-id="${c.id}">Executar</button>
-                        <button class="btn-secondary px-2 py-1 text-xs" data-act="logs" data-id="${c.id}">Logs</button>
-                        <button class="btn-secondary px-2 py-1 text-xs" data-act="csv" data-id="${c.id}">CSV</button>
-                        <button class="btn-secondary px-2 py-1 text-xs" data-act="delete" data-id="${c.id}">Excluir</button>
+                        ${can('admin.campanhas.edit') ? `<button class="btn-secondary px-2 py-1 text-xs" data-act="edit" data-id="${c.id}">Editar</button>` : ''}
+                        ${can('admin.campanhas.run') ? `<button class="btn-secondary px-2 py-1 text-xs" data-act="run" data-id="${c.id}">Executar</button>` : ''}
+                        ${can('admin.campanhas.view') ? `<button class="btn-secondary px-2 py-1 text-xs" data-act="logs" data-id="${c.id}">Logs</button>` : ''}
+                        ${can('admin.campanhas.export') ? `<button class="btn-secondary px-2 py-1 text-xs" data-act="csv" data-id="${c.id}">CSV</button>` : ''}
+                        ${can('admin.campanhas.delete') ? `<button class="btn-secondary px-2 py-1 text-xs" data-act="delete" data-id="${c.id}">Excluir</button>` : ''}
                     </div>
                 </td>
             </tr>
         `).join('');
 
+        rows.querySelectorAll('input[data-row-select="1"]').forEach((cb) => cb.addEventListener('change', (ev) => {
+            const id = parseInt(ev.currentTarget.getAttribute('data-id'), 10);
+            if (!id) return;
+            if (ev.currentTarget.checked) {
+                selectedIds.add(id);
+            } else {
+                selectedIds.delete(id);
+            }
+            const ids = cache.map((x) => parseInt(x.id, 10)).filter((x) => x > 0);
+            selectAllCampRows.checked = ids.length > 0 && ids.every((x) => selectedIds.has(x));
+            updateBulkMeta();
+        }));
         rows.querySelectorAll('button[data-act]').forEach((btn) => btn.addEventListener('click', onAction));
+        updateBulkMeta();
     }
 
     function openForm(c) {
         form.classList.remove('hidden');
+        previewMsg.textContent = '';
         el('camp_id').value = c?.id || '';
         el('camp_titulo').value = c?.titulo || '';
         el('camp_canal').value = c?.canal || 'INAPP';
@@ -255,7 +356,11 @@ $basePrefix = isset($prefix) ? $prefix : '/';
     function closeForm() {
         form.classList.add('hidden');
         form.reset();
+        if (ui && typeof ui.clearFieldErrors === 'function') {
+            ui.clearFieldErrors(form);
+        }
         el('camp_id').value = '';
+        previewMsg.textContent = '';
     }
 
     function runLabel(run) {
@@ -333,6 +438,51 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         renderLogs(data, data.campaign || campaignRef || { id: campaignId, titulo: '-', canal: '-' });
     }
 
+    async function saveCurrentLogsFilters() {
+        if (!can('admin.campanhas.view')) {
+            setMsg(deny('admin.campanhas.view'), 'err');
+            return;
+        }
+        const payload = normalizeLogsFilterPayload({
+            run_id: parseInt(logsRun.value || '0', 10) || 0,
+            status: logsStatus.value || '',
+            q: logsQ.value || ''
+        });
+
+        try {
+            await window.anatejeApi(ep('/api/v1/filters.php?action=save'), {
+                method: 'POST',
+                body: {
+                    module: FILTERS_MODULE_CAMPAIGNS_LOGS,
+                    key: 'default',
+                    filters: payload
+                }
+            });
+            savedLogsFilters = payload;
+            setMsg('Filtros de logs salvos.', 'ok');
+        } catch (err) {
+            setMsg(err.message || 'Falha ao salvar filtros de logs', 'err');
+        }
+    }
+
+    async function applySavedLogsFilters(forceReloadActiveCampaign) {
+        await fetchSavedLogsFilters();
+        logsState.runId = savedLogsFilters.run_id || 0;
+        logsState.status = savedLogsFilters.status || '';
+        logsState.q = savedLogsFilters.q || '';
+        logsState.page = 1;
+        logsStatus.value = logsState.status;
+        logsQ.value = logsState.q;
+        if (logsRun.options.length > 0) {
+            logsRun.value = String(logsState.runId || 0);
+        }
+
+        if (forceReloadActiveCampaign && activeCampaignId > 0) {
+            const ref = cache.find((x) => parseInt(x.id, 10) === activeCampaignId);
+            await loadLogs(activeCampaignId, ref || { id: activeCampaignId, titulo: '-', canal: '-' });
+        }
+    }
+
     async function onAction(e) {
         const btn = e.currentTarget;
         const id = parseInt(btn.getAttribute('data-id'), 10);
@@ -342,20 +492,47 @@ $basePrefix = isset($prefix) ? $prefix : '/';
 
         try {
             if (act === 'edit') {
+                if (!can('admin.campanhas.edit')) {
+                    setMsg(deny('admin.campanhas.edit'), 'err');
+                    return;
+                }
                 openForm(row || null);
                 return;
             }
 
             if (act === 'delete') {
-                if (!confirm('Deseja excluir esta campanha?')) return;
-                await window.anatejeApi(ep('/api/v1/campaigns.php?action=admin_delete&id=' + id));
+                if (!can('admin.campanhas.delete')) {
+                    setMsg(deny('admin.campanhas.delete'), 'err');
+                    return;
+                }
+                const confirmedDelete = ui && typeof ui.confirmDelete === 'function'
+                    ? await ui.confirmDelete('esta campanha')
+                    : confirm('Deseja excluir esta campanha?');
+                if (!confirmedDelete) return;
+                await window.anatejeApi(ep('/api/v1/campaigns.php?action=admin_delete'), {
+                    method: 'POST',
+                    body: { id }
+                });
                 setMsg('Campanha excluida.', 'ok');
+                selectedIds.delete(id);
+                selectAllCampRows.checked = false;
                 await load();
                 return;
             }
 
             if (act === 'run') {
-                if (!confirm('Executar esta campanha agora?')) return;
+                if (!can('admin.campanhas.run')) {
+                    setMsg(deny('admin.campanhas.run'), 'err');
+                    return;
+                }
+                const confirmedRun = ui && typeof ui.confirmAction === 'function'
+                    ? await ui.confirmAction({
+                        title: 'Executar campanha',
+                        text: 'Deseja executar esta campanha agora?',
+                        confirmText: 'Executar'
+                    })
+                    : confirm('Executar esta campanha agora?');
+                if (!confirmedRun) return;
                 const data = await window.anatejeApi(ep('/api/v1/campaigns.php?action=admin_run'), {
                     method: 'POST',
                     body: { id }
@@ -367,12 +544,26 @@ $basePrefix = isset($prefix) ? $prefix : '/';
             }
 
             if (act === 'logs') {
-                logsState = { ...logsState, runId: 0, status: '', q: '', page: 1 };
+                if (!can('admin.campanhas.view')) {
+                    setMsg(deny('admin.campanhas.view'), 'err');
+                    return;
+                }
+                logsState = {
+                    ...logsState,
+                    runId: savedLogsFilters.run_id || 0,
+                    status: savedLogsFilters.status || '',
+                    q: savedLogsFilters.q || '',
+                    page: 1
+                };
                 await loadLogs(id, row || { id, titulo: '-', canal: '-' });
                 return;
             }
 
             if (act === 'csv') {
+                if (!can('admin.campanhas.export')) {
+                    setMsg(deny('admin.campanhas.export'), 'err');
+                    return;
+                }
                 window.location.href = ep('/api/v1/campaigns.php?action=export_logs_csv&id=' + id);
                 return;
             }
@@ -385,14 +576,107 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         try {
             const data = await window.anatejeApi(ep('/api/v1/campaigns.php?action=admin_list'));
             cache = data.campaigns || [];
+            const allowedIds = new Set(cache.map((c) => parseInt(c.id, 10)).filter((id) => id > 0));
+            Array.from(selectedIds.values()).forEach((id) => {
+                if (!allowedIds.has(id)) {
+                    selectedIds.delete(id);
+                }
+            });
             renderTable();
         } catch (err) {
             setMsg(err.message || 'Falha ao carregar campanhas', 'err');
         }
     }
 
-    document.getElementById('novaCampanha').addEventListener('click', () => openForm(null));
+    document.getElementById('novaCampanha').addEventListener('click', () => {
+        if (!can('admin.campanhas.create')) {
+            setMsg(deny('admin.campanhas.create'), 'err');
+            return;
+        }
+        openForm(null);
+    });
     document.getElementById('cancelCamp').addEventListener('click', closeForm);
+    selectAllCampRows.addEventListener('change', (e) => {
+        if (!canBulkEdit) {
+            e.currentTarget.checked = false;
+            return;
+        }
+        const checked = !!e.currentTarget.checked;
+        cache.forEach((c) => {
+            const id = parseInt(c.id, 10);
+            if (!id) return;
+            if (checked) {
+                selectedIds.add(id);
+            } else {
+                selectedIds.delete(id);
+            }
+        });
+        rows.querySelectorAll('input[data-row-select="1"]').forEach((cb) => {
+            cb.checked = checked;
+        });
+        updateBulkMeta();
+    });
+    campBulkApply.addEventListener('click', async () => {
+        if (!can('admin.campanhas.edit')) {
+            setMsg(deny('admin.campanhas.edit'), 'err');
+            return;
+        }
+        const ids = Array.from(selectedIds.values()).filter((id) => Number.isInteger(id) && id > 0);
+        if (!ids.length) {
+            setMsg('Selecione ao menos uma campanha para acao em lote.', 'err');
+            return;
+        }
+        const status = campBulkStatus.value || 'queued';
+        const reason = (campBulkReason.value || '').trim();
+        const confirmed = ui && typeof ui.confirmAction === 'function'
+            ? await ui.confirmAction({
+                title: 'Confirmar lote',
+                text: `Aplicar status ${status} para ${ids.length} campanha(s)?`,
+                confirmText: 'Aplicar'
+            })
+            : confirm(`Aplicar status ${status} para ${ids.length} campanha(s)?`);
+        if (!confirmed) return;
+
+        try {
+            const data = await window.anatejeApi(ep('/api/v1/campaigns.php?action=admin_bulk_status'), {
+                method: 'POST',
+                body: { ids, status, reason }
+            });
+            setMsg(
+                `Lote concluido. Atualizados: ${data.updated || 0}, sem alteracao: ${data.unchanged || 0}, nao encontrados: ${data.not_found || 0}.`,
+                'ok'
+            );
+            ids.forEach((id) => selectedIds.delete(id));
+            selectAllCampRows.checked = false;
+            updateBulkMeta();
+            await load();
+        } catch (err) {
+            setMsg(err.message || 'Falha ao aplicar acao em lote nas campanhas', 'err');
+        }
+    });
+    document.getElementById('previewCampanha').addEventListener('click', async () => {
+        if (!can('admin.campanhas.view')) {
+            setMsg(deny('admin.campanhas.view'), 'err');
+            return;
+        }
+        try {
+            const body = {
+                canal: el('camp_canal').value,
+                filtro: {
+                    categoria: el('camp_f_categoria').value,
+                    status: el('camp_f_status').value,
+                    uf: el('camp_f_uf').value,
+                    benefit_id: parseInt(el('camp_f_benefit').value || '0', 10) || 0
+                }
+            };
+            const data = await window.anatejeApi(ep('/api/v1/campaigns.php?action=admin_preview'), { method: 'POST', body });
+            const p = data.preview || {};
+            previewMsg.textContent = `Simulacao: total ${p.total || 0}, aptos ${p.ready || 0}, sem contato ${p.missing_contact || 0}.`;
+            setMsg('', 'ok');
+        } catch (err) {
+            setMsg(err.message || 'Falha ao simular publico', 'err');
+        }
+    });
     document.getElementById('closeLogs').addEventListener('click', () => {
         logsBox.classList.add('hidden');
         activeCampaignId = 0;
@@ -400,6 +684,10 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         logsPageMeta.textContent = '';
     });
     exportLogsCsvBtn.addEventListener('click', () => {
+        if (!can('admin.campanhas.export')) {
+            setMsg(deny('admin.campanhas.export'), 'err');
+            return;
+        }
         if (!activeCampaignId) return;
         const params = new URLSearchParams();
         params.set('action', 'export_logs_csv');
@@ -423,6 +711,13 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         logsState.q = (logsQ.value || '').trim();
         logsState.page = 1;
         await loadLogs(activeCampaignId, cache.find((x) => parseInt(x.id, 10) === activeCampaignId));
+    });
+    logsSaveFilter.addEventListener('click', saveCurrentLogsFilters);
+    logsLoadFilter.addEventListener('click', async () => {
+        await applySavedLogsFilters(true);
+        if (!activeCampaignId) {
+            setMsg('Filtros salvos carregados.', 'ok');
+        }
     });
 
     logsRun.addEventListener('change', async () => {
@@ -450,6 +745,9 @@ $basePrefix = isset($prefix) ? $prefix : '/';
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (ui && typeof ui.clearFieldErrors === 'function') {
+            ui.clearFieldErrors(form);
+        }
 
         try {
             const body = {
@@ -469,15 +767,50 @@ $basePrefix = isset($prefix) ? $prefix : '/';
                 }
             };
 
+            const code = body.id > 0 ? 'admin.campanhas.edit' : 'admin.campanhas.create';
+            if (!can(code)) {
+                setMsg(deny(code), 'err');
+                return;
+            }
+
             await window.anatejeApi(ep('/api/v1/campaigns.php?action=admin_save'), { method: 'POST', body });
             setMsg('Campanha salva com sucesso.', 'ok');
             closeForm();
             await load();
         } catch (err) {
+            if (ui && typeof ui.applyValidationError === 'function') {
+                ui.applyValidationError(form, err, [
+                    { pattern: /titulo/i, field: 'camp_titulo' },
+                    { pattern: /canal/i, field: 'camp_canal' },
+                    { pattern: /status/i, field: 'camp_status' }
+                ]);
+            }
             setMsg(err.message || 'Falha ao salvar campanha', 'err');
         }
     });
 
-    load();
+    if (!can('admin.campanhas.create')) {
+        document.getElementById('novaCampanha').classList.add('hidden');
+    }
+    if (!can('admin.campanhas.view')) {
+        document.getElementById('previewCampanha').classList.add('hidden');
+        logsSaveFilter.classList.add('hidden');
+        logsLoadFilter.classList.add('hidden');
+    }
+    if (!can('admin.campanhas.export')) {
+        exportLogsCsvBtn.classList.add('hidden');
+    }
+    if (!canBulkEdit) {
+        selectAllCampRows.disabled = true;
+        campBulkStatus.disabled = true;
+        campBulkReason.disabled = true;
+        campBulkApply.disabled = true;
+    }
+
+    (async function bootstrap() {
+        await applySavedLogsFilters(false);
+        updateBulkMeta();
+        await load();
+    })();
 })();
 </script>

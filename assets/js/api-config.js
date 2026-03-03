@@ -167,6 +167,7 @@ async function apiRequest(endpoint, options = {}) {
         delete mergedHeaders['content-type'];
     }
     const finalOptions = {
+        credentials: 'include',
         ...options,
         method,
         headers: mergedHeaders
@@ -195,6 +196,36 @@ async function apiRequest(endpoint, options = {}) {
 }
 
 // Função para fazer login
+async function authStateRequest(query) {
+    const url = getApiUrl('auth/login.php?action=' + encodeURIComponent(query));
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            credentials: 'include'
+        });
+        const json = await response.json().catch(() => null);
+
+        if (response.status === 401) {
+            return json && typeof json === 'object'
+                ? json
+                : { success: false, message: 'Usuario nao autenticado' };
+        }
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        if (json && typeof json === 'object') {
+            return json;
+        }
+
+        return { success: false, message: 'Resposta invalida da API de autenticacao' };
+    } catch (error) {
+        apiDebugLog('Auth State API Error', error);
+        throw error;
+    }
+}
+
 async function login(email, password) {
     const formData = new URLSearchParams();
     formData.append('action', 'login');
@@ -285,12 +316,12 @@ async function logout() {
 
 // Função para verificar autenticação
 async function checkAuth() {
-    return await apiRequest('auth/login.php?action=check_auth');
+    return await authStateRequest('check_auth');
 }
 
 // Função para obter perfil do usuário
 async function getUserProfile() {
-    return await apiRequest('auth/login.php?action=profile');
+    return await authStateRequest('profile');
 }
 
 // Função para registrar responsável

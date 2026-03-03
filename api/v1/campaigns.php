@@ -3,7 +3,6 @@
 require_once __DIR__ . '/_bootstrap.php';
 
 $auth = anateje_require_auth();
-anateje_require_admin($auth);
 
 $db = getDB();
 anateje_ensure_schema($db);
@@ -63,6 +62,95 @@ function campaigns_normalize_payload($raw): array
     return [
         'mensagem' => trim((string) ($in['mensagem'] ?? '')),
         'assunto' => trim((string) ($in['assunto'] ?? '')),
+    ];
+}
+
+function campaigns_normalize_bulk_ids($rawIds): array
+{
+    if (!is_array($rawIds)) {
+        return [];
+    }
+
+    $ids = [];
+    foreach ($rawIds as $raw) {
+        $id = (int) $raw;
+        if ($id > 0) {
+            $ids[$id] = true;
+        }
+        if (count($ids) >= 500) {
+            break;
+        }
+    }
+
+    return array_map('intval', array_keys($ids));
+}
+
+function campaigns_fetch_targets(PDO $db, array $filtro): array
+{
+    $sql = "SELECT m.id AS member_id, m.nome, m.email_funcional, m.telefone, m.categoria, m.status AS member_status, a.uf
+        FROM members m
+        LEFT JOIN addresses a ON a.member_id = m.id";
+
+    $params = [];
+    if ((int) $filtro['benefit_id'] > 0) {
+        $sql .= " INNER JOIN member_benefits mb ON mb.member_id = m.id AND mb.benefit_id = ? AND mb.ativo = 1";
+        $params[] = (int) $filtro['benefit_id'];
+    }
+
+    $sql .= " WHERE 1=1";
+
+    if ($filtro['categoria'] !== '') {
+        $sql .= " AND m.categoria = ?";
+        $params[] = $filtro['categoria'];
+    }
+    if ($filtro['status'] !== '') {
+        $sql .= " AND m.status = ?";
+        $params[] = $filtro['status'];
+    }
+    if ($filtro['uf'] !== '') {
+        $sql .= " AND a.uf = ?";
+        $params[] = $filtro['uf'];
+    }
+
+    $st = $db->prepare($sql);
+    $st->execute($params);
+    return $st->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function campaigns_preview_metrics(array $targets, string $canal): array
+{
+    $canal = strtoupper(trim($canal));
+    $total = count($targets);
+    $ready = 0;
+    $missing = 0;
+
+    foreach ($targets as $row) {
+        if ($canal === 'EMAIL') {
+            $email = trim((string) ($row['email_funcional'] ?? ''));
+            if ($email !== '') {
+                $ready++;
+            } else {
+                $missing++;
+            }
+            continue;
+        }
+        if ($canal === 'WHATSAPP') {
+            $fone = anateje_only_digits((string) ($row['telefone'] ?? ''));
+            if (strlen($fone) >= 10) {
+                $ready++;
+            } else {
+                $missing++;
+            }
+            continue;
+        }
+
+        $ready++;
+    }
+
+    return [
+        'total' => $total,
+        'ready' => $ready,
+        'missing_contact' => $missing,
     ];
 }
 
@@ -229,6 +317,7 @@ function campaigns_stream_csv(string $filename, array $header, array $rows): voi
 }
 
 if ($action === 'admin_list') {
+    anateje_require_permission($db, $auth, 'admin.campanhas.view');
     $rows = $db->query("SELECT c.*,
             (SELECT COUNT(*) FROM campaign_logs l WHERE l.campaign_id = c.id) AS total_logs,
             (SELECT COUNT(*) FROM campaign_logs l WHERE l.campaign_id = c.id AND l.status = 'sent') AS sent_logs,
@@ -246,10 +335,42 @@ if ($action === 'admin_list') {
     }
     unset($row);
 
-    anateje_ok(['campaigns' => $rows]);
+    $statusCounts = [
+        'draft' => 0,
+        'queued' => 0,
+        'processing' => 0,
+        'done' => 0,
+        'failed' => 0,
+        'other' => 0,
+    ];
+    $canalCounts = [];
+    foreach ($rows as $row) {
+        $status = strtolower((string) ($row['status'] ?? ''));
+        if (isset($statusCounts[$status])) {
+            $statusCounts[$status]++;
+        } else {
+            $statusCounts['other']++;
+        }
+
+        $canal = strtoupper((string) ($row['canal'] ?? ''));
+        if (!isset($canalCounts[$canal])) {
+            $canalCounts[$canal] = 0;
+        }
+        $canalCounts[$canal]++;
+    }
+
+    anateje_ok([
+        'campaigns' => $rows,
+        'meta' => [
+            'total' => count($rows),
+            'status_counts' => $statusCounts,
+            'canal_counts' => $canalCounts,
+        ],
+    ]);
 }
 
 if ($action === 'admin_get') {
+    anateje_require_permission($db, $auth, 'admin.campanhas.view');
     $id = (int) ($_GET['id'] ?? 0);
     if ($id <= 0) {
         anateje_error('VALIDATION', 'ID invalido', 422);
@@ -284,6 +405,40 @@ if ($action === 'admin_get') {
             'total' => $logsData['total'],
             'total_pages' => $logsData['total_pages'],
         ],
+        'meta' => [
+            'filters' => [
+                'status' => $filters['status'],
+                'q' => $filters['q'],
+                'run_id' => (int) $filters['run_id'],
+            ],
+            'pagination' => [
+                'page' => $pagination['page'],
+                'per_page' => $pagination['per_page'],
+                'total' => $logsData['total'],
+                'total_pages' => $logsData['total_pages'],
+            ],
+        ],
+    ]);
+}
+
+if ($action === 'admin_preview') {
+    anateje_require_permission($db, $auth, 'admin.campanhas.view');
+    anateje_require_method(['POST']);
+
+    $in = anateje_input();
+    $canal = strtoupper(trim((string) ($in['canal'] ?? 'INAPP')));
+    if (!in_array($canal, ['INAPP', 'EMAIL', 'WHATSAPP'], true)) {
+        $canal = 'INAPP';
+    }
+
+    $filtro = campaigns_normalize_filter($in['filtro'] ?? []);
+    $targets = campaigns_fetch_targets($db, $filtro);
+    $metrics = campaigns_preview_metrics($targets, $canal);
+
+    anateje_ok([
+        'canal' => $canal,
+        'filtro' => $filtro,
+        'preview' => $metrics,
     ]);
 }
 
@@ -293,6 +448,7 @@ if ($action === 'admin_save') {
     $in = anateje_input();
 
     $id = (int) ($in['id'] ?? 0);
+    anateje_require_permission($db, $auth, $id > 0 ? 'admin.campanhas.edit' : 'admin.campanhas.create');
     $canal = strtoupper(trim((string) ($in['canal'] ?? 'INAPP')));
     if (!in_array($canal, ['INAPP', 'EMAIL', 'WHATSAPP'], true)) {
         $canal = 'INAPP';
@@ -320,6 +476,11 @@ if ($action === 'admin_save') {
 
     $db->beginTransaction();
     try {
+        $before = null;
+        if ($id > 0) {
+            $before = campaigns_row_with_meta($db, $id);
+        }
+
         if ($id > 0) {
             $st = $db->prepare('UPDATE campaigns SET canal=?, titulo=?, payload_json=?, filtro_json=?, status=? WHERE id=?');
             $st->execute([$canal, $titulo, $payloadJson, $filtroJson, $status, $id]);
@@ -328,6 +489,9 @@ if ($action === 'admin_save') {
             $st->execute([$canal, $titulo, $payloadJson, $filtroJson, $status]);
             $id = (int) $db->lastInsertId();
         }
+
+        $after = campaigns_row_with_meta($db, $id);
+        anateje_audit_log($db, (int) $auth['sub'], 'admin.campanhas', $before ? 'update' : 'create', 'campaign', $id, $before, $after, []);
 
         $db->commit();
         anateje_ok(['id' => $id]);
@@ -339,19 +503,34 @@ if ($action === 'admin_save') {
 }
 
 if ($action === 'admin_delete') {
-    $id = (int) ($_GET['id'] ?? 0);
+    anateje_require_permission($db, $auth, 'admin.campanhas.delete');
+    anateje_require_method(['POST']);
+    $in = anateje_input();
+    $id = (int) ($in['id'] ?? ($_GET['id'] ?? 0));
     if ($id <= 0) {
         anateje_error('VALIDATION', 'ID invalido', 422);
     }
 
     $db->beginTransaction();
     try {
+        $before = campaigns_row_with_meta($db, $id);
+        if (!$before) {
+            throw new RuntimeException('CAMPAIGN_NOT_FOUND');
+        }
+
         $db->prepare('DELETE FROM campaign_logs WHERE campaign_id = ?')->execute([$id]);
         $db->prepare('DELETE FROM campaign_runs WHERE campaign_id = ?')->execute([$id]);
         $db->prepare('DELETE FROM campaigns WHERE id = ?')->execute([$id]);
+        anateje_audit_log($db, (int) $auth['sub'], 'admin.campanhas', 'delete', 'campaign', $id, $before, null, []);
         $db->commit();
 
         anateje_ok(['deleted' => true]);
+    } catch (RuntimeException $e) {
+        $db->rollBack();
+        if ($e->getMessage() === 'CAMPAIGN_NOT_FOUND') {
+            anateje_error('NOT_FOUND', 'Campanha nao encontrada', 404);
+        }
+        anateje_error('FAIL', 'Falha ao excluir campanha', 500);
     } catch (Throwable $e) {
         $db->rollBack();
         logError('Erro campaigns.admin_delete: ' . $e->getMessage());
@@ -359,7 +538,88 @@ if ($action === 'admin_delete') {
     }
 }
 
+if ($action === 'admin_bulk_status') {
+    anateje_require_permission($db, $auth, 'admin.campanhas.edit');
+    anateje_require_method(['POST']);
+
+    $in = anateje_input();
+    $ids = campaigns_normalize_bulk_ids($in['ids'] ?? []);
+    $targetStatus = strtolower(trim((string) ($in['status'] ?? '')));
+    if (!in_array($targetStatus, ['draft', 'queued', 'processing', 'done', 'failed'], true)) {
+        anateje_error('VALIDATION', 'Status alvo invalido para lote', 422);
+    }
+    if (!$ids) {
+        anateje_error('VALIDATION', 'Selecione ao menos uma campanha', 422);
+    }
+
+    $reason = trim((string) ($in['reason'] ?? ''));
+    if (strlen($reason) > 180) {
+        $reason = substr($reason, 0, 180);
+    }
+
+    $summary = [
+        'requested' => count($ids),
+        'updated' => 0,
+        'unchanged' => 0,
+        'not_found' => 0,
+    ];
+
+    $db->beginTransaction();
+    try {
+        $sel = $db->prepare('SELECT id, titulo, canal, status, filtro_json, payload_json FROM campaigns WHERE id = ? LIMIT 1 FOR UPDATE');
+        $upd = $db->prepare('UPDATE campaigns SET status = ? WHERE id = ?');
+
+        foreach ($ids as $id) {
+            $sel->execute([$id]);
+            $before = $sel->fetch(PDO::FETCH_ASSOC);
+            if (!$before) {
+                $summary['not_found']++;
+                continue;
+            }
+
+            $oldStatus = strtolower((string) ($before['status'] ?? ''));
+            if ($oldStatus === $targetStatus) {
+                $summary['unchanged']++;
+                continue;
+            }
+
+            $upd->execute([$targetStatus, $id]);
+            $after = $before;
+            $after['status'] = $targetStatus;
+
+            anateje_audit_log(
+                $db,
+                (int) $auth['sub'],
+                'admin.campanhas',
+                'bulk_status',
+                'campaign',
+                $id,
+                $before,
+                $after,
+                ['reason' => $reason !== '' ? $reason : null]
+            );
+            $summary['updated']++;
+        }
+
+        $db->commit();
+        anateje_ok([
+            'target_status' => $targetStatus,
+            'requested' => $summary['requested'],
+            'updated' => $summary['updated'],
+            'unchanged' => $summary['unchanged'],
+            'not_found' => $summary['not_found'],
+        ]);
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
+        logError('Erro campaigns.admin_bulk_status: ' . $e->getMessage());
+        anateje_error('FAIL', 'Falha ao atualizar campanhas em lote', 500);
+    }
+}
+
 if ($action === 'admin_run') {
+    anateje_require_permission($db, $auth, 'admin.campanhas.run');
     anateje_require_method(['POST']);
 
     $in = anateje_input();
@@ -375,35 +635,7 @@ if ($action === 'admin_run') {
 
     $canal = strtoupper((string) $campaign['canal']);
     $filtro = campaigns_normalize_filter($campaign['filtro'] ?? []);
-
-    $sql = "SELECT m.id AS member_id, m.nome, m.email_funcional, m.telefone, m.categoria, m.status AS member_status, a.uf
-        FROM members m
-        LEFT JOIN addresses a ON a.member_id = m.id";
-
-    $params = [];
-    if ((int) $filtro['benefit_id'] > 0) {
-        $sql .= " INNER JOIN member_benefits mb ON mb.member_id = m.id AND mb.benefit_id = ? AND mb.ativo = 1";
-        $params[] = (int) $filtro['benefit_id'];
-    }
-
-    $sql .= " WHERE 1=1";
-
-    if ($filtro['categoria'] !== '') {
-        $sql .= " AND m.categoria = ?";
-        $params[] = $filtro['categoria'];
-    }
-    if ($filtro['status'] !== '') {
-        $sql .= " AND m.status = ?";
-        $params[] = $filtro['status'];
-    }
-    if ($filtro['uf'] !== '') {
-        $sql .= " AND a.uf = ?";
-        $params[] = $filtro['uf'];
-    }
-
-    $st = $db->prepare($sql);
-    $st->execute($params);
-    $targets = $st->fetchAll(PDO::FETCH_ASSOC);
+    $targets = campaigns_fetch_targets($db, $filtro);
 
     $counts = [
         'total' => count($targets),
@@ -484,6 +716,11 @@ if ($action === 'admin_run') {
                 $runId
             ]);
 
+        anateje_audit_log($db, (int) $auth['sub'], 'admin.campanhas', 'run', 'campaign', $id, null, [
+            'run_id' => $runId,
+            'counts' => $counts
+        ], ['canal' => $canal, 'filtro' => $filtro]);
+
         $updated = campaigns_row_with_meta($db, $id);
         anateje_ok([
             'campaign' => $updated,
@@ -518,6 +755,7 @@ if ($action === 'admin_run') {
 }
 
 if ($action === 'export_logs_csv') {
+    anateje_require_permission($db, $auth, 'admin.campanhas.export');
     $id = (int) ($_GET['id'] ?? 0);
     if ($id <= 0) {
         anateje_error('VALIDATION', 'ID invalido', 422);
@@ -579,6 +817,8 @@ if ($action === 'export_logs_csv') {
 }
 
 if ($action === 'logs') {
+    anateje_require_permission($db, $auth, 'admin.campanhas.view');
+
     $id = (int) ($_GET['id'] ?? 0);
     if ($id <= 0) {
         anateje_error('VALIDATION', 'ID invalido', 422);
@@ -606,6 +846,19 @@ if ($action === 'logs') {
             'per_page' => $pagination['per_page'],
             'total' => $logsData['total'],
             'total_pages' => $logsData['total_pages'],
+        ],
+        'meta' => [
+            'filters' => [
+                'status' => $filters['status'],
+                'q' => $filters['q'],
+                'run_id' => (int) $filters['run_id'],
+            ],
+            'pagination' => [
+                'page' => $pagination['page'],
+                'per_page' => $pagination['per_page'],
+                'total' => $logsData['total'],
+                'total_pages' => $logsData['total_pages'],
+            ],
         ],
     ]);
 }

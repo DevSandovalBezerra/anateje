@@ -51,12 +51,63 @@ function anateje_require_method(array $allowed): void
     }
 }
 
+function anateje_csrf_token(): string
+{
+    $token = (string) ($_SESSION['csrf_token'] ?? '');
+    if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
+        try {
+            $token = bin2hex(random_bytes(32));
+        } catch (Throwable $e) {
+            $token = hash('sha256', uniqid('csrf', true) . '|' . mt_rand());
+        }
+        $_SESSION['csrf_token'] = $token;
+    }
+
+    return $token;
+}
+
+function anateje_csrf_required(): bool
+{
+    $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+    return in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true);
+}
+
+function anateje_request_csrf_token(): string
+{
+    $headerToken = trim((string) ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? ''));
+    if ($headerToken !== '') {
+        return $headerToken;
+    }
+
+    if (isset($_POST['csrf_token'])) {
+        return trim((string) $_POST['csrf_token']);
+    }
+
+    return trim((string) ($_GET['csrf_token'] ?? ''));
+}
+
+function anateje_require_csrf(): void
+{
+    if (!anateje_csrf_required()) {
+        return;
+    }
+
+    $expected = anateje_csrf_token();
+    $provided = anateje_request_csrf_token();
+    if ($provided === '' || !hash_equals($expected, $provided)) {
+        anateje_error('CSRF_INVALID', 'Token CSRF invalido ou ausente', 403);
+    }
+}
+
 function anateje_require_auth(): array
 {
     $tokenData = checkAuth();
     if (!$tokenData || !isset($_SESSION['user_id'])) {
         anateje_error('UNAUTH', 'Sessao invalida ou expirada', 401);
     }
+
+    anateje_csrf_token();
+    anateje_require_csrf();
 
     $perfilId = (int) ($_SESSION['perfil_id'] ?? 0);
 
@@ -74,6 +125,79 @@ function anateje_require_admin(array $auth): void
 {
     if (empty($auth['is_admin'])) {
         anateje_error('FORBIDDEN', 'Acesso negado', 403);
+    }
+}
+
+function anateje_profile_permissions(PDO $db, int $perfilId): array
+{
+    static $cache = [];
+
+    if ($perfilId <= 0) {
+        return [];
+    }
+    if (isset($cache[$perfilId])) {
+        return $cache[$perfilId];
+    }
+
+    try {
+        $st = $db->prepare("SELECT p.codigo
+            FROM perfil_permissoes pp
+            INNER JOIN permissoes p ON p.id = pp.permissao_id
+            WHERE pp.perfil_id = ? AND pp.concedida = 1 AND p.ativo = 1");
+        $st->execute([$perfilId]);
+        $rows = $st->fetchAll(PDO::FETCH_COLUMN);
+        $codes = [];
+        foreach ($rows as $code) {
+            $code = trim((string) $code);
+            if ($code !== '') {
+                $codes[] = $code;
+            }
+        }
+        $cache[$perfilId] = array_values(array_unique($codes));
+        return $cache[$perfilId];
+    } catch (Throwable $e) {
+        logError('Falha ao carregar permissoes do perfil ' . $perfilId . ': ' . $e->getMessage());
+        $cache[$perfilId] = [];
+        return [];
+    }
+}
+
+function anateje_has_permission_code(PDO $db, array $auth, string $permissionCode): bool
+{
+    $permissionCode = trim($permissionCode);
+    if ($permissionCode === '') {
+        return false;
+    }
+
+    $perfilId = (int) ($auth['perfil_id'] ?? 0);
+    if ($perfilId === 1) {
+        return true;
+    }
+    if ($perfilId <= 0) {
+        return false;
+    }
+
+    $codes = anateje_profile_permissions($db, $perfilId);
+    if (in_array($permissionCode, $codes, true)) {
+        return true;
+    }
+
+    // Compatibilidade: permissao de pagina (module.page) cobre a acao (module.page.action).
+    $parts = explode('.', $permissionCode);
+    if (count($parts) === 3) {
+        $pageCode = $parts[0] . '.' . $parts[1];
+        if (in_array($pageCode, $codes, true)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function anateje_require_permission(PDO $db, array $auth, string $permissionCode): void
+{
+    if (!anateje_has_permission_code($db, $auth, $permissionCode)) {
+        anateje_error('FORBIDDEN', 'Acesso negado', 403, ['permission' => $permissionCode]);
     }
 }
 
@@ -315,6 +439,65 @@ function anateje_schema_has_index(PDO $db, string $table, string $index): bool
     return (int) $st->fetchColumn() > 0;
 }
 
+function anateje_schema_column_type(PDO $db, string $table, string $column): ?string
+{
+    $schema = anateje_schema_name($db);
+    if ($schema === '') {
+        return null;
+    }
+
+    $st = $db->prepare('SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1');
+    $st->execute([$schema, $table, $column]);
+    $type = $st->fetchColumn();
+    if (!is_string($type) || trim($type) === '') {
+        return null;
+    }
+
+    return strtolower(trim($type));
+}
+
+function anateje_audit_log(
+    PDO $db,
+    int $userId,
+    string $module,
+    string $action,
+    ?string $entityType = null,
+    ?int $entityId = null,
+    $before = null,
+    $after = null,
+    array $meta = []
+): void {
+    try {
+        $ip = trim((string) ($_SERVER['REMOTE_ADDR'] ?? ''));
+        if ($ip === '') {
+            $ip = '0.0.0.0';
+        }
+        $ua = trim((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''));
+
+        $beforeJson = $before === null ? null : json_encode($before, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $afterJson = $after === null ? null : json_encode($after, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $metaJson = empty($meta) ? null : json_encode($meta, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        $st = $db->prepare('INSERT INTO audit_logs
+            (user_id, modulo, acao, entidade, entidade_id, antes_json, depois_json, meta_json, ip, user_agent)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $st->execute([
+            $userId > 0 ? $userId : null,
+            trim($module) !== '' ? trim($module) : 'system',
+            trim($action) !== '' ? trim($action) : 'unknown',
+            $entityType !== null && trim($entityType) !== '' ? trim($entityType) : null,
+            $entityId !== null && $entityId > 0 ? $entityId : null,
+            $beforeJson !== false ? $beforeJson : null,
+            $afterJson !== false ? $afterJson : null,
+            $metaJson !== false ? $metaJson : null,
+            $ip,
+            $ua !== '' ? $ua : null,
+        ]);
+    } catch (Throwable $e) {
+        logError('Falha audit log: ' . $e->getMessage());
+    }
+}
+
 function anateje_ensure_schema(PDO $db): void
 {
     static $ready = false;
@@ -368,6 +551,8 @@ function anateje_ensure_schema(PDO $db): void
             descricao TEXT NULL,
             link VARCHAR(255) NULL,
             status ENUM('active','inactive') NOT NULL DEFAULT 'active',
+            eligibility_categoria ENUM('ALL','PARCIAL','INTEGRAL') NOT NULL DEFAULT 'ALL',
+            eligibility_member_status ENUM('ALL','ATIVO','INATIVO') NOT NULL DEFAULT 'ALL',
             sort_order INT NOT NULL DEFAULT 0,
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
@@ -394,6 +579,10 @@ function anateje_ensure_schema(PDO $db): void
             fim_em DATETIME NULL,
             vagas INT NULL,
             status ENUM('draft','published','archived') NOT NULL DEFAULT 'draft',
+            access_scope ENUM('ALL','PARCIAL','INTEGRAL') NOT NULL DEFAULT 'ALL',
+            waitlist_enabled TINYINT(1) NOT NULL DEFAULT 1,
+            checkin_enabled TINYINT(1) NOT NULL DEFAULT 1,
+            max_waitlist INT NULL,
             imagem_url VARCHAR(255) NULL,
             link VARCHAR(255) NULL,
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -407,12 +596,17 @@ function anateje_ensure_schema(PDO $db): void
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             event_id BIGINT UNSIGNED NOT NULL,
             member_id BIGINT UNSIGNED NOT NULL,
-            status ENUM('registered','canceled') NOT NULL DEFAULT 'registered',
+            status ENUM('registered','waitlisted','checked_in','canceled') NOT NULL DEFAULT 'registered',
+            waitlisted_at DATETIME NULL,
+            checked_in_at DATETIME NULL,
+            canceled_at DATETIME NULL,
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             UNIQUE KEY uk_event_member (event_id, member_id),
             KEY idx_event_regs_member_id (member_id),
-            KEY idx_event_regs_status (status)
+            KEY idx_event_regs_status (status),
+            KEY idx_event_regs_waitlisted_at (waitlisted_at),
+            KEY idx_event_regs_checked_in_at (checked_in_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 
         "CREATE TABLE IF NOT EXISTS posts (
@@ -423,12 +617,18 @@ function anateje_ensure_schema(PDO $db): void
             conteudo LONGTEXT NULL,
             status ENUM('draft','published','archived') NOT NULL DEFAULT 'draft',
             publicado_em DATETIME NULL,
+            scheduled_for DATETIME NULL,
+            target_categoria ENUM('ALL','PARCIAL','INTEGRAL') NOT NULL DEFAULT 'ALL',
+            target_status ENUM('ALL','ATIVO','INATIVO') NOT NULL DEFAULT 'ALL',
+            target_uf CHAR(2) NULL,
+            target_lotacao VARCHAR(150) NULL,
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             UNIQUE KEY uk_posts_slug (slug),
             KEY idx_posts_tipo_status (tipo, status),
-            KEY idx_posts_publicado_em (publicado_em)
+            KEY idx_posts_publicado_em (publicado_em),
+            KEY idx_posts_scheduled_for (scheduled_for)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 
         "CREATE TABLE IF NOT EXISTS campaigns (
@@ -494,6 +694,103 @@ function anateje_ensure_schema(PDO $db): void
             updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             UNIQUE KEY uk_integration_provider (provider)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+        "CREATE TABLE IF NOT EXISTS audit_logs (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id BIGINT UNSIGNED NULL,
+            modulo VARCHAR(60) NOT NULL,
+            acao VARCHAR(60) NOT NULL,
+            entidade VARCHAR(80) NULL,
+            entidade_id BIGINT UNSIGNED NULL,
+            antes_json LONGTEXT NULL,
+            depois_json LONGTEXT NULL,
+            meta_json LONGTEXT NULL,
+            ip VARCHAR(64) NULL,
+            user_agent VARCHAR(255) NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY idx_audit_logs_modulo_acao (modulo, acao),
+            KEY idx_audit_logs_entidade (entidade, entidade_id),
+            KEY idx_audit_logs_user_id (user_id),
+            KEY idx_audit_logs_created_at (created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+        "CREATE TABLE IF NOT EXISTS member_status_history (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            member_id BIGINT UNSIGNED NOT NULL,
+            old_status ENUM('ATIVO','INATIVO') NULL,
+            new_status ENUM('ATIVO','INATIVO') NOT NULL,
+            changed_by BIGINT UNSIGNED NULL,
+            reason VARCHAR(255) NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY idx_member_status_history_member (member_id),
+            KEY idx_member_status_history_created_at (created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+        "CREATE TABLE IF NOT EXISTS user_saved_filters (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id BIGINT UNSIGNED NOT NULL,
+            module_code VARCHAR(80) NOT NULL,
+            filter_key VARCHAR(80) NOT NULL DEFAULT 'default',
+            filter_json LONGTEXT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY uk_user_saved_filters_scope (user_id, module_code, filter_key),
+            KEY idx_user_saved_filters_user_module (user_id, module_code)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+        "CREATE TABLE IF NOT EXISTS member_folders (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            member_id BIGINT UNSIGNED NULL,
+            parent_id BIGINT UNSIGNED NULL,
+            tipo ENUM('root','member','folder') NOT NULL DEFAULT 'folder',
+            nome VARCHAR(255) NOT NULL,
+            status ENUM('active','trash') NOT NULL DEFAULT 'active',
+            created_by BIGINT UNSIGNED NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY uk_member_folders_level (parent_id, nome, status),
+            KEY idx_member_folders_member (member_id),
+            KEY idx_member_folders_parent (parent_id),
+            KEY idx_member_folders_tipo_status (tipo, status)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+        "CREATE TABLE IF NOT EXISTS member_files (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            folder_id BIGINT UNSIGNED NOT NULL,
+            member_id BIGINT UNSIGNED NULL,
+            nome_original VARCHAR(255) NOT NULL,
+            nome_exibicao VARCHAR(255) NOT NULL,
+            storage_path VARCHAR(500) NOT NULL,
+            mime_type VARCHAR(120) NOT NULL,
+            ext VARCHAR(16) NULL,
+            tamanho_bytes BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            status ENUM('active','trash') NOT NULL DEFAULT 'active',
+            created_by BIGINT UNSIGNED NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY idx_member_files_folder (folder_id),
+            KEY idx_member_files_member (member_id),
+            KEY idx_member_files_status (status),
+            KEY idx_member_files_nome (nome_exibicao)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+        "CREATE TABLE IF NOT EXISTS post_reads (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            post_id BIGINT UNSIGNED NOT NULL,
+            member_id BIGINT UNSIGNED NOT NULL,
+            read_at DATETIME NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY uk_post_reads_member_post (member_id, post_id),
+            KEY idx_post_reads_post_member (post_id, member_id),
+            KEY idx_post_reads_read_at (read_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
     ];
 
@@ -509,6 +806,67 @@ function anateje_ensure_schema(PDO $db): void
     }
     if (!anateje_schema_has_index($db, 'campaign_logs', 'idx_campaign_logs_campaign_run')) {
         $db->exec('ALTER TABLE campaign_logs ADD INDEX idx_campaign_logs_campaign_run (campaign_id, run_id)');
+    }
+
+    if (!anateje_schema_has_column($db, 'events', 'access_scope')) {
+        $db->exec("ALTER TABLE events ADD COLUMN access_scope ENUM('ALL','PARCIAL','INTEGRAL') NOT NULL DEFAULT 'ALL' AFTER status");
+    }
+    if (!anateje_schema_has_column($db, 'events', 'waitlist_enabled')) {
+        $db->exec("ALTER TABLE events ADD COLUMN waitlist_enabled TINYINT(1) NOT NULL DEFAULT 1 AFTER access_scope");
+    }
+    if (!anateje_schema_has_column($db, 'events', 'checkin_enabled')) {
+        $db->exec("ALTER TABLE events ADD COLUMN checkin_enabled TINYINT(1) NOT NULL DEFAULT 1 AFTER waitlist_enabled");
+    }
+    if (!anateje_schema_has_column($db, 'events', 'max_waitlist')) {
+        $db->exec("ALTER TABLE events ADD COLUMN max_waitlist INT NULL AFTER checkin_enabled");
+    }
+
+    $eventRegStatusType = anateje_schema_column_type($db, 'event_registrations', 'status');
+    if ($eventRegStatusType !== null) {
+        if (strpos($eventRegStatusType, 'waitlisted') === false || strpos($eventRegStatusType, 'checked_in') === false) {
+            $db->exec("ALTER TABLE event_registrations MODIFY COLUMN status ENUM('registered','waitlisted','checked_in','canceled') NOT NULL DEFAULT 'registered'");
+        }
+    }
+    if (!anateje_schema_has_column($db, 'event_registrations', 'waitlisted_at')) {
+        $db->exec("ALTER TABLE event_registrations ADD COLUMN waitlisted_at DATETIME NULL AFTER status");
+    }
+    if (!anateje_schema_has_column($db, 'event_registrations', 'checked_in_at')) {
+        $db->exec("ALTER TABLE event_registrations ADD COLUMN checked_in_at DATETIME NULL AFTER waitlisted_at");
+    }
+    if (!anateje_schema_has_column($db, 'event_registrations', 'canceled_at')) {
+        $db->exec("ALTER TABLE event_registrations ADD COLUMN canceled_at DATETIME NULL AFTER checked_in_at");
+    }
+    if (!anateje_schema_has_index($db, 'event_registrations', 'idx_event_regs_waitlisted_at')) {
+        $db->exec('ALTER TABLE event_registrations ADD INDEX idx_event_regs_waitlisted_at (waitlisted_at)');
+    }
+    if (!anateje_schema_has_index($db, 'event_registrations', 'idx_event_regs_checked_in_at')) {
+        $db->exec('ALTER TABLE event_registrations ADD INDEX idx_event_regs_checked_in_at (checked_in_at)');
+    }
+
+    if (!anateje_schema_has_column($db, 'posts', 'scheduled_for')) {
+        $db->exec('ALTER TABLE posts ADD COLUMN scheduled_for DATETIME NULL AFTER publicado_em');
+    }
+    if (!anateje_schema_has_column($db, 'posts', 'target_categoria')) {
+        $db->exec("ALTER TABLE posts ADD COLUMN target_categoria ENUM('ALL','PARCIAL','INTEGRAL') NOT NULL DEFAULT 'ALL' AFTER scheduled_for");
+    }
+    if (!anateje_schema_has_column($db, 'posts', 'target_status')) {
+        $db->exec("ALTER TABLE posts ADD COLUMN target_status ENUM('ALL','ATIVO','INATIVO') NOT NULL DEFAULT 'ALL' AFTER target_categoria");
+    }
+    if (!anateje_schema_has_column($db, 'posts', 'target_uf')) {
+        $db->exec("ALTER TABLE posts ADD COLUMN target_uf CHAR(2) NULL AFTER target_status");
+    }
+    if (!anateje_schema_has_column($db, 'posts', 'target_lotacao')) {
+        $db->exec("ALTER TABLE posts ADD COLUMN target_lotacao VARCHAR(150) NULL AFTER target_uf");
+    }
+    if (!anateje_schema_has_index($db, 'posts', 'idx_posts_scheduled_for')) {
+        $db->exec('ALTER TABLE posts ADD INDEX idx_posts_scheduled_for (scheduled_for)');
+    }
+
+    if (!anateje_schema_has_column($db, 'benefits', 'eligibility_categoria')) {
+        $db->exec("ALTER TABLE benefits ADD COLUMN eligibility_categoria ENUM('ALL','PARCIAL','INTEGRAL') NOT NULL DEFAULT 'ALL' AFTER status");
+    }
+    if (!anateje_schema_has_column($db, 'benefits', 'eligibility_member_status')) {
+        $db->exec("ALTER TABLE benefits ADD COLUMN eligibility_member_status ENUM('ALL','ATIVO','INATIVO') NOT NULL DEFAULT 'ALL' AFTER eligibility_categoria");
     }
 
     $count = (int) $db->query('SELECT COUNT(*) AS c FROM benefits')->fetch(PDO::FETCH_ASSOC)['c'];

@@ -8,6 +8,15 @@ if (!isset($pageTitle) || !isset($user) || !isset($menu) || !isset($currentPage)
 
 require_once __DIR__ . '/base_path.php';
 $baseUrl = lidergest_base_url();
+$csrfToken = (string) ($_SESSION['csrf_token'] ?? '');
+if (!preg_match('/^[a-f0-9]{64}$/', $csrfToken)) {
+    try {
+        $csrfToken = bin2hex(random_bytes(32));
+    } catch (Throwable $e) {
+        $csrfToken = hash('sha256', uniqid('csrf', true) . '|' . mt_rand());
+    }
+    $_SESSION['csrf_token'] = $csrfToken;
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -117,6 +126,16 @@ $baseUrl = lidergest_base_url();
     <script src="<?php echo $baseUrl; ?>/assets/vendor/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="<?php echo $baseUrl; ?>/assets/js/sweetalert-config.js"></script>
     <script src="<?php echo $baseUrl; ?>/assets/js/api-config.js"></script>
+    <script>
+        window.LIDERGEST_PERFIL_ID = <?php echo (int) ($user['perfil_id'] ?? 0); ?>;
+        window.LIDERGEST_PERMISSION_CODES = <?php echo json_encode(array_values(array_unique(array_map(function ($v) {
+            return trim((string) $v);
+        }, (array) ($user['permission_codes'] ?? [])))), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+        window.LIDERGEST_CSRF_TOKEN = <?php echo json_encode($csrfToken, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+    </script>
+    <script src="<?php echo $baseUrl; ?>/assets/js/anateje-permissions.js"></script>
+    <script src="<?php echo $baseUrl; ?>/assets/js/admin-ui.js"></script>
+    <script src="<?php echo $baseUrl; ?>/assets/js/financeiro-api.js"></script>
     <script src="<?php echo $baseUrl; ?>/assets/js/theme-manager.js"></script>
 </head>
 
@@ -172,6 +191,11 @@ $baseUrl = lidergest_base_url();
         window.LIDERGEST_BASE_URL = '<?php echo $baseUrl; ?>';
         window.LIDERGEST_CURRENT_PAGE = <?php echo json_encode($currentPage); ?>;
         window.LIDERGEST_PAGE_TITLE = <?php echo json_encode($pageTitle); ?>;
+        window.LIDERGEST_PERFIL_ID = <?php echo (int) ($user['perfil_id'] ?? 0); ?>;
+        window.LIDERGEST_PERMISSION_CODES = <?php echo json_encode(array_values(array_unique(array_map(function ($v) {
+            return trim((string) $v);
+        }, (array) ($user['permission_codes'] ?? [])))), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+        window.LIDERGEST_CSRF_TOKEN = <?php echo json_encode($csrfToken, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
             window.lucide.createIcons();

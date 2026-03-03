@@ -25,6 +25,7 @@ class PageRouter
             'home' => 'home.php',
 
             'dashboard/admin' => 'dashboard/admin.php',
+            'dashboard/financeiro' => 'financeiro/dashboard.php',
             'dashboard/user' => 'dashboard/user.php',
 
             'associado/perfil' => 'associado/perfil.php',
@@ -33,12 +34,36 @@ class PageRouter
             'associado/comunicados' => 'associado/comunicados.php',
 
             'admin/associados' => 'admin/associados.php',
+            'admin/pastas_associados' => 'admin/pastas_associados.php',
             'admin/beneficios' => 'admin/beneficios.php',
             'admin/eventos' => 'admin/eventos.php',
             'admin/comunicados' => 'admin/comunicados.php',
             'admin/campanhas' => 'admin/campanhas.php',
             'admin/integracoes' => 'admin/integracoes.php',
             'admin/permissoes' => 'admin/permissoes.php',
+            'admin/auditoria' => 'admin/auditoria.php',
+
+            'financeiro/manual' => 'financeiro/manual.php',
+            'financeiro/lancamentos' => 'financeiro/lancamentos.php',
+            'financeiro/contas_bancarias' => 'financeiro/contas_bancarias.php',
+            'financeiro/pessoas' => 'financeiro/pessoas.php',
+            'financeiro/categorias_financeiras' => 'financeiro/categorias_financeiras.php',
+            'financeiro/centros_custos' => 'financeiro/centros_custos.php',
+            'financeiro/receitas_despesas' => 'financeiro/receitas_despesas.php',
+            'financeiro/planos' => 'financeiro/planos.php',
+            'financeiro/orcamentos' => 'financeiro/orcamentos.php',
+            'financeiro/contratos' => 'financeiro/contratos.php',
+            'financeiro/cobrancas' => 'financeiro/cobrancas.php',
+            'financeiro/renovacao_filiacao' => 'financeiro/rematricula.php',
+            'financeiro/rematricula' => 'financeiro/rematricula.php',
+            'financeiro/dashboard' => 'financeiro/dashboard.php',
+            'financeiro/fluxo_caixa' => 'financeiro/fluxo_caixa.php',
+            'financeiro/conciliacao' => 'financeiro/conciliacao.php',
+            'financeiro/relatorios' => 'financeiro/relatorios.php',
+            'financeiro/contas' => 'financeiro/contas.php',
+            'financeiro/contas_financeiras' => 'financeiro/contas_financeiras.php',
+            'financeiro/pagamentos' => 'financeiro/pagamentos.php',
+            'financeiro/transferencias' => 'financeiro/transferencias.php',
 
             'cadastros/usuarios' => 'cadastros/usuarios.php'
         ];
@@ -49,8 +74,33 @@ class PageRouter
      */
     public function getDefaultPage($perfil_id)
     {
-        // 1 = Admin, outros = User comum
-        return ($perfil_id == 1) ? 'home' : 'dashboard/user';
+        $permissions = $this->rbac->getUserPermissions($perfil_id);
+        $dashboards = $permissions['dashboard'] ?? [];
+
+        if (in_array('admin', $dashboards, true)) {
+            return 'dashboard/admin';
+        }
+        if (in_array('financeiro', $dashboards, true)) {
+            return 'dashboard/financeiro';
+        }
+        if (in_array('user', $dashboards, true)) {
+            return 'dashboard/user';
+        }
+        if (!empty($dashboards)) {
+            return 'dashboard/' . (string) reset($dashboards);
+        }
+
+        foreach ($permissions as $module => $pages) {
+            if ($module === 'dashboard' || empty($pages)) {
+                continue;
+            }
+            $page = (string) reset($pages);
+            if ($page !== '' && isset($this->pageMapping[$module . '/' . $page])) {
+                return $module . '/' . $page;
+            }
+        }
+
+        return 'home';
     }
 
     private function isValidPageFormat($page)
@@ -79,11 +129,6 @@ class PageRouter
         $module = $parts[0];
         $pageName = $parts[1];
 
-        // Pagina de usuarios: apenas Admin global
-        if ($module === 'cadastros' && $pageName === 'usuarios') {
-            return $perfil_id == 1;
-        }
-
         return $this->rbac->canAccessPage($perfil_id, $module, $pageName);
     }
 
@@ -94,6 +139,11 @@ class PageRouter
     {
         if (empty($page)) {
             $page = $this->getDefaultPage($perfil_id);
+        }
+
+        // Canonicaliza rota antiga para manter coerencia de titulo/menu.
+        if ($page === 'financeiro/rematricula') {
+            $page = 'financeiro/renovacao_filiacao';
         }
 
         if (!$this->isValidPageFormat($page)) {

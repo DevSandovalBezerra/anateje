@@ -1,13 +1,26 @@
 (function () {
+    function shouldAttachCsrf(method) {
+        const m = String(method || 'GET').toUpperCase();
+        return m === 'POST' || m === 'PUT' || m === 'PATCH' || m === 'DELETE';
+    }
+
     async function anatejeApi(path, options = {}) {
+        const method = String(options.method || 'GET').toUpperCase();
         const finalOptions = {
-            method: options.method || 'GET',
+            method: method,
             credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
                 ...(options.headers || {})
             }
         };
+
+        if (shouldAttachCsrf(method)) {
+            const csrf = String(window.LIDERGEST_CSRF_TOKEN || '').trim();
+            if (csrf !== '') {
+                finalOptions.headers['X-CSRF-Token'] = csrf;
+            }
+        }
 
         if (typeof options.body !== 'undefined') {
             finalOptions.body = JSON.stringify(options.body);

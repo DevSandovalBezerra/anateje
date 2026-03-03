@@ -31,50 +31,104 @@ function sidebar_page_exists($page)
         return false;
     }
 
+    if ($page === 'financeiro/renovacao_filiacao') {
+        return file_exists($frontendBase . DIRECTORY_SEPARATOR . 'financeiro' . DIRECTORY_SEPARATOR . 'rematricula.php');
+    }
+
     return file_exists($frontendBase . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $page) . '.php');
 }
 
 function sidebar_sequence_for_profile($perfilId)
 {
-    if ((int) $perfilId === 1) {
-        return [
-            'dashboard/admin',
-            'admin/associados',
-            'admin/beneficios',
-            'admin/eventos',
-            'admin/comunicados',
-            'admin/campanhas',
-            'admin/integracoes',
-            'admin/permissoes',
-            'cadastros/usuarios',
-        ];
-    }
-
-    return [
+    $routes = [
+        'dashboard/admin',
+        'dashboard/financeiro',
         'dashboard/user',
+        'admin/associados',
+        'admin/pastas_associados',
+        'admin/beneficios',
+        'admin/eventos',
+        'admin/comunicados',
+        'admin/campanhas',
+        'admin/integracoes',
+        'admin/permissoes',
+        'admin/auditoria',
+        'financeiro/manual',
+        'financeiro/lancamentos',
+        'financeiro/contas_bancarias',
+        'financeiro/pessoas',
+        'financeiro/categorias_financeiras',
+        'financeiro/centros_custos',
+        'financeiro/receitas_despesas',
+        'financeiro/planos',
+        'financeiro/orcamentos',
+        'financeiro/contratos',
+        'financeiro/cobrancas',
+        'financeiro/renovacao_filiacao',
+        'financeiro/dashboard',
+        'financeiro/fluxo_caixa',
+        'financeiro/conciliacao',
+        'financeiro/relatorios',
+        'financeiro/contas',
+        'financeiro/contas_financeiras',
+        'financeiro/pagamentos',
+        'financeiro/transferencias',
+        'cadastros/usuarios',
         'associado/perfil',
         'associado/meus_beneficios',
         'associado/meus_eventos',
         'associado/comunicados',
     ];
+
+    if ((int) $perfilId === 1) {
+        $routes = array_values(array_filter($routes, function ($route) {
+            return $route !== 'dashboard/user';
+        }));
+    }
+
+    return $routes;
 }
 
 function sidebar_route_meta($route)
 {
     $map = [
         'dashboard/admin' => ['Dashboard Admin', 'layout-dashboard'],
+        'dashboard/financeiro' => ['Dashboard Financeiro', 'layout-dashboard'],
         'dashboard/user' => ['Dashboard Membro', 'layout-dashboard'],
         'associado/perfil' => ['Meu Perfil', 'user-round'],
         'associado/meus_beneficios' => ['Meus Beneficios', 'gift'],
         'associado/meus_eventos' => ['Meus Eventos', 'calendar'],
         'associado/comunicados' => ['Comunicados', 'megaphone'],
         'admin/associados' => ['Associados', 'users'],
+        'admin/pastas_associados' => ['Pastas de Associados', 'folders'],
         'admin/beneficios' => ['Beneficios', 'gift'],
         'admin/eventos' => ['Eventos', 'calendar'],
         'admin/comunicados' => ['Comunicados', 'megaphone'],
         'admin/campanhas' => ['Campanhas', 'send'],
         'admin/integracoes' => ['Integracoes', 'plug'],
         'admin/permissoes' => ['Permissoes', 'shield'],
+        'admin/auditoria' => ['Auditoria', 'file-search'],
+        'financeiro/manual' => ['Financeiro - Manual', 'book-open'],
+        'financeiro/lancamentos' => ['Financeiro - Lancamentos', 'file-text'],
+        'financeiro/contas_bancarias' => ['Financeiro - Contas Bancarias', 'credit-card'],
+        'financeiro/pessoas' => ['Financeiro - Pessoas', 'users'],
+        'financeiro/categorias_financeiras' => ['Financeiro - Categorias', 'tags'],
+        'financeiro/centros_custos' => ['Financeiro - Centros de Custo', 'building-2'],
+        'financeiro/receitas_despesas' => ['Financeiro - Receitas e Despesas', 'repeat'],
+        'financeiro/planos' => ['Financeiro - Planos', 'layers'],
+        'financeiro/orcamentos' => ['Financeiro - Orcamentos', 'target'],
+        'financeiro/contratos' => ['Financeiro - Contratos', 'file-signature'],
+        'financeiro/cobrancas' => ['Financeiro - Cobrancas', 'banknote'],
+        'financeiro/renovacao_filiacao' => ['Financeiro - Renovacao de Filiacao', 'refresh-cw'],
+        'financeiro/rematricula' => ['Financeiro - Renovacao de Filiacao', 'refresh-cw'],
+        'financeiro/dashboard' => ['Financeiro - Dashboard', 'bar-chart-3'],
+        'financeiro/fluxo_caixa' => ['Financeiro - Fluxo de Caixa', 'trending-up'],
+        'financeiro/conciliacao' => ['Financeiro - Conciliacao', 'check-circle-2'],
+        'financeiro/relatorios' => ['Financeiro - Relatorios', 'bar-chart-3'],
+        'financeiro/contas' => ['Financeiro - Contas', 'wallet'],
+        'financeiro/contas_financeiras' => ['Financeiro - Contas Financeiras', 'landmark'],
+        'financeiro/pagamentos' => ['Financeiro - Pagamentos', 'hand-coins'],
+        'financeiro/transferencias' => ['Financeiro - Transferencias', 'arrow-left-right'],
         'cadastros/usuarios' => ['Usuarios', 'user-cog'],
     ];
 
@@ -193,7 +247,7 @@ function sidebar_route_meta($route)
 
     function isGroupedSidebarPage(page) {
         if (!page) return false;
-        if (page === 'admin/permissoes' || page === 'cadastros/usuarios' || page.startsWith('dashboard/')) return false;
+        if (page === 'admin/permissoes' || page === 'admin/auditoria' || page === 'cadastros/usuarios' || page.startsWith('dashboard/')) return false;
         const parts = page.split('/');
         return parts.length === 2 && !!document.getElementById(`${parts[0]}-submenu`);
     }

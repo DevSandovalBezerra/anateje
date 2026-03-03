@@ -7,6 +7,8 @@ const AUTH_MAX_LOGIN_ATTEMPTS = 5;
 const AUTH_LOGIN_WINDOW_MINUTES = 15;
 const AUTH_LOGIN_COOLDOWN_MINUTES = 15;
 const AUTH_RESET_TTL_SECONDS = 3600;
+const AUTH_MAX_RESET_REQUESTS = 3;
+const AUTH_RESET_WINDOW_MINUTES = 30;
 
 function auth_client_ip(): string
 {
@@ -93,6 +95,35 @@ function auth_login_rate_limit_status(PDO $db, string $email, string $ip): array
     return ['blocked' => false, 'retry_after' => 0];
 }
 
+function auth_reset_rate_limit_status(PDO $db, int $userId, string $ip): array
+{
+    $sql = "SELECT COUNT(*) AS total, MAX(created_at) AS last_try
+        FROM password_reset_tokens
+        WHERE created_at >= (NOW() - INTERVAL " . AUTH_RESET_WINDOW_MINUTES . " MINUTE)
+          AND (user_id = ? OR requested_ip = ?)";
+
+    $st = $db->prepare($sql);
+    $st->execute([$userId, $ip]);
+    $row = $st->fetch(PDO::FETCH_ASSOC) ?: ['total' => 0, 'last_try' => null];
+
+    $total = (int) ($row['total'] ?? 0);
+    if ($total < AUTH_MAX_RESET_REQUESTS || empty($row['last_try'])) {
+        return ['blocked' => false, 'retry_after' => 0];
+    }
+
+    $lastTs = strtotime((string) $row['last_try']);
+    if ($lastTs === false) {
+        return ['blocked' => false, 'retry_after' => 0];
+    }
+
+    $retryAfter = ($lastTs + (AUTH_RESET_WINDOW_MINUTES * 60)) - time();
+    if ($retryAfter > 0) {
+        return ['blocked' => true, 'retry_after' => $retryAfter];
+    }
+
+    return ['blocked' => false, 'retry_after' => 0];
+}
+
 function auth_base_url(): string
 {
     $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
@@ -163,6 +194,11 @@ class Auth
                 }
             }
 
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                @session_regenerate_id(true);
+            }
+            $_SESSION = [];
+
             $token = generateToken((int) $user['id'], (int) $user['perfil_id']);
             $_SESSION['user_id'] = (int) $user['id'];
             $_SESSION['user_name'] = $user['nome'];
@@ -174,6 +210,7 @@ class Auth
             if ($unidadeId) {
                 $_SESSION['unidade_id'] = $unidadeId;
             }
+            initializeAuthSessionSecurity();
 
             auth_log_login_attempt($this->db, $email, $ip, true);
             auth_clear_failed_attempts($this->db, $email, $ip);
@@ -198,7 +235,7 @@ class Auth
 
     public function logout()
     {
-        session_destroy();
+        destroyAuthSession();
         return ['success' => true, 'message' => 'Logout realizado com sucesso'];
     }
 
@@ -335,6 +372,16 @@ class Auth
                 return ['success' => true, 'message' => 'Se o email existir, enviaremos as instrucoes de recuperacao.'];
             }
 
+            $limit = auth_reset_rate_limit_status($this->db, (int) $user['id'], auth_client_ip());
+            if (!empty($limit['blocked'])) {
+                logError('Rate limit de recuperacao de senha acionado', [
+                    'user_id' => (int) $user['id'],
+                    'ip' => auth_client_ip(),
+                    'retry_after' => (int) ($limit['retry_after'] ?? 0)
+                ]);
+                return ['success' => true, 'message' => 'Se o email existir, enviaremos as instrucoes de recuperacao.'];
+            }
+
             $token = bin2hex(random_bytes(32));
             $tokenHash = hash('sha256', $token);
             $expiresAt = date('Y-m-d H:i:s', time() + AUTH_RESET_TTL_SECONDS);
@@ -394,6 +441,7 @@ class Auth
             $st->execute([$hash]);
             $row = $st->fetch(PDO::FETCH_ASSOC);
             if (!$row) {
+                logError('Tentativa de reset com token invalido/expirado', ['ip' => auth_client_ip()]);
                 $this->db->rollBack();
                 return ['success' => false, 'message' => 'Token invalido ou expirado'];
             }
@@ -430,7 +478,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 jsonResponse($result, 429);
             }
             if (empty($result['success'])) {
-                jsonResponse($result, 401);
+                // Manter HTTP 200 para credencial invalida evita ruido de "Failed to load resource"
+                // no frontend, preservando o contrato funcional via success=false.
+                jsonResponse($result, 200);
             }
             jsonResponse($result);
             break;
@@ -507,7 +557,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             break;
 
         case 'check_auth':
-            if (isset($_SESSION['user_id']) && isset($_SESSION['perfil_id'])) {
+            $tokenData = checkAuth();
+            if ($tokenData && isset($_SESSION['user_id']) && isset($_SESSION['perfil_id'])) {
                 $user = [
                     'id' => $_SESSION['user_id'],
                     'nome' => $_SESSION['user_name'],
@@ -515,7 +566,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     'perfil_id' => $_SESSION['perfil_id'],
                     'perfil_nome' => $_SESSION['perfil_nome']
                 ];
-                jsonResponse(['success' => true, 'user' => $user], 200);
+                jsonResponse([
+                    'success' => true,
+                    'user' => $user,
+                    'session' => [
+                        'expires_at' => date('c', (int) ($tokenData['exp'] ?? time())),
+                        'expires_in' => max(0, (int) ($tokenData['exp'] ?? time()) - time()),
+                        'idle_timeout' => SESSION_IDLE_TIMEOUT
+                    ]
+                ], 200);
             }
             jsonResponse(['success' => false, 'message' => 'Usuario nao autenticado'], 401);
             break;
@@ -532,4 +591,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 jsonResponse(['success' => false, 'message' => 'Metodo nao permitido'], 405);
-

@@ -13,7 +13,9 @@ class RBAC
     private $permissionsFallback = [
         1 => [ // Admin Global
             'dashboard' => ['admin'],
-            'admin' => ['associados', 'beneficios', 'eventos', 'comunicados', 'campanhas', 'integracoes'],
+            'admin' => ['associados', 'pastas_associados', 'beneficios', 'eventos', 'comunicados', 'campanhas', 'integracoes', 'permissoes', 'auditoria'],
+            'financeiro' => ['manual', 'lancamentos', 'contas_bancarias', 'pessoas', 'categorias_financeiras', 'centros_custos', 'receitas_despesas', 'planos', 'orcamentos', 'contratos', 'cobrancas', 'rematricula', 'dashboard', 'fluxo_caixa', 'conciliacao', 'relatorios', 'contas', 'contas_financeiras', 'pagamentos', 'transferencias'],
+            'cadastros' => ['usuarios'],
             'associado' => ['perfil', 'meus_beneficios', 'meus_eventos', 'comunicados'],
         ],
         2 => [ // User
@@ -65,7 +67,12 @@ class RBAC
 
             foreach ($permissions as $modulo => $pagesFallback) {
                 if (isset($permissoesDB[$modulo])) {
-                    $permissions[$modulo] = array_unique(array_merge($permissoesDB[$modulo], $pagesFallback));
+                    // Dashboard deve refletir o perfil real do banco quando existir.
+                    if ($modulo === 'dashboard') {
+                        $permissions[$modulo] = $permissoesDB[$modulo];
+                    } else {
+                        $permissions[$modulo] = array_unique(array_merge($permissoesDB[$modulo], $pagesFallback));
+                    }
                 } else {
                     $permissions[$modulo] = $pagesFallback;
                 }
@@ -94,10 +101,6 @@ class RBAC
             return true; // Admin sempre tem acesso a tudo
         }
 
-        if ($module === 'admin') {
-            return false;
-        }
-
         $userPermissions = $this->loadPermissionsFromDB($perfil_id);
 
         if (!isset($userPermissions[$module])) {
@@ -108,7 +111,19 @@ class RBAC
             return true;
         }
 
-        return in_array($page, $userPermissions[$module], true);
+        if (in_array($page, $userPermissions[$module], true)) {
+            return true;
+        }
+
+        // Alias de compatibilidade para transicao de nomenclatura no financeiro.
+        if ($module === 'financeiro' && $page === 'renovacao_filiacao') {
+            return in_array('rematricula', $userPermissions[$module], true);
+        }
+        if ($module === 'financeiro' && $page === 'rematricula') {
+            return in_array('renovacao_filiacao', $userPermissions[$module], true);
+        }
+
+        return false;
     }
 
     public function canAccessDashboard($perfil_id, $dashboard)
@@ -168,17 +183,7 @@ class RBAC
     public function hasPermissionForPage($perfil_id, $module, $page)
     {
         if ($module === 'dashboard') {
-            $dashboardMap = [1 => 'admin', 2 => 'user'];
-            $userDashboard = $dashboardMap[$perfil_id] ?? null;
-            return $userDashboard === $page;
-        }
-
-        if ($perfil_id == 1) {
-            return true;
-        }
-
-        if ($module === 'admin') {
-            return false;
+            return $this->canAccessDashboard($perfil_id, $page);
         }
 
         return $this->hasPermission($perfil_id, $module, $page);
@@ -187,12 +192,35 @@ class RBAC
     private function redirectToDashboard($perfil_id)
     {
         $prefix = lidergest_base_prefix();
-        switch ($perfil_id) {
-            case 1:
-                header("Location: {$prefix}index.php?page=home");
-                break;
-            default:
-                header("Location: {$prefix}index.php?page=dashboard/user");
+        $permissions = $this->getUserPermissions($perfil_id);
+
+        $dashboards = $permissions['dashboard'] ?? [];
+        $target = '';
+        if (in_array('admin', $dashboards, true)) {
+            $target = 'dashboard/admin';
+        } elseif (in_array('financeiro', $dashboards, true)) {
+            $target = 'dashboard/financeiro';
+        } elseif (in_array('user', $dashboards, true)) {
+            $target = 'dashboard/user';
+        } elseif (!empty($dashboards)) {
+            $target = 'dashboard/' . (string) reset($dashboards);
+        } else {
+            foreach ($permissions as $module => $pages) {
+                if ($module === 'dashboard' || empty($pages)) {
+                    continue;
+                }
+                $firstPage = (string) reset($pages);
+                if ($firstPage !== '') {
+                    $target = $module . '/' . $firstPage;
+                    break;
+                }
+            }
+        }
+
+        if ($target !== '') {
+            header("Location: {$prefix}index.php?page={$target}");
+        } else {
+            header("Location: {$prefix}index.php");
         }
         exit;
     }
@@ -202,15 +230,13 @@ class RBAC
         $permissions = $this->getUserPermissions($perfil_id);
         $menu = [];
 
-        if (isset($permissions['dashboard'])) {
-            $dashboardMap = [1 => 'admin', 2 => 'user'];
-            $userDashboard = $dashboardMap[$perfil_id] ?? null;
+        if (!empty($permissions['dashboard'])) {
             $dashboardsPermitidos = [];
-
-            if ($userDashboard && in_array($userDashboard, $permissions['dashboard'], true)) {
-                $dashboardsPermitidos = [$userDashboard];
-            } else {
-                $dashboardsPermitidos = !empty($permissions['dashboard']) ? [reset($permissions['dashboard'])] : [];
+            foreach ($permissions['dashboard'] as $dash) {
+                $dash = trim((string) $dash);
+                if ($dash !== '' && !in_array($dash, $dashboardsPermitidos, true)) {
+                    $dashboardsPermitidos[] = $dash;
+                }
             }
 
             if (!empty($dashboardsPermitidos)) {
@@ -224,6 +250,7 @@ class RBAC
 
         $iconMap = [
             'admin' => 'shield',
+            'financeiro' => 'wallet',
             'associado' => 'user-round',
             'cadastros' => 'users',
             'beneficios' => 'gift',

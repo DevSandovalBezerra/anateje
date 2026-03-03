@@ -61,7 +61,7 @@ $basePrefix = isset($prefix) ? $prefix : '/';
                         <input id="contribuicao_mensal" type="number" step="0.01" class="input-primary w-full">
                     </label>
                     <label class="block">
-                        <span class="text-sm font-medium text-gray-700">Matricula</span>
+                        <span class="text-sm font-medium text-gray-700">Registro Associativo</span>
                         <input id="matricula" class="input-primary w-full">
                     </label>
                     <label class="block">

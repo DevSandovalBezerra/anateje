@@ -30,6 +30,7 @@ $basePrefix = isset($prefix) ? $prefix : '/';
     const list = document.getElementById('comunicadosList');
     const detail = document.getElementById('comunicadoDetalhe');
     const msg = document.getElementById('comunicadosMsg');
+    let cache = [];
 
     function setMsg(text, type) {
         msg.textContent = text || '';
@@ -43,6 +44,29 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         return d.toLocaleString('pt-BR');
     }
 
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function markAsRead(id, readAt) {
+        const targetId = parseInt(id, 10);
+        if (!targetId) return;
+        cache = cache.map((item) => {
+            const itemId = parseInt(item.id, 10);
+            if (itemId !== targetId) return item;
+            return {
+                ...item,
+                is_read: true,
+                read_at: readAt || item.read_at || new Date().toISOString().slice(0, 19).replace('T', ' ')
+            };
+        });
+    }
+
     function render(items) {
         if (!items.length) {
             list.innerHTML = '<div class="text-sm text-gray-600">Nenhum comunicado publicado.</div>';
@@ -51,9 +75,14 @@ $basePrefix = isset($prefix) ? $prefix : '/';
 
         list.innerHTML = items.map((p) => `
             <article class="p-4 rounded-lg border border-gray-200 bg-gray-50">
-                <div class="text-xs text-gray-500">${dateLabel(p.publicado_em || p.created_at)}</div>
-                <h3 class="text-base font-semibold text-gray-800 mt-1">${p.titulo}</h3>
-                <button class="btn-secondary px-3 py-1 text-xs mt-2" data-id="${p.id}">Ler comunicado</button>
+                <div class="flex items-center justify-between gap-2">
+                    <div class="text-xs text-gray-500">${dateLabel(p.publicado_em || p.created_at)}</div>
+                    ${p.is_read
+                        ? `<span class="text-[11px] px-2 py-0.5 rounded bg-green-100 text-green-700">Lido${p.read_at ? ' em ' + dateLabel(p.read_at) : ''}</span>`
+                        : '<span class="text-[11px] px-2 py-0.5 rounded bg-amber-100 text-amber-700">Nao lido</span>'}
+                </div>
+                <h3 class="text-base font-semibold text-gray-800 mt-1">${escapeHtml(p.titulo)}</h3>
+                <button class="btn-secondary px-3 py-1 text-xs mt-2" data-id="${p.id}">${p.is_read ? 'Ler novamente' : 'Ler comunicado'}</button>
             </article>
         `).join('');
 
@@ -68,12 +97,14 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         try {
             const data = await window.anatejeApi(ep('/api/v1/posts.php?action=detail&id=' + id));
             const post = data.post || {};
+            markAsRead(id, post.read_at || null);
+            render(cache);
 
             detail.classList.remove('hidden');
             detail.innerHTML = `
-                <h2 class="text-lg font-semibold text-gray-800">${post.titulo || ''}</h2>
+                <h2 class="text-lg font-semibold text-gray-800">${escapeHtml(post.titulo || '')}</h2>
                 <div class="text-xs text-gray-500 mt-1">${dateLabel(post.publicado_em || post.created_at)}</div>
-                <div class="text-sm text-gray-700 mt-3 whitespace-pre-line">${(post.conteudo || 'Sem conteudo cadastrado.').replace(/</g, '&lt;')}</div>
+                <div class="text-sm text-gray-700 mt-3 whitespace-pre-line">${escapeHtml(post.conteudo || 'Sem conteudo cadastrado.')}</div>
             `;
             setMsg('', 'ok');
         } catch (err) {
@@ -84,7 +115,8 @@ $basePrefix = isset($prefix) ? $prefix : '/';
     async function load() {
         try {
             const data = await window.anatejeApi(ep('/api/v1/posts.php?action=list&type=COMUNICADO'));
-            render(data.posts || []);
+            cache = Array.isArray(data.posts) ? data.posts : [];
+            render(cache);
         } catch (err) {
             setMsg(err.message || 'Falha ao carregar comunicados', 'err');
         }

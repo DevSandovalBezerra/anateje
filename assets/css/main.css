@@ -122,6 +122,21 @@ body {
     color: var(--error-red);
 }
 
+.form-input.input-invalid,
+.form-select.input-invalid,
+.form-textarea.input-invalid,
+.input-primary.input-invalid {
+    border-color: var(--error-red) !important;
+    box-shadow: 0 0 0 3px rgba(183, 66, 66, 0.18);
+}
+
+.form-field-error {
+    margin-top: 0.35rem;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    color: var(--error-red);
+}
+
 .form-help {
     color: var(--text-muted);
 }
@@ -208,4 +223,73 @@ body {
     border: 1px solid transparent;
     background: linear-gradient(var(--bg-card), var(--bg-card)) padding-box,
         linear-gradient(135deg, var(--primary-purple-dark), var(--primary-purple)) border-box;
+}
+
+.admin-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.admin-toolbar-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.admin-toolbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .admin-toolbar {
+        flex-direction: row;
+        align-items: flex-end;
+        justify-content: space-between;
+    }
+
+    .admin-toolbar-actions {
+        justify-content: flex-end;
+    }
+}
+
+/* Theme coherence for legacy utility classes used in PHP templates */
+.bg-white {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+.bg-gray-50,
+.bg-blue-50,
+.bg-amber-50 {
+    background: var(--bg-secondary) !important;
+}
+
+.bg-gray-100 {
+    background: var(--bg-tertiary) !important;
+}
+
+.border-gray-100,
+.border-gray-200,
+.border-gray-300,
+.border-blue-200,
+.border-amber-200 {
+    border-color: var(--border-primary) !important;
+}
+
+.text-gray-900,
+.text-gray-800,
+.text-gray-700 {
+    color: var(--text-primary) !important;
+}
+
+.text-gray-600,
+.text-gray-500 {
+    color: var(--text-secondary) !important;
+}
+
+.text-gray-400 {
+    color: var(--text-muted) !important;
 }

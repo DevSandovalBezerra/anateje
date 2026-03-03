@@ -3,7 +3,6 @@
 require_once __DIR__ . '/_bootstrap.php';
 
 $auth = anateje_require_auth();
-anateje_require_admin($auth);
 
 $db = getDB();
 anateje_ensure_schema($db);
@@ -18,13 +17,61 @@ function permissions_default_catalog(): array
         ['associado.meus_eventos', 'associado', 'Meus Eventos', 50],
         ['associado.comunicados', 'associado', 'Comunicados', 60],
         ['admin.associados', 'admin', 'Associados', 70],
-        ['admin.beneficios', 'admin', 'Beneficios', 80],
-        ['admin.eventos', 'admin', 'Eventos', 90],
-        ['admin.comunicados', 'admin', 'Comunicados', 100],
-        ['admin.campanhas', 'admin', 'Campanhas', 110],
-        ['admin.integracoes', 'admin', 'Integracoes', 120],
-        ['admin.permissoes', 'admin', 'Permissoes', 130],
-        ['cadastros.usuarios', 'cadastros', 'Usuarios', 140],
+        ['admin.pastas_associados', 'admin', 'Pastas de Associados', 80],
+        ['admin.beneficios', 'admin', 'Beneficios', 90],
+        ['admin.eventos', 'admin', 'Eventos', 100],
+        ['admin.comunicados', 'admin', 'Comunicados', 110],
+        ['admin.campanhas', 'admin', 'Campanhas', 120],
+        ['admin.integracoes', 'admin', 'Integracoes', 130],
+        ['admin.permissoes', 'admin', 'Permissoes', 140],
+        ['admin.auditoria', 'admin', 'Auditoria', 150],
+        ['cadastros.usuarios', 'cadastros', 'Usuarios', 160],
+
+        ['admin.associados.view', 'admin_associados', 'Associados - Visualizar', 1000],
+        ['admin.associados.create', 'admin_associados', 'Associados - Criar', 1010],
+        ['admin.associados.edit', 'admin_associados', 'Associados - Editar', 1020],
+        ['admin.associados.delete', 'admin_associados', 'Associados - Excluir', 1030],
+        ['admin.associados.export', 'admin_associados', 'Associados - Exportar', 1040],
+
+        ['admin.pastas_associados.view', 'admin_pastas_associados', 'Pastas de Associados - Visualizar', 1050],
+        ['admin.pastas_associados.create', 'admin_pastas_associados', 'Pastas de Associados - Criar pastas', 1060],
+        ['admin.pastas_associados.edit', 'admin_pastas_associados', 'Pastas de Associados - Renomear/Mover', 1070],
+        ['admin.pastas_associados.delete', 'admin_pastas_associados', 'Pastas de Associados - Excluir', 1080],
+        ['admin.pastas_associados.upload', 'admin_pastas_associados', 'Pastas de Associados - Upload', 1090],
+        ['admin.pastas_associados.download', 'admin_pastas_associados', 'Pastas de Associados - Download', 1095],
+
+        ['admin.beneficios.view', 'admin_beneficios', 'Beneficios - Visualizar', 1100],
+        ['admin.beneficios.create', 'admin_beneficios', 'Beneficios - Criar', 1110],
+        ['admin.beneficios.edit', 'admin_beneficios', 'Beneficios - Editar', 1120],
+        ['admin.beneficios.delete', 'admin_beneficios', 'Beneficios - Excluir', 1130],
+        ['admin.beneficios.export', 'admin_beneficios', 'Beneficios - Exportar', 1140],
+
+        ['admin.eventos.view', 'admin_eventos', 'Eventos - Visualizar', 1200],
+        ['admin.eventos.create', 'admin_eventos', 'Eventos - Criar', 1210],
+        ['admin.eventos.edit', 'admin_eventos', 'Eventos - Editar', 1220],
+        ['admin.eventos.delete', 'admin_eventos', 'Eventos - Excluir', 1230],
+        ['admin.eventos.export', 'admin_eventos', 'Eventos - Exportar', 1240],
+        ['admin.eventos.checkin', 'admin_eventos', 'Eventos - Check-in', 1250],
+        ['admin.eventos.waitlist', 'admin_eventos', 'Eventos - Gerenciar fila', 1260],
+
+        ['admin.comunicados.view', 'admin_comunicados', 'Comunicados - Visualizar', 1300],
+        ['admin.comunicados.create', 'admin_comunicados', 'Comunicados - Criar', 1310],
+        ['admin.comunicados.edit', 'admin_comunicados', 'Comunicados - Editar', 1320],
+        ['admin.comunicados.delete', 'admin_comunicados', 'Comunicados - Excluir', 1330],
+        ['admin.comunicados.publish', 'admin_comunicados', 'Comunicados - Publicar/Agendar', 1340],
+        ['admin.comunicados.export', 'admin_comunicados', 'Comunicados - Exportar', 1350],
+
+        ['admin.campanhas.view', 'admin_campanhas', 'Campanhas - Visualizar', 1400],
+        ['admin.campanhas.create', 'admin_campanhas', 'Campanhas - Criar', 1410],
+        ['admin.campanhas.edit', 'admin_campanhas', 'Campanhas - Editar', 1420],
+        ['admin.campanhas.delete', 'admin_campanhas', 'Campanhas - Excluir', 1430],
+        ['admin.campanhas.run', 'admin_campanhas', 'Campanhas - Executar', 1440],
+        ['admin.campanhas.export', 'admin_campanhas', 'Campanhas - Exportar logs', 1450],
+
+        ['admin.permissoes.view', 'admin_permissoes', 'Permissoes - Visualizar', 1500],
+        ['admin.permissoes.edit', 'admin_permissoes', 'Permissoes - Editar', 1510],
+        ['admin.auditoria.view', 'admin_auditoria', 'Auditoria - Visualizar', 1520],
+        ['admin.auditoria.export', 'admin_auditoria', 'Auditoria - Exportar', 1530],
     ];
 }
 
@@ -120,6 +167,9 @@ function permissions_sync_profile_json(PDO $db, int $profileId): void
         if ($mod === '' || $code === '') {
             continue;
         }
+        if (substr_count($code, '.') !== 1) {
+            continue;
+        }
         if (!isset($map[$mod])) {
             $map[$mod] = [];
         }
@@ -171,10 +221,12 @@ permissions_ensure_schema($db);
 $action = $_GET['action'] ?? '';
 
 if ($action === 'admin_list') {
+    anateje_require_permission($db, $auth, 'admin.permissoes.view');
     anateje_ok(permissions_load_payload($db));
 }
 
 if ($action === 'admin_profile_save') {
+    anateje_require_permission($db, $auth, 'admin.permissoes.edit');
     anateje_require_method(['POST']);
     $in = anateje_input();
 
@@ -209,6 +261,7 @@ if ($action === 'admin_profile_save') {
 }
 
 if ($action === 'admin_profile_delete') {
+    anateje_require_permission($db, $auth, 'admin.permissoes.edit');
     anateje_require_method(['POST']);
     $in = anateje_input();
     $id = (int) ($in['id'] ?? 0);
@@ -241,6 +294,7 @@ if ($action === 'admin_profile_delete') {
 }
 
 if ($action === 'admin_profile_permissions_save') {
+    anateje_require_permission($db, $auth, 'admin.permissoes.edit');
     anateje_require_method(['POST']);
     $in = anateje_input();
     $profileId = (int) ($in['profile_id'] ?? 0);
@@ -288,4 +342,3 @@ if ($action === 'admin_profile_permissions_save') {
 }
 
 anateje_error('NOT_FOUND', 'Acao invalida', 404);
-

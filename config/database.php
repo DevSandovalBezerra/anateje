@@ -108,6 +108,9 @@ define('SITE_VERSION', '1.0.0');
 // Configurações de segurança
 define('JWT_SECRET', 'lidergest_secret_key_2024');
 define('SESSION_TIMEOUT', 3600); // 1 hora
+define('SESSION_IDLE_TIMEOUT', 1800); // 30 minutos sem atividade
+define('SESSION_REGENERATE_INTERVAL', 900); // 15 minutos
+define('SESSION_TOKEN_RENEW_WINDOW', 300); // renovar token quando faltar 5 minutos
 define('PASSWORD_MIN_LENGTH', 6);
 
 // Configurações de upload
@@ -268,6 +271,142 @@ function verifyToken($token)
     return $payloadData;
 }
 
+function sessionClientIp()
+{
+    $ip = trim((string) ($_SERVER['REMOTE_ADDR'] ?? ''));
+    return $ip !== '' ? $ip : '0.0.0.0';
+}
+
+function sessionUserAgent()
+{
+    $ua = trim((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''));
+    if ($ua === '') {
+        $ua = 'unknown';
+    }
+    return substr($ua, 0, 255);
+}
+
+function sessionFingerprint()
+{
+    // Fingerprint por user-agent para reduzir falsos positivos de troca de IP.
+    return hash('sha256', sessionUserAgent() . '|' . JWT_SECRET);
+}
+
+function configureSessionCookieParams()
+{
+    if (session_status() !== PHP_SESSION_NONE) {
+        return;
+    }
+
+    $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    $params = session_get_cookie_params();
+    $cookieParams = [
+        'lifetime' => 0,
+        'path' => $params['path'] ?? '/',
+        'domain' => $params['domain'] ?? '',
+        'secure' => $isSecure,
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ];
+
+    if (PHP_VERSION_ID >= 70300) {
+        session_set_cookie_params($cookieParams);
+    } else {
+        session_set_cookie_params(
+            $cookieParams['lifetime'],
+            $cookieParams['path'] . '; samesite=' . $cookieParams['samesite'],
+            $cookieParams['domain'],
+            $cookieParams['secure'],
+            $cookieParams['httponly']
+        );
+    }
+
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.use_only_cookies', '1');
+    ini_set('session.cookie_httponly', '1');
+    if ($isSecure) {
+        ini_set('session.cookie_secure', '1');
+    }
+}
+
+function initializeAuthSessionSecurity()
+{
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        return;
+    }
+
+    $now = time();
+    $_SESSION['session_created_at'] = $now;
+    $_SESSION['session_last_activity'] = $now;
+    $_SESSION['session_regenerated_at'] = $now;
+    $_SESSION['session_fingerprint'] = sessionFingerprint();
+    $_SESSION['session_ip'] = sessionClientIp();
+    $_SESSION['session_user_agent'] = sessionUserAgent();
+}
+
+function destroyAuthSession()
+{
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        return;
+    }
+
+    $_SESSION = [];
+    if (ini_get('session.use_cookies') && !headers_sent()) {
+        $params = session_get_cookie_params();
+        if (PHP_VERSION_ID >= 70300) {
+            setcookie(session_name(), '', [
+                'expires' => time() - 42000,
+                'path' => $params['path'] ?? '/',
+                'domain' => $params['domain'] ?? '',
+                'secure' => (bool) ($params['secure'] ?? false),
+                'httponly' => (bool) ($params['httponly'] ?? true),
+                'samesite' => $params['samesite'] ?? 'Lax'
+            ]);
+        } else {
+            setcookie(
+                session_name(),
+                '',
+                time() - 42000,
+                $params['path'] ?? '/',
+                $params['domain'] ?? '',
+                (bool) ($params['secure'] ?? false),
+                (bool) ($params['httponly'] ?? true)
+            );
+        }
+    }
+
+    session_destroy();
+}
+
+function maybeRenewSessionToken($tokenData)
+{
+    if (!is_array($tokenData)) {
+        return $tokenData;
+    }
+
+    $now = time();
+    $exp = (int) ($tokenData['exp'] ?? 0);
+    if ($exp <= 0 || ($exp - $now) > SESSION_TOKEN_RENEW_WINDOW) {
+        return $tokenData;
+    }
+
+    $userId = (int) ($_SESSION['user_id'] ?? 0);
+    $perfilId = (int) ($_SESSION['perfil_id'] ?? 0);
+    if ($userId <= 0 || $perfilId <= 0) {
+        return $tokenData;
+    }
+
+    $newToken = generateToken($userId, $perfilId);
+    $_SESSION['token'] = $newToken;
+    $renewed = verifyToken($newToken);
+    if (is_array($renewed)) {
+        $_SESSION['token_renewed_at'] = $now;
+        return $renewed;
+    }
+
+    return $tokenData;
+}
+
 // Função para verificar autenticação
 function checkAuth()
 {
@@ -275,10 +414,42 @@ function checkAuth()
         return false;
     }
 
-    $tokenData = verifyToken($_SESSION['token']);
-    if (!$tokenData || $tokenData['user_id'] != $_SESSION['user_id']) {
+    $now = time();
+    $lastActivity = (int) ($_SESSION['session_last_activity'] ?? 0);
+    if ($lastActivity > 0 && ($now - $lastActivity) > SESSION_IDLE_TIMEOUT) {
+        logError('Sessao expirada por inatividade', ['user_id' => (int) $_SESSION['user_id']]);
+        destroyAuthSession();
         return false;
     }
+
+    $expectedFingerprint = (string) ($_SESSION['session_fingerprint'] ?? '');
+    $currentFingerprint = sessionFingerprint();
+    if ($expectedFingerprint === '') {
+        $_SESSION['session_fingerprint'] = $currentFingerprint;
+    } elseif (!hash_equals($expectedFingerprint, $currentFingerprint)) {
+        logError('Sessao invalida por fingerprint divergente', ['user_id' => (int) $_SESSION['user_id']]);
+        destroyAuthSession();
+        return false;
+    }
+
+    $tokenData = verifyToken($_SESSION['token']);
+    if (!$tokenData || $tokenData['user_id'] != $_SESSION['user_id']) {
+        destroyAuthSession();
+        return false;
+    }
+
+    $regenAt = (int) ($_SESSION['session_regenerated_at'] ?? 0);
+    if ($regenAt <= 0) {
+        $_SESSION['session_regenerated_at'] = $now;
+        $regenAt = $now;
+    }
+    if (($now - $regenAt) >= SESSION_REGENERATE_INTERVAL && !headers_sent()) {
+        @session_regenerate_id(true);
+        $_SESSION['session_regenerated_at'] = $now;
+    }
+
+    $tokenData = maybeRenewSessionToken($tokenData);
+    $_SESSION['session_last_activity'] = $now;
 
     return $tokenData;
 }
@@ -313,6 +484,7 @@ function generatePaymentCode($type = 'PAG')
 
 // Inicializar sessão (apenas se headers não foram enviados)
 if (session_status() == PHP_SESSION_NONE && !headers_sent()) {
+    configureSessionCookieParams();
     session_start();
 }
 
@@ -320,3 +492,4 @@ if (session_status() == PHP_SESSION_NONE && !headers_sent()) {
 if (!file_exists(UPLOAD_PATH)) {
     mkdir(UPLOAD_PATH, 0755, true);
 }
+

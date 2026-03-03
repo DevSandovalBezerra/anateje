@@ -7,25 +7,43 @@ if (!defined('TEMPLATE_ROUTED')) {
 }
 
 $basePrefix = isset($prefix) ? $prefix : '/';
+require_once __DIR__ . '/../../includes/admin_components.php';
 ?>
 <div class="p-6">
     <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">Admin - Eventos</h1>
-                <p class="text-gray-600">Cadastro e publicacao de eventos.</p>
+        <?php
+        admin_render_toolbar(
+            'Admin - Eventos',
+            'Cadastro, acesso por categoria, fila de espera e check-in.',
+            [
+                ['id' => 'novoEvento', 'label' => 'Novo Evento', 'class' => 'btn-primary px-4 py-2 text-sm'],
+            ]
+        );
+        ?>
+
+        <div class="mb-4 p-3 rounded border border-indigo-200 bg-indigo-50 flex flex-col md:flex-row md:items-center gap-2">
+            <div class="text-xs text-gray-700" id="eventBulkMeta">Nenhum item selecionado</div>
+            <div class="flex items-center gap-2 md:ml-auto">
+                <select id="eventBulkStatus" class="input-primary text-sm">
+                    <option value="published">Marcar como publicado</option>
+                    <option value="draft">Marcar como rascunho</option>
+                    <option value="archived">Marcar como arquivado</option>
+                </select>
+                <input id="eventBulkReason" class="input-primary text-sm" placeholder="Motivo (opcional)">
+                <button id="eventBulkApply" class="btn-secondary px-3 py-2 text-xs">Aplicar em lote</button>
             </div>
-            <button id="novoEvento" class="btn-primary px-4 py-2 text-sm">Novo Evento</button>
         </div>
 
         <div class="overflow-auto mb-6">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="text-left text-gray-600 border-b">
+                        <th class="py-2 pr-3"><input id="selectAllEventRows" type="checkbox"></th>
                         <th class="py-2 pr-3">ID</th>
                         <th class="py-2 pr-3">Titulo</th>
                         <th class="py-2 pr-3">Inicio</th>
                         <th class="py-2 pr-3">Status</th>
+                        <th class="py-2 pr-3">Acesso</th>
                         <th class="py-2 pr-3">Vagas</th>
                         <th class="py-2 pr-3">Acoes</th>
                     </tr>
@@ -66,6 +84,26 @@ $basePrefix = isset($prefix) ? $prefix : '/';
                     </select>
                 </label>
                 <label>
+                    <span class="text-sm font-medium text-gray-700">Acesso por categoria</span>
+                    <select id="event_access_scope" class="input-primary w-full">
+                        <option value="ALL">Todos associados</option>
+                        <option value="PARCIAL">Somente PARCIAL</option>
+                        <option value="INTEGRAL">Somente INTEGRAL</option>
+                    </select>
+                </label>
+                <label>
+                    <span class="text-sm font-medium text-gray-700">Max fila espera</span>
+                    <input id="event_max_waitlist" type="number" class="input-primary w-full" placeholder="Vazio = ilimitado">
+                </label>
+                <label class="flex items-center gap-2 pt-6">
+                    <input id="event_waitlist_enabled" type="checkbox" checked>
+                    <span class="text-sm text-gray-700">Fila de espera ativa</span>
+                </label>
+                <label class="flex items-center gap-2 pt-6">
+                    <input id="event_checkin_enabled" type="checkbox" checked>
+                    <span class="text-sm text-gray-700">Check-in habilitado</span>
+                </label>
+                <label>
                     <span class="text-sm font-medium text-gray-700">Imagem URL</span>
                     <input id="event_imagem" class="input-primary w-full">
                 </label>
@@ -86,8 +124,9 @@ $basePrefix = isset($prefix) ? $prefix : '/';
 
         <div id="regsBox" class="hidden mt-6 p-4 rounded-lg border border-blue-200 bg-blue-50">
             <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-semibold text-gray-800">Inscritos no Evento</h3>
+                <h3 class="text-sm font-semibold text-gray-800">Inscricoes do Evento</h3>
                 <div class="flex gap-2">
+                    <button id="promoteWaitlist" class="btn-secondary px-3 py-1 text-xs">Promover fila</button>
                     <button id="exportRegsCsv" class="btn-secondary px-3 py-1 text-xs">Exportar CSV</button>
                     <button id="closeRegs" class="btn-secondary px-3 py-1 text-xs">Fechar</button>
                 </div>
@@ -99,6 +138,8 @@ $basePrefix = isset($prefix) ? $prefix : '/';
                     <select id="regs_status" class="input-primary w-full">
                         <option value="">Todos</option>
                         <option value="registered">registered</option>
+                        <option value="waitlisted">waitlisted</option>
+                        <option value="checked_in">checked_in</option>
                         <option value="canceled">canceled</option>
                     </select>
                 </label>
@@ -115,19 +156,22 @@ $basePrefix = isset($prefix) ? $prefix : '/';
                     <div class="flex gap-2">
                         <input id="regs_q" class="input-primary w-full" placeholder="Buscar...">
                         <button id="regs_apply" type="button" class="btn-secondary px-3 py-1 text-xs">Aplicar</button>
+                        <button id="regs_save_filter" type="button" class="btn-secondary px-3 py-1 text-xs">Salvar filtros</button>
+                        <button id="regs_load_filter" type="button" class="btn-secondary px-3 py-1 text-xs">Usar salvos</button>
                     </div>
                 </label>
             </div>
-            <div class="max-h-64 overflow-auto border border-blue-200 rounded bg-white">
+            <div class="max-h-72 overflow-auto border border-blue-200 rounded bg-white">
                 <table class="w-full text-xs">
                     <thead>
                         <tr class="text-left text-gray-600 border-b">
                             <th class="py-2 px-2">Data</th>
                             <th class="py-2 px-2">Status</th>
+                            <th class="py-2 px-2">Check-in</th>
                             <th class="py-2 px-2">Nome</th>
                             <th class="py-2 px-2">Email</th>
-                            <th class="py-2 px-2">Telefone</th>
                             <th class="py-2 px-2">Categoria</th>
+                            <th class="py-2 px-2">Acoes</th>
                         </tr>
                     </thead>
                     <tbody id="regsRows"></tbody>
@@ -151,24 +195,42 @@ $basePrefix = isset($prefix) ? $prefix : '/';
 (function () {
     const base = (window.LIDERGEST_BASE_URL || '').replace(/\/$/, '');
     const ep = (path) => `${base}${path}`;
+    const FILTERS_MODULE_EVENTS_REGS = 'admin.eventos.registrations';
+    const perms = window.anatejePerms || null;
+    const can = (code) => !perms || typeof perms.can !== 'function' ? true : perms.can(code);
+    const deny = (code) => perms && typeof perms.denyMessage === 'function'
+        ? perms.denyMessage(code)
+        : 'Acesso negado para esta acao.';
+    const canBulkEdit = can('admin.eventos.edit');
+    const ui = window.anatejeUi || null;
 
     const rows = document.getElementById('eventRows');
     const msg = document.getElementById('eventMsg');
     const form = document.getElementById('eventForm');
+    const eventBulkMeta = document.getElementById('eventBulkMeta');
+    const eventBulkStatus = document.getElementById('eventBulkStatus');
+    const eventBulkReason = document.getElementById('eventBulkReason');
+    const eventBulkApply = document.getElementById('eventBulkApply');
+    const selectAllEventRows = document.getElementById('selectAllEventRows');
     const regsBox = document.getElementById('regsBox');
     const regsRows = document.getElementById('regsRows');
     const regsMeta = document.getElementById('regsMeta');
     const exportRegsCsvBtn = document.getElementById('exportRegsCsv');
+    const promoteWaitlistBtn = document.getElementById('promoteWaitlist');
     const regsStatus = document.getElementById('regs_status');
     const regsCategoria = document.getElementById('regs_categoria');
     const regsQ = document.getElementById('regs_q');
     const regsApply = document.getElementById('regs_apply');
+    const regsSaveFilter = document.getElementById('regs_save_filter');
+    const regsLoadFilter = document.getElementById('regs_load_filter');
     const regsPageMeta = document.getElementById('regsPageMeta');
     const regsPrev = document.getElementById('regsPrev');
     const regsNext = document.getElementById('regsNext');
     const el = (id) => document.getElementById(id);
 
     let cache = [];
+    const selectedIds = new Set();
+    let savedRegsFilters = { status: '', categoria: '', q: '' };
     let activeEventId = 0;
     let regsState = {
         status: '',
@@ -184,6 +246,41 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         msg.className = type === 'ok' ? 'text-sm mt-4 text-green-600' : 'text-sm mt-4 text-red-600';
     }
 
+    function updateBulkMeta() {
+        const count = selectedIds.size;
+        eventBulkMeta.textContent = count > 0
+            ? `${count} item(ns) selecionado(s)`
+            : 'Nenhum item selecionado';
+        eventBulkApply.disabled = count === 0 || !canBulkEdit;
+    }
+
+    function normalizeRegsFilterPayload(raw) {
+        const f = raw && typeof raw === 'object' ? raw : {};
+        return {
+            status: typeof f.status === 'string' ? f.status : '',
+            categoria: typeof f.categoria === 'string' ? f.categoria : '',
+            q: typeof f.q === 'string' ? f.q.trim() : ''
+        };
+    }
+
+    async function fetchSavedRegsFilters() {
+        if (!can('admin.eventos.view')) return;
+        try {
+            const params = new URLSearchParams();
+            params.set('action', 'get');
+            params.set('module', FILTERS_MODULE_EVENTS_REGS);
+            params.set('key', 'default');
+            const data = await window.anatejeApi(ep('/api/v1/filters.php?' + params.toString()));
+            if (data && data.found && data.filters && typeof data.filters === 'object') {
+                savedRegsFilters = normalizeRegsFilterPayload(data.filters);
+            } else {
+                savedRegsFilters = { status: '', categoria: '', q: '' };
+            }
+        } catch (err) {
+            savedRegsFilters = { status: '', categoria: '', q: '' };
+        }
+    }
+
     function dtToInput(v) {
         if (!v) return '';
         return String(v).replace(' ', 'T').slice(0, 16);
@@ -196,31 +293,64 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         return d.toLocaleString('pt-BR');
     }
 
+    function accessLabel(scope) {
+        const s = String(scope || 'ALL').toUpperCase();
+        if (s === 'PARCIAL') return 'PARCIAL';
+        if (s === 'INTEGRAL') return 'INTEGRAL';
+        return 'ALL';
+    }
+
     function render() {
         if (!cache.length) {
-            rows.innerHTML = '<tr><td colspan="6" class="py-3 text-gray-500">Nenhum evento cadastrado.</td></tr>';
+            rows.innerHTML = '<tr><td colspan="8" class="py-3 text-gray-500">Nenhum evento cadastrado.</td></tr>';
+            selectAllEventRows.checked = false;
+            updateBulkMeta();
             return;
         }
 
-        rows.innerHTML = cache.map((ev) => `
+        const pageIds = cache.map((ev) => parseInt(ev.id, 10)).filter((id) => id > 0);
+        selectAllEventRows.checked = pageIds.length > 0 && pageIds.every((id) => selectedIds.has(id));
+
+        rows.innerHTML = cache.map((ev) => {
+            const vagas = ev.vagas == null ? 'Ilimitadas' : String(ev.vagas);
+            const rest = ev.vagas_restantes == null ? '-' : String(ev.vagas_restantes);
+            return `
             <tr class="border-b border-gray-100">
+                <td class="py-2 pr-3">
+                    <input type="checkbox" data-row-select="1" data-id="${ev.id}" ${selectedIds.has(parseInt(ev.id, 10)) ? 'checked' : ''} ${canBulkEdit ? '' : 'disabled'}>
+                </td>
                 <td class="py-2 pr-3">${ev.id}</td>
                 <td class="py-2 pr-3">${ev.titulo}</td>
                 <td class="py-2 pr-3">${dtLabel(ev.inicio_em)}</td>
                 <td class="py-2 pr-3">${ev.status}</td>
-                <td class="py-2 pr-3">${ev.vagas ?? '-'}</td>
+                <td class="py-2 pr-3">${accessLabel(ev.access_scope)}</td>
+                <td class="py-2 pr-3">${vagas} (livres: ${rest})</td>
                 <td class="py-2 pr-3">
-                    <div class="flex gap-2">
-                        <button class="btn-secondary px-2 py-1 text-xs" data-act="edit" data-id="${ev.id}">Editar</button>
-                        <button class="btn-secondary px-2 py-1 text-xs" data-act="regs" data-id="${ev.id}">Inscritos</button>
-                        <button class="btn-secondary px-2 py-1 text-xs" data-act="csv" data-id="${ev.id}">CSV</button>
-                        <button class="btn-secondary px-2 py-1 text-xs" data-act="delete" data-id="${ev.id}">Excluir</button>
+                    <div class="flex gap-2 flex-wrap">
+                        ${can('admin.eventos.edit') ? `<button class="btn-secondary px-2 py-1 text-xs" data-act="edit" data-id="${ev.id}">Editar</button>` : ''}
+                        ${can('admin.eventos.view') ? `<button class="btn-secondary px-2 py-1 text-xs" data-act="regs" data-id="${ev.id}">Inscritos</button>` : ''}
+                        ${can('admin.eventos.export') ? `<button class="btn-secondary px-2 py-1 text-xs" data-act="csv" data-id="${ev.id}">CSV</button>` : ''}
+                        ${can('admin.eventos.delete') ? `<button class="btn-secondary px-2 py-1 text-xs" data-act="delete" data-id="${ev.id}">Excluir</button>` : ''}
                     </div>
                 </td>
             </tr>
-        `).join('');
+        `;
+        }).join('');
 
+        rows.querySelectorAll('input[data-row-select="1"]').forEach((cb) => cb.addEventListener('change', (ev) => {
+            const id = parseInt(ev.currentTarget.getAttribute('data-id'), 10);
+            if (!id) return;
+            if (ev.currentTarget.checked) {
+                selectedIds.add(id);
+            } else {
+                selectedIds.delete(id);
+            }
+            const ids = cache.map((x) => parseInt(x.id, 10)).filter((x) => x > 0);
+            selectAllEventRows.checked = ids.length > 0 && ids.every((x) => selectedIds.has(x));
+            updateBulkMeta();
+        }));
         rows.querySelectorAll('button[data-act]').forEach((btn) => btn.addEventListener('click', onAction));
+        updateBulkMeta();
     }
 
     function openForm(ev) {
@@ -232,6 +362,10 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         el('event_fim').value = dtToInput(ev?.fim_em);
         el('event_vagas').value = ev?.vagas ?? '';
         el('event_status').value = ev?.status || 'draft';
+        el('event_access_scope').value = ev?.access_scope || 'ALL';
+        el('event_waitlist_enabled').checked = parseInt(ev?.waitlist_enabled ?? 1, 10) === 1;
+        el('event_checkin_enabled').checked = parseInt(ev?.checkin_enabled ?? 1, 10) === 1;
+        el('event_max_waitlist').value = ev?.max_waitlist ?? '';
         el('event_imagem').value = ev?.imagem_url || '';
         el('event_link').value = ev?.link || '';
         el('event_descricao').value = ev?.descricao || '';
@@ -240,7 +374,34 @@ $basePrefix = isset($prefix) ? $prefix : '/';
     function closeForm() {
         form.classList.add('hidden');
         form.reset();
+        if (ui && typeof ui.clearFieldErrors === 'function') {
+            ui.clearFieldErrors(form);
+        }
         el('event_id').value = '';
+        el('event_access_scope').value = 'ALL';
+        el('event_waitlist_enabled').checked = true;
+        el('event_checkin_enabled').checked = true;
+    }
+
+    function actionButtonsForRegistration(r) {
+        const id = parseInt(r.id, 10);
+        const status = String(r.status || '');
+        const list = [];
+
+        if (status === 'waitlisted' && can('admin.eventos.waitlist')) {
+            list.push(`<button class="btn-secondary px-2 py-1 text-[11px]" data-r-act="promote" data-id="${id}">Promover</button>`);
+        }
+        if (status === 'registered' && can('admin.eventos.checkin')) {
+            list.push(`<button class="btn-secondary px-2 py-1 text-[11px]" data-r-act="checkin" data-id="${id}" data-check="1">Check-in</button>`);
+        }
+        if (status === 'checked_in' && can('admin.eventos.checkin')) {
+            list.push(`<button class="btn-secondary px-2 py-1 text-[11px]" data-r-act="checkin" data-id="${id}" data-check="0">Desfazer</button>`);
+        }
+        if (status !== 'canceled' && can('admin.eventos.waitlist')) {
+            list.push(`<button class="btn-secondary px-2 py-1 text-[11px]" data-r-act="cancel" data-id="${id}">Cancelar</button>`);
+        }
+
+        return list.join('');
     }
 
     function renderRegistrations(data, eventRow) {
@@ -264,19 +425,24 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         regsMeta.textContent = `Evento #${eventRow?.id || '-'} - ${eventRow?.titulo || '-'} | Registros: ${total}`;
 
         if (!registrations.length) {
-            regsRows.innerHTML = '<tr><td colspan="6" class="py-2 px-2 text-gray-500">Sem inscritos para este evento.</td></tr>';
+            regsRows.innerHTML = '<tr><td colspan="7" class="py-2 px-2 text-gray-500">Sem inscritos para este evento.</td></tr>';
         } else {
             regsRows.innerHTML = registrations.map((r) => `
                 <tr class="border-b border-blue-100">
                     <td class="py-2 px-2">${dtLabel(r.created_at)}</td>
                     <td class="py-2 px-2">${r.status || '-'}</td>
+                    <td class="py-2 px-2">${dtLabel(r.checked_in_at)}</td>
                     <td class="py-2 px-2">${r.nome || '-'}</td>
                     <td class="py-2 px-2">${r.email_funcional || '-'}</td>
-                    <td class="py-2 px-2">${r.telefone || '-'}</td>
                     <td class="py-2 px-2">${r.categoria || '-'}</td>
+                    <td class="py-2 px-2">
+                        <div class="flex gap-1 flex-wrap">${actionButtonsForRegistration(r)}</div>
+                    </td>
                 </tr>
             `).join('');
         }
+
+        regsRows.querySelectorAll('button[data-r-act]').forEach((btn) => btn.addEventListener('click', onRegistrationAction));
 
         regsPageMeta.textContent = `Pagina ${regsState.page}/${regsState.totalPages}`;
         regsPrev.disabled = regsState.page <= 1;
@@ -289,18 +455,121 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         params.set('id', String(eventId));
         params.set('page', String(regsState.page));
         params.set('per_page', String(regsState.perPage));
-        if (regsState.status) {
-            params.set('status', regsState.status);
-        }
-        if (regsState.categoria) {
-            params.set('categoria', regsState.categoria);
-        }
-        if (regsState.q) {
-            params.set('q', regsState.q);
-        }
+        if (regsState.status) params.set('status', regsState.status);
+        if (regsState.categoria) params.set('categoria', regsState.categoria);
+        if (regsState.q) params.set('q', regsState.q);
 
         const data = await window.anatejeApi(ep('/api/v1/events.php?' + params.toString()));
         renderRegistrations(data, eventRowRef || { id: eventId, titulo: '-' });
+    }
+
+    async function saveCurrentRegsFilters() {
+        if (!can('admin.eventos.view')) {
+            setMsg(deny('admin.eventos.view'), 'err');
+            return;
+        }
+        const payload = normalizeRegsFilterPayload({
+            status: regsStatus.value || '',
+            categoria: regsCategoria.value || '',
+            q: regsQ.value || ''
+        });
+
+        try {
+            await window.anatejeApi(ep('/api/v1/filters.php?action=save'), {
+                method: 'POST',
+                body: {
+                    module: FILTERS_MODULE_EVENTS_REGS,
+                    key: 'default',
+                    filters: payload
+                }
+            });
+            savedRegsFilters = payload;
+            setMsg('Filtros de inscricoes salvos.', 'ok');
+        } catch (err) {
+            setMsg(err.message || 'Falha ao salvar filtros de inscricoes', 'err');
+        }
+    }
+
+    async function applySavedRegsFilters(forceReloadActiveEvent) {
+        await fetchSavedRegsFilters();
+        regsState.status = savedRegsFilters.status || '';
+        regsState.categoria = savedRegsFilters.categoria || '';
+        regsState.q = savedRegsFilters.q || '';
+        regsState.page = 1;
+        regsStatus.value = regsState.status;
+        regsCategoria.value = regsState.categoria;
+        regsQ.value = regsState.q;
+
+        if (forceReloadActiveEvent && activeEventId > 0) {
+            const ref = cache.find((x) => parseInt(x.id, 10) === activeEventId);
+            await loadRegistrations(activeEventId, ref || { id: activeEventId, titulo: '-' });
+        }
+    }
+
+    async function onRegistrationAction(e) {
+        const btn = e.currentTarget;
+        const act = btn.getAttribute('data-r-act');
+        const registrationId = parseInt(btn.getAttribute('data-id'), 10);
+        const eventRow = cache.find((x) => parseInt(x.id, 10) === activeEventId) || { id: activeEventId, titulo: '-' };
+
+        try {
+            if (act === 'checkin') {
+                if (!can('admin.eventos.checkin')) {
+                    setMsg(deny('admin.eventos.checkin'), 'err');
+                    return;
+                }
+                const checked = parseInt(btn.getAttribute('data-check') || '0', 10) === 1 ? 1 : 0;
+                await window.anatejeApi(ep('/api/v1/events.php?action=admin_checkin'), {
+                    method: 'POST',
+                    body: { registration_id: registrationId, checked }
+                });
+                setMsg('Check-in atualizado.', 'ok');
+                await loadRegistrations(activeEventId, eventRow);
+                return;
+            }
+
+            if (act === 'cancel') {
+                if (!can('admin.eventos.waitlist')) {
+                    setMsg(deny('admin.eventos.waitlist'), 'err');
+                    return;
+                }
+                const confirmed = ui && typeof ui.confirmAction === 'function'
+                    ? await ui.confirmAction({
+                        title: 'Cancelar inscricao',
+                        text: 'Deseja cancelar esta inscricao?',
+                        confirmText: 'Cancelar inscricao',
+                        icon: 'warning',
+                        danger: true
+                    })
+                    : confirm('Cancelar esta inscricao?');
+                if (!confirmed) return;
+                await window.anatejeApi(ep('/api/v1/events.php?action=admin_registration_status'), {
+                    method: 'POST',
+                    body: { registration_id: registrationId, status: 'canceled' }
+                });
+                setMsg('Inscricao cancelada.', 'ok');
+                await loadRegistrations(activeEventId, eventRow);
+                await load();
+                return;
+            }
+
+            if (act === 'promote') {
+                if (!can('admin.eventos.waitlist')) {
+                    setMsg(deny('admin.eventos.waitlist'), 'err');
+                    return;
+                }
+                await window.anatejeApi(ep('/api/v1/events.php?action=admin_registration_status'), {
+                    method: 'POST',
+                    body: { registration_id: registrationId, status: 'registered' }
+                });
+                setMsg('Inscricao promovida para registrada.', 'ok');
+                await loadRegistrations(activeEventId, eventRow);
+                await load();
+                return;
+            }
+        } catch (err) {
+            setMsg(err.message || 'Falha ao executar acao na inscricao', 'err');
+        }
     }
 
     async function onAction(e) {
@@ -310,15 +579,31 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         const row = cache.find((x) => parseInt(x.id, 10) === id);
 
         if (act === 'edit') {
+            if (!can('admin.eventos.edit')) {
+                setMsg(deny('admin.eventos.edit'), 'err');
+                return;
+            }
             openForm(row);
             return;
         }
 
         if (act === 'delete') {
-            if (!confirm('Deseja excluir este evento?')) return;
+            if (!can('admin.eventos.delete')) {
+                setMsg(deny('admin.eventos.delete'), 'err');
+                return;
+            }
+            const confirmed = ui && typeof ui.confirmDelete === 'function'
+                ? await ui.confirmDelete('este evento')
+                : confirm('Deseja excluir este evento?');
+            if (!confirmed) return;
             try {
-                await window.anatejeApi(ep('/api/v1/events.php?action=admin_delete&id=' + id));
+                await window.anatejeApi(ep('/api/v1/events.php?action=admin_delete'), {
+                    method: 'POST',
+                    body: { id }
+                });
                 setMsg('Evento excluido.', 'ok');
+                selectedIds.delete(id);
+                selectAllEventRows.checked = false;
                 await load();
             } catch (err) {
                 setMsg(err.message || 'Falha ao excluir evento', 'err');
@@ -327,8 +612,18 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         }
 
         if (act === 'regs') {
+            if (!can('admin.eventos.view')) {
+                setMsg(deny('admin.eventos.view'), 'err');
+                return;
+            }
             try {
-                regsState = { ...regsState, status: '', categoria: '', q: '', page: 1 };
+                regsState = {
+                    ...regsState,
+                    status: savedRegsFilters.status || '',
+                    categoria: savedRegsFilters.categoria || '',
+                    q: savedRegsFilters.q || '',
+                    page: 1
+                };
                 await loadRegistrations(id, row || { id, titulo: '-' });
             } catch (err) {
                 setMsg(err.message || 'Falha ao carregar inscritos', 'err');
@@ -337,6 +632,10 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         }
 
         if (act === 'csv') {
+            if (!can('admin.eventos.export')) {
+                setMsg(deny('admin.eventos.export'), 'err');
+                return;
+            }
             window.location.href = ep('/api/v1/events.php?action=admin_export_csv&id=' + id);
             return;
         }
@@ -346,13 +645,25 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         try {
             const data = await window.anatejeApi(ep('/api/v1/events.php?action=admin_list'));
             cache = data.events || [];
+            const allowedIds = new Set(cache.map((ev) => parseInt(ev.id, 10)).filter((id) => id > 0));
+            Array.from(selectedIds.values()).forEach((id) => {
+                if (!allowedIds.has(id)) {
+                    selectedIds.delete(id);
+                }
+            });
             render();
         } catch (err) {
             setMsg(err.message || 'Falha ao carregar eventos', 'err');
         }
     }
 
-    document.getElementById('novoEvento').addEventListener('click', () => openForm(null));
+    document.getElementById('novoEvento').addEventListener('click', () => {
+        if (!can('admin.eventos.create')) {
+            setMsg(deny('admin.eventos.create'), 'err');
+            return;
+        }
+        openForm(null);
+    });
     document.getElementById('cancelEvento').addEventListener('click', closeForm);
     document.getElementById('closeRegs').addEventListener('click', () => {
         regsBox.classList.add('hidden');
@@ -360,21 +671,96 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         regsRows.innerHTML = '';
         regsPageMeta.textContent = '';
     });
+    selectAllEventRows.addEventListener('change', (e) => {
+        if (!canBulkEdit) {
+            e.currentTarget.checked = false;
+            return;
+        }
+        const checked = !!e.currentTarget.checked;
+        cache.forEach((ev) => {
+            const id = parseInt(ev.id, 10);
+            if (!id) return;
+            if (checked) {
+                selectedIds.add(id);
+            } else {
+                selectedIds.delete(id);
+            }
+        });
+        rows.querySelectorAll('input[data-row-select="1"]').forEach((cb) => {
+            cb.checked = checked;
+        });
+        updateBulkMeta();
+    });
+    eventBulkApply.addEventListener('click', async () => {
+        if (!can('admin.eventos.edit')) {
+            setMsg(deny('admin.eventos.edit'), 'err');
+            return;
+        }
+        const ids = Array.from(selectedIds.values()).filter((id) => Number.isInteger(id) && id > 0);
+        if (!ids.length) {
+            setMsg('Selecione ao menos um evento para acao em lote.', 'err');
+            return;
+        }
+        const status = eventBulkStatus.value || 'published';
+        const reason = (eventBulkReason.value || '').trim();
+        const confirmed = ui && typeof ui.confirmAction === 'function'
+            ? await ui.confirmAction({
+                title: 'Confirmar lote',
+                text: `Aplicar status ${status} para ${ids.length} evento(s)?`,
+                confirmText: 'Aplicar'
+            })
+            : confirm(`Aplicar status ${status} para ${ids.length} evento(s)?`);
+        if (!confirmed) return;
+
+        try {
+            const data = await window.anatejeApi(ep('/api/v1/events.php?action=admin_bulk_status'), {
+                method: 'POST',
+                body: { ids, status, reason }
+            });
+            setMsg(
+                `Lote concluido. Atualizados: ${data.updated || 0}, sem alteracao: ${data.unchanged || 0}, nao encontrados: ${data.not_found || 0}.`,
+                'ok'
+            );
+            ids.forEach((id) => selectedIds.delete(id));
+            selectAllEventRows.checked = false;
+            updateBulkMeta();
+            await load();
+        } catch (err) {
+            setMsg(err.message || 'Falha ao aplicar acao em lote nos eventos', 'err');
+        }
+    });
     exportRegsCsvBtn.addEventListener('click', () => {
+        if (!can('admin.eventos.export')) {
+            setMsg(deny('admin.eventos.export'), 'err');
+            return;
+        }
         if (!activeEventId) return;
         const params = new URLSearchParams();
         params.set('action', 'admin_export_csv');
         params.set('id', String(activeEventId));
-        if (regsState.status) {
-            params.set('status', regsState.status);
-        }
-        if (regsState.categoria) {
-            params.set('categoria', regsState.categoria);
-        }
-        if (regsState.q) {
-            params.set('q', regsState.q);
-        }
+        if (regsState.status) params.set('status', regsState.status);
+        if (regsState.categoria) params.set('categoria', regsState.categoria);
+        if (regsState.q) params.set('q', regsState.q);
         window.location.href = ep('/api/v1/events.php?' + params.toString());
+    });
+    promoteWaitlistBtn.addEventListener('click', async () => {
+        if (!can('admin.eventos.waitlist')) {
+            setMsg(deny('admin.eventos.waitlist'), 'err');
+            return;
+        }
+        if (!activeEventId) return;
+        try {
+            await window.anatejeApi(ep('/api/v1/events.php?action=admin_promote_waitlist'), {
+                method: 'POST',
+                body: { event_id: activeEventId }
+            });
+            setMsg('Fila de espera promovida.', 'ok');
+            const ref = cache.find((x) => parseInt(x.id, 10) === activeEventId);
+            await loadRegistrations(activeEventId, ref || { id: activeEventId, titulo: '-' });
+            await load();
+        } catch (err) {
+            setMsg(err.message || 'Falha ao promover fila', 'err');
+        }
     });
 
     regsApply.addEventListener('click', async () => {
@@ -384,6 +770,13 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         regsState.q = (regsQ.value || '').trim();
         regsState.page = 1;
         await loadRegistrations(activeEventId, cache.find((x) => parseInt(x.id, 10) === activeEventId));
+    });
+    regsSaveFilter.addEventListener('click', saveCurrentRegsFilters);
+    regsLoadFilter.addEventListener('click', async () => {
+        await applySavedRegsFilters(true);
+        if (!activeEventId) {
+            setMsg('Filtros salvos carregados.', 'ok');
+        }
     });
 
     regsPrev.addEventListener('click', async () => {
@@ -400,6 +793,9 @@ $basePrefix = isset($prefix) ? $prefix : '/';
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (ui && typeof ui.clearFieldErrors === 'function') {
+            ui.clearFieldErrors(form);
+        }
 
         try {
             const body = {
@@ -411,19 +807,62 @@ $basePrefix = isset($prefix) ? $prefix : '/';
                 fim_em: el('event_fim').value,
                 vagas: el('event_vagas').value,
                 status: el('event_status').value,
+                access_scope: el('event_access_scope').value,
+                waitlist_enabled: el('event_waitlist_enabled').checked ? 1 : 0,
+                checkin_enabled: el('event_checkin_enabled').checked ? 1 : 0,
+                max_waitlist: el('event_max_waitlist').value,
                 imagem_url: el('event_imagem').value,
                 link: el('event_link').value
             };
+
+            const code = body.id > 0 ? 'admin.eventos.edit' : 'admin.eventos.create';
+            if (!can(code)) {
+                setMsg(deny(code), 'err');
+                return;
+            }
 
             await window.anatejeApi(ep('/api/v1/events.php?action=admin_save'), { method: 'POST', body });
             setMsg('Evento salvo com sucesso.', 'ok');
             closeForm();
             await load();
         } catch (err) {
+            if (ui && typeof ui.applyValidationError === 'function') {
+                ui.applyValidationError(form, err, [
+                    { pattern: /titulo/i, field: 'event_titulo' },
+                    { pattern: /inicio/i, field: 'event_inicio' },
+                    { pattern: /fim/i, field: 'event_fim' },
+                    { pattern: /vagas/i, field: 'event_vagas' },
+                    { pattern: /status/i, field: 'event_status' }
+                ]);
+            }
             setMsg(err.message || 'Falha ao salvar evento', 'err');
         }
     });
 
-    load();
+    if (!can('admin.eventos.create')) {
+        document.getElementById('novoEvento').classList.add('hidden');
+    }
+    if (!can('admin.eventos.waitlist')) {
+        promoteWaitlistBtn.classList.add('hidden');
+    }
+    if (!can('admin.eventos.export')) {
+        exportRegsCsvBtn.classList.add('hidden');
+    }
+    if (!can('admin.eventos.view')) {
+        regsSaveFilter.classList.add('hidden');
+        regsLoadFilter.classList.add('hidden');
+    }
+    if (!canBulkEdit) {
+        selectAllEventRows.disabled = true;
+        eventBulkStatus.disabled = true;
+        eventBulkReason.disabled = true;
+        eventBulkApply.disabled = true;
+    }
+
+    (async function bootstrap() {
+        await applySavedRegsFilters(false);
+        updateBulkMeta();
+        await load();
+    })();
 })();
 </script>

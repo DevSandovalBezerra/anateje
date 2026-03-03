@@ -132,6 +132,7 @@
         const loginBtnText = document.getElementById('loginBtnText');
         const loginSpinner = document.getElementById('loginSpinner');
         const alertContainer = document.getElementById('alertContainer');
+        let loginInFlight = false;
 
         // Função para mostrar alertas
         function showAlert(message, type = 'error') {
@@ -196,6 +197,10 @@
         // Event listener para o formulário
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (loginInFlight) {
+                return;
+            }
+            loginInFlight = true;
 
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -222,6 +227,7 @@
             } catch (error) {
                 showAlert('Erro de conexão. Tente novamente.');
             } finally {
+                loginInFlight = false;
                 toggleButtonLoading(false);
             }
         });
