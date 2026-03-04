@@ -1,10 +1,10 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/protect.php';
 require_once __DIR__ . '/../../includes/base_path.php';
 $baseUrl = lidergest_base_url();
 ?>
 <!-- Header -->
-    <!-- ConteÃºdo -->
+    <!-- Conteúdo -->
     <main class="p-6">
         <!-- Filtros -->
         <div class="card-primary mb-6">
@@ -27,7 +27,7 @@ $baseUrl = lidergest_base_url();
                     </select>
                 </div>
                 <div class="min-w-48">
-                    <label class="block text-sm font-medium text-secondary-dark-gray mb-2">PerÃ­odo</label>
+                    <label class="block text-sm font-medium text-secondary-dark-gray mb-2">Período</label>
                     <select class="input-primary">
                         <option>Outubro 2025</option>
                         <option>Setembro 2025</option>
@@ -37,18 +37,18 @@ $baseUrl = lidergest_base_url();
             </div>
         </div>
 
-        <!-- Lista de CobranÃ§as -->
+        <!-- Lista de Cobranças -->
         <div class="card-primary">
             <div class="overflow-x-auto">
                 <table class="min-w-full">
                     <thead class="bg-secondary-light-gray">
                         <tr>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">CÃ³digo</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Código</th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Associado</th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Valor</th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Vencimento</th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Status</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">AÃ§Ãµes</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Ações</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-secondary-gray">

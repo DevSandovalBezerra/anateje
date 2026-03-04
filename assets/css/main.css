@@ -243,6 +243,61 @@ body {
     gap: 0.5rem;
 }
 
+.admin-modal {
+    z-index: 90;
+}
+
+.admin-modal-overlay {
+    background: rgba(8, 16, 32, 0.58);
+    backdrop-filter: blur(2px);
+}
+
+.admin-modal-panel {
+    max-width: 980px;
+    max-height: 90vh;
+    overflow: auto;
+}
+
+.admin-modal-mode {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6b7280;
+}
+
+.admin-modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.admin-modal-subtitle {
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #4b5563;
+}
+
+.admin-modal-section {
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+.admin-modal-grid {
+    column-gap: 1.5rem;
+    row-gap: 1rem;
+}
+
+.admin-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid #d1d5db;
+    padding-top: 1rem;
+}
+
 @media (min-width: 768px) {
     .admin-toolbar {
         flex-direction: row;

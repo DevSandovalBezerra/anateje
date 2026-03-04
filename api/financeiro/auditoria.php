@@ -1,7 +1,7 @@
-﻿<?php
+<?php
 // ANATEJE - API de Auditoria Financeira
 // Sistema de Gestao Financeira Associativa ANATEJE
-// Consulta de histÃ³rico de auditoria conforme PRD
+// Consulta de histórico de auditoria conforme PRD
 
 require_once __DIR__ . '/../../config/database.php';
 
@@ -134,16 +134,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $entidade = $_GET['entidade'] ?? '';
             $entidade_id = (int)($_GET['entidade_id'] ?? 0);
             if (empty($entidade) || !$entidade_id) {
-                financeiro_response(['success' => false, 'message' => 'Entidade e ID sÃ£o obrigatÃ³rios'], 400);
+                financeiro_response(['success' => false, 'message' => 'Entidade e ID são obrigatórios'], 400);
             }
             financeiro_response($api->obterPorEntidade($entidade, $entidade_id));
             break;
         default:
-            financeiro_response(['success' => false, 'message' => 'AÃ§Ã£o invÃ¡lida'], 404);
+            financeiro_response(['success' => false, 'message' => 'Ação inválida'], 404);
     }
 }
 
-financeiro_response(['success' => false, 'message' => 'MÃ©todo nÃ£o permitido'], 405);
+financeiro_response(['success' => false, 'message' => 'Método não permitido'], 405);
 
 
 

@@ -52,76 +52,6 @@ require_once __DIR__ . '/../../includes/admin_components.php';
             </table>
         </div>
 
-        <form id="eventForm" class="hidden p-4 rounded-lg border border-gray-200 bg-gray-50 space-y-3">
-            <input id="event_id" type="hidden">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Titulo *</span>
-                    <input id="event_titulo" class="input-primary w-full" required>
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Local</span>
-                    <input id="event_local" class="input-primary w-full">
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Inicio *</span>
-                    <input id="event_inicio" type="datetime-local" class="input-primary w-full" required>
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Fim</span>
-                    <input id="event_fim" type="datetime-local" class="input-primary w-full">
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Vagas</span>
-                    <input id="event_vagas" type="number" class="input-primary w-full">
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Status</span>
-                    <select id="event_status" class="input-primary w-full">
-                        <option value="draft">Rascunho</option>
-                        <option value="published">Publicado</option>
-                        <option value="archived">Arquivado</option>
-                    </select>
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Acesso por categoria</span>
-                    <select id="event_access_scope" class="input-primary w-full">
-                        <option value="ALL">Todos associados</option>
-                        <option value="PARCIAL">Somente PARCIAL</option>
-                        <option value="INTEGRAL">Somente INTEGRAL</option>
-                    </select>
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Max fila espera</span>
-                    <input id="event_max_waitlist" type="number" class="input-primary w-full" placeholder="Vazio = ilimitado">
-                </label>
-                <label class="flex items-center gap-2 pt-6">
-                    <input id="event_waitlist_enabled" type="checkbox" checked>
-                    <span class="text-sm text-gray-700">Fila de espera ativa</span>
-                </label>
-                <label class="flex items-center gap-2 pt-6">
-                    <input id="event_checkin_enabled" type="checkbox" checked>
-                    <span class="text-sm text-gray-700">Check-in habilitado</span>
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Imagem URL</span>
-                    <input id="event_imagem" class="input-primary w-full">
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Link Externo</span>
-                    <input id="event_link" class="input-primary w-full">
-                </label>
-                <label class="md:col-span-2">
-                    <span class="text-sm font-medium text-gray-700">Descricao</span>
-                    <textarea id="event_descricao" class="input-primary w-full" rows="3"></textarea>
-                </label>
-            </div>
-            <div class="flex gap-2">
-                <button class="btn-primary px-4 py-2 text-sm" type="submit">Salvar</button>
-                <button class="btn-secondary px-4 py-2 text-sm" type="button" id="cancelEvento">Cancelar</button>
-            </div>
-        </form>
-
         <div id="regsBox" class="hidden mt-6 p-4 rounded-lg border border-blue-200 bg-blue-50">
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-sm font-semibold text-gray-800">Inscricoes do Evento</h3>
@@ -189,6 +119,103 @@ require_once __DIR__ . '/../../includes/admin_components.php';
         <p id="eventMsg" class="text-sm mt-4"></p>
     </div>
 </div>
+<div id="eventModal" class="hidden fixed inset-0 z-50 admin-modal">
+    <div class="absolute inset-0 admin-modal-overlay" data-close-event-modal="1"></div>
+    <div class="relative flex min-h-screen items-center justify-center p-4">
+        <div id="eventModalPanel" class="w-full rounded-lg border border-gray-200 bg-white shadow-2xl admin-modal-panel">
+            <div class="border-b border-gray-200 px-6 py-4">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p id="eventModalMode" class="admin-modal-mode">Criacao</p>
+                        <h3 id="eventModalTitle" class="admin-modal-title">Novo Evento</h3>
+                        <p class="admin-modal-subtitle">Configure dados, regras de acesso e operacao do evento.</p>
+                    </div>
+                    <button id="closeEventModal" type="button" class="btn-secondary px-3 py-2 text-xs">Fechar</button>
+                </div>
+            </div>
+            <form id="eventForm" class="space-y-4 p-6">
+                <input id="event_id" type="hidden">
+                <section class="admin-modal-section">
+                    <h4 class="mb-3 text-sm font-semibold text-gray-800">Informacoes do Evento</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 admin-modal-grid">
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Titulo <span class="text-red-600">*</span></span>
+                            <input id="event_titulo" class="input-primary w-full" required>
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Local</span>
+                            <input id="event_local" class="input-primary w-full">
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Inicio <span class="text-red-600">*</span></span>
+                            <input id="event_inicio" type="datetime-local" class="input-primary w-full" required>
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Fim</span>
+                            <input id="event_fim" type="datetime-local" class="input-primary w-full">
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Vagas</span>
+                            <input id="event_vagas" type="number" class="input-primary w-full">
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Status</span>
+                            <select id="event_status" class="input-primary w-full">
+                                <option value="draft">Rascunho</option>
+                                <option value="published">Publicado</option>
+                                <option value="archived">Arquivado</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Imagem URL</span>
+                            <input id="event_imagem" class="input-primary w-full">
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Link Externo</span>
+                            <input id="event_link" class="input-primary w-full">
+                        </label>
+                        <label class="md:col-span-2">
+                            <span class="text-sm font-medium text-gray-700">Descricao</span>
+                            <textarea id="event_descricao" class="input-primary w-full" rows="3"></textarea>
+                        </label>
+                    </div>
+                </section>
+                <section class="admin-modal-section">
+                    <h4 class="mb-3 text-sm font-semibold text-gray-800">Acesso e Operacao</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 admin-modal-grid">
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Acesso por categoria</span>
+                            <select id="event_access_scope" class="input-primary w-full">
+                                <option value="ALL">Todos associados</option>
+                                <option value="PARCIAL">Somente PARCIAL</option>
+                                <option value="INTEGRAL">Somente INTEGRAL</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Max fila espera</span>
+                            <input id="event_max_waitlist" type="number" class="input-primary w-full" placeholder="Vazio = ilimitado">
+                        </label>
+                        <label class="flex items-center gap-2 pt-6">
+                            <input id="event_waitlist_enabled" type="checkbox" checked>
+                            <span class="text-sm text-gray-700">Fila de espera ativa</span>
+                        </label>
+                        <label class="flex items-center gap-2 pt-6">
+                            <input id="event_checkin_enabled" type="checkbox" checked>
+                            <span class="text-sm text-gray-700">Check-in habilitado</span>
+                        </label>
+                    </div>
+                </section>
+                <div class="admin-modal-footer">
+                    <p class="text-xs text-gray-500">Campos com <span class="text-red-600">*</span> sao obrigatorios.</p>
+                    <div class="flex gap-2">
+                        <button class="btn-secondary px-4 py-2 text-sm" type="button" id="cancelEvento">Cancelar</button>
+                        <button id="eventSubmitBtn" class="btn-primary px-4 py-2 text-sm" type="submit">Salvar evento</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script src="<?php echo $basePrefix; ?>assets/js/anateje-api.js"></script>
 <script>
@@ -207,6 +234,11 @@ require_once __DIR__ . '/../../includes/admin_components.php';
     const rows = document.getElementById('eventRows');
     const msg = document.getElementById('eventMsg');
     const form = document.getElementById('eventForm');
+    const eventModal = document.getElementById('eventModal');
+    const eventModalPanel = document.getElementById('eventModalPanel');
+    const eventModalTitle = document.getElementById('eventModalTitle');
+    const eventModalMode = document.getElementById('eventModalMode');
+    const eventSubmitBtn = document.getElementById('eventSubmitBtn');
     const eventBulkMeta = document.getElementById('eventBulkMeta');
     const eventBulkStatus = document.getElementById('eventBulkStatus');
     const eventBulkReason = document.getElementById('eventBulkReason');
@@ -354,7 +386,12 @@ require_once __DIR__ . '/../../includes/admin_components.php';
     }
 
     function openForm(ev) {
-        form.classList.remove('hidden');
+        const isEdit = !!(ev && ev.id);
+        if (eventModalTitle) eventModalTitle.textContent = isEdit ? 'Editar Evento' : 'Novo Evento';
+        if (eventModalMode) eventModalMode.textContent = isEdit ? 'Edicao' : 'Criacao';
+        if (eventSubmitBtn) eventSubmitBtn.textContent = isEdit ? 'Salvar alteracoes' : 'Salvar evento';
+        eventModal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
         el('event_id').value = ev?.id || '';
         el('event_titulo').value = ev?.titulo || '';
         el('event_local').value = ev?.local || '';
@@ -369,10 +406,18 @@ require_once __DIR__ . '/../../includes/admin_components.php';
         el('event_imagem').value = ev?.imagem_url || '';
         el('event_link').value = ev?.link || '';
         el('event_descricao').value = ev?.descricao || '';
+        setTimeout(() => {
+            const t = el('event_titulo');
+            if (t && typeof t.focus === 'function') {
+                t.focus();
+                t.select();
+            }
+        }, 10);
     }
 
     function closeForm() {
-        form.classList.add('hidden');
+        eventModal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
         form.reset();
         if (ui && typeof ui.clearFieldErrors === 'function') {
             ui.clearFieldErrors(form);
@@ -381,6 +426,12 @@ require_once __DIR__ . '/../../includes/admin_components.php';
         el('event_access_scope').value = 'ALL';
         el('event_waitlist_enabled').checked = true;
         el('event_checkin_enabled').checked = true;
+        if (eventModalTitle) eventModalTitle.textContent = 'Novo Evento';
+        if (eventModalMode) eventModalMode.textContent = 'Criacao';
+        if (eventSubmitBtn) {
+            eventSubmitBtn.disabled = false;
+            eventSubmitBtn.textContent = 'Salvar evento';
+        }
     }
 
     function actionButtonsForRegistration(r) {
@@ -541,7 +592,7 @@ require_once __DIR__ . '/../../includes/admin_components.php';
                         icon: 'warning',
                         danger: true
                     })
-                    : confirm('Cancelar esta inscricao?');
+                    : false;
                 if (!confirmed) return;
                 await window.anatejeApi(ep('/api/v1/events.php?action=admin_registration_status'), {
                     method: 'POST',
@@ -594,7 +645,7 @@ require_once __DIR__ . '/../../includes/admin_components.php';
             }
             const confirmed = ui && typeof ui.confirmDelete === 'function'
                 ? await ui.confirmDelete('este evento')
-                : confirm('Deseja excluir este evento?');
+                : false;
             if (!confirmed) return;
             try {
                 await window.anatejeApi(ep('/api/v1/events.php?action=admin_delete'), {
@@ -665,6 +716,20 @@ require_once __DIR__ . '/../../includes/admin_components.php';
         openForm(null);
     });
     document.getElementById('cancelEvento').addEventListener('click', closeForm);
+    document.getElementById('closeEventModal').addEventListener('click', closeForm);
+    eventModal.addEventListener('click', (e) => {
+        if (e.target && e.target.getAttribute('data-close-event-modal') === '1') {
+            closeForm();
+        }
+    });
+    if (eventModalPanel) {
+        eventModalPanel.addEventListener('click', (e) => e.stopPropagation());
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !eventModal.classList.contains('hidden')) {
+            closeForm();
+        }
+    });
     document.getElementById('closeRegs').addEventListener('click', () => {
         regsBox.classList.add('hidden');
         activeEventId = 0;
@@ -709,7 +774,7 @@ require_once __DIR__ . '/../../includes/admin_components.php';
                 text: `Aplicar status ${status} para ${ids.length} evento(s)?`,
                 confirmText: 'Aplicar'
             })
-            : confirm(`Aplicar status ${status} para ${ids.length} evento(s)?`);
+            : false;
         if (!confirmed) return;
 
         try {
@@ -796,6 +861,11 @@ require_once __DIR__ . '/../../includes/admin_components.php';
         if (ui && typeof ui.clearFieldErrors === 'function') {
             ui.clearFieldErrors(form);
         }
+        const wasEdit = !!(el('event_id').value && parseInt(el('event_id').value, 10) > 0);
+        if (eventSubmitBtn) {
+            eventSubmitBtn.disabled = true;
+            eventSubmitBtn.textContent = 'Salvando...';
+        }
 
         try {
             const body = {
@@ -836,6 +906,11 @@ require_once __DIR__ . '/../../includes/admin_components.php';
                 ]);
             }
             setMsg(err.message || 'Falha ao salvar evento', 'err');
+        } finally {
+            if (eventSubmitBtn) {
+                eventSubmitBtn.disabled = false;
+                eventSubmitBtn.textContent = wasEdit ? 'Salvar alteracoes' : 'Salvar evento';
+            }
         }
     });
 

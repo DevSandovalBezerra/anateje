@@ -1,10 +1,10 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/protect.php';
 require_once __DIR__ . '/../../includes/base_path.php';
 $baseUrl = lidergest_base_url();
 ?>
 <!-- Header -->
-    <!-- ConteÃºdo -->
+    <!-- Conteúdo -->
     <main class="p-6">
         <!-- Filtros -->
         <div class="card-primary mb-6">
@@ -29,7 +29,7 @@ $baseUrl = lidergest_base_url();
                     <label class="block text-sm font-medium text-secondary-dark-gray mb-2">Plano</label>
                     <select class="input-primary">
                         <option>Todos</option>
-                        <option>BÃ¡sico</option>
+                        <option>Básico</option>
                         <option>Premium</option>
                         <option>Anual</option>
                     </select>
@@ -44,11 +44,11 @@ $baseUrl = lidergest_base_url();
                     <thead class="bg-secondary-light-gray">
                         <tr>
                             <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Associado</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">ResponsÃ¡vel</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Responsável</th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Plano</th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Valor</th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Status</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">AÃ§Ãµes</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Ações</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-secondary-gray">
@@ -65,7 +65,7 @@ $baseUrl = lidergest_base_url();
                                 </div>
                             </td>
                             <td class="px-4 py-2 text-sm text-secondary-dark-gray">Carlos Alves</td>
-                            <td class="px-4 py-2 text-sm text-secondary-dark-gray">Plano BÃ¡sico</td>
+                            <td class="px-4 py-2 text-sm text-secondary-dark-gray">Plano Básico</td>
                             <td class="px-4 py-2 text-sm font-medium text-secondary-black">R$ 150,00</td>
                             <td class="px-4 py-2">
                                 <span class="badge-success">Ativo</span>

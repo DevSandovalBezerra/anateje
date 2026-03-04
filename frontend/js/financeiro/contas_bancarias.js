@@ -1,4 +1,4 @@
-﻿if (typeof window.contasBancariasData === 'undefined') {
+if (typeof window.contasBancariasData === 'undefined') {
     window.contasBancariasData = [];
     window.registroEditando = null;
 }
@@ -6,9 +6,9 @@
 contasBancariasData = window.contasBancariasData;
 registroEditando = window.registroEditando;
 
-// FunÃ§Ã£o helper segura para obter URL da API
+// Função helper segura para obter URL da API
 function getApiUrl(path) {
-    // Verificar se window.getApiUrl existe e nÃ£o Ã© a prÃ³pria funÃ§Ã£o (evitar recursÃ£o)
+    // Verificar se window.getApiUrl existe e não é a própria função (evitar recursão)
     if (typeof window.getApiUrl === 'function' && window.getApiUrl !== getApiUrl) {
         return window.getApiUrl(path);
     }
@@ -16,7 +16,7 @@ function getApiUrl(path) {
     if (typeof apiConfig !== 'undefined' && apiConfig && typeof apiConfig.getApiEndpoint === 'function') {
         return apiConfig.getApiEndpoint(path);
     }
-    // Ãšltimo fallback: caminho relativo
+    // Último fallback: caminho relativo
     return `../../api/${path}`;
 }
 
@@ -47,7 +47,7 @@ async function carregarContas() {
         if (!response.ok) {
             if (response.status === 401) {
                 if (typeof SweetAlertConfig !== 'undefined') {
-                    SweetAlertConfig.warning('SessÃ£o expirada', 'VocÃª serÃ¡ redirecionado para fazer login.').then(() => {
+                    SweetAlertConfig.warning('Sessão expirada', 'Você será redirecionado para fazer login.').then(() => {
                         window.location.href = '../auth/login.html';
                     });
                 }
@@ -156,7 +156,7 @@ async function excluirConta(id) {
     } else {
         const confirmacao = await SweetAlertConfig.confirm(
             'Excluir Conta',
-            'Tem certeza que deseja excluir esta conta? Esta aÃ§Ã£o nÃ£o pode ser desfeita.',
+            'Tem certeza que deseja excluir esta conta? Esta ação não pode ser desfeita.',
             'Excluir',
             'Cancelar'
         );
@@ -178,7 +178,7 @@ async function excluirConta(id) {
         const result = await response.json();
         if (result.success) {
             if (typeof SweetAlertConfig !== 'undefined') {
-                SweetAlertConfig.success('Sucesso', 'Conta excluÃ­da com sucesso!');
+                SweetAlertConfig.success('Sucesso', 'Conta excluída com sucesso!');
             }
             await carregarContas();
         } else {
@@ -197,7 +197,7 @@ function abrirModal() {
     
     if (typeof SweetAlertConfig !== 'undefined' && SweetAlertConfig.html) {
         SweetAlertConfig.html({
-            title: conta.id ? 'Editar Conta BancÃ¡ria' : 'Nova Conta BancÃ¡ria',
+            title: conta.id ? 'Editar Conta Bancária' : 'Nova Conta Bancária',
             html: `
                 <form id="formConta" class="space-y-4">
                     <div>
@@ -219,11 +219,11 @@ function abrirModal() {
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium mb-1">AgÃªncia</label>
+                            <label class="block text-sm font-medium mb-1">Agência</label>
                             <input type="text" id="inputAgencia" value="${escapeHtml(conta.agencia || '')}" class="input-primary w-full">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium mb-1">NÃºmero da Conta</label>
+                            <label class="block text-sm font-medium mb-1">Número da Conta</label>
                             <input type="text" id="inputNumeroConta" value="${escapeHtml(conta.numero_conta || '')}" class="input-primary w-full">
                         </div>
                     </div>
@@ -238,7 +238,7 @@ function abrirModal() {
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium mb-1">ObservaÃ§Ãµes</label>
+                        <label class="block text-sm font-medium mb-1">Observações</label>
                         <textarea id="textareaObservacoes" class="input-primary w-full" rows="2">${escapeHtml(conta.observacoes || '')}</textarea>
                     </div>
                     <div>

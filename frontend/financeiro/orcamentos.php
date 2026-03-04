@@ -1,5 +1,5 @@
-﻿<?php
-// ANATEJE - OrÃ§amentos (ConteÃºdo)
+<?php
+// ANATEJE - Orçamentos (Conteúdo)
 // Sistema de Gestao Financeira Associativa ANATEJE
 
 require_once __DIR__ . '/../../includes/base_path.php';
@@ -9,7 +9,7 @@ $baseUrl = lidergest_base_url();
     <div class="mb-6 flex items-center justify-between">
         <button id="btnNovoOrcamento" class="btn-primary">
             <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
-            Novo OrÃ§amento
+            Novo Orçamento
         </button>
     </div>
     
@@ -21,12 +21,12 @@ $baseUrl = lidergest_base_url();
                 <input type="number" id="inputFiltroAno" placeholder="2024" class="input-primary" min="2020" max="2100">
             </div>
             <div class="min-w-32">
-                <label class="block text-sm font-medium text-secondary-dark-gray mb-2">MÃªs</label>
+                <label class="block text-sm font-medium text-secondary-dark-gray mb-2">Mês</label>
                 <select id="selectFiltroMes" class="input-primary">
                     <option value="">Todos</option>
                     <option value="1">Janeiro</option>
                     <option value="2">Fevereiro</option>
-                    <option value="3">MarÃ§o</option>
+                    <option value="3">Março</option>
                     <option value="4">Abril</option>
                     <option value="5">Maio</option>
                     <option value="6">Junho</option>
@@ -59,19 +59,19 @@ $baseUrl = lidergest_base_url();
         </div>
     </div>
 
-    <!-- Lista de OrÃ§amentos -->
+    <!-- Lista de Orçamentos -->
     <div class="card-primary">
         <div class="overflow-x-auto">
             <table class="min-w-full">
                 <thead class="bg-secondary-light-gray">
                     <tr>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">PerÃ­odo</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Período</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Centro de Custo</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Categoria</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Valor OrÃ§ado</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Valor Orçado</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Valor Revisado</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Unidade</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">AÃ§Ãµes</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Ações</th>
                     </tr>
                 </thead>
                 <tbody id="tbodyOrcamentos" class="divide-y divide-secondary-gray">

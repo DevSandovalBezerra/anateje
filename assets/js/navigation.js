@@ -1,4 +1,4 @@
-// LiderGest - Navegação AJAX no painel principal
+// LiderGest - NavegaÃ§Ã£o AJAX no painel principal
 (function () {
     const sidebar = document.getElementById('sidebar');
     const pageWrapper = document.getElementById('page-wrapper');
@@ -9,8 +9,8 @@
     }
 
     // Em telas menores que 1024px, recolher o sidebar automaticamente quando um item de menu
-    // for clicado (melhor UX no mobile) ou após a navegação AJAX completar.
-    // Isso evita poluir a tela com o menu e mostra o conteúdo imediatamente.
+    // for clicado (melhor UX no mobile) ou apÃ³s a navegaÃ§Ã£o AJAX completar.
+    // Isso evita poluir a tela com o menu e mostra o conteÃºdo imediatamente.
 
     let isNavigating = false;
     const loadingSpinner = document.createElement('div');
@@ -31,13 +31,13 @@
         const y = (e.touches && e.touches[0]) ? e.touches[0].clientY : null;
         if (touchStartY !== null && y !== null && Math.abs(y - touchStartY) > 10) {
             touchMoved = true;
-            // Marcar timestamp para evitar ações imediatas (logout, cliques) logo após scrolling
+            // Marcar timestamp para evitar aÃ§Ãµes imediatas (logout, cliques) logo apÃ³s scrolling
             window.__sidebarLastTouchMove = Date.now();
         }
     }, { passive: true });
 
     sidebar.addEventListener('touchend', e => {
-        // Resetar após breve timeout para permitir que o click não seja disparado por um scroll
+        // Resetar apÃ³s breve timeout para permitir que o click nÃ£o seja disparado por um scroll
         setTimeout(() => {
             touchMoved = false;
             touchStartY = null;
@@ -96,12 +96,12 @@
     }
 
     /**
-     * Aguarda elementos críticos específicos de cada página aparecerem no DOM
-     * @param {string} pageName - Nome da página (ex: 'cadastros/professores')
+     * Aguarda elementos crÃ­ticos especÃ­ficos de cada pÃ¡gina aparecerem no DOM
+     * @param {string} pageName - Nome da pÃ¡gina (ex: 'cadastros/professores')
      * @returns {Promise<boolean>} - true se elementos foram encontrados, false se timeout
      */
     async function waitForCriticalElements(pageName) {
-        // Mapeamento de elementos críticos por página
+        // Mapeamento de elementos crÃ­ticos por pÃ¡gina
         const criticalElementsMap = {
             // Cadastros
             'cadastros/professores': ['#tbodyProfessores'],
@@ -113,7 +113,7 @@
             'cadastros/calendario_letivo': ['#calendar-container', '.calendar-container'],
             'cadastros/usuarios': ['#tbodyUsuarios'],
             
-            // Pedagógico
+            // PedagÃ³gico
             'pedagogico/frequencia': ['#selectTurma'],
             'pedagogico/notas': ['#selectTurma', '#tbodyAlunos'],
             'pedagogico/planos_aula': ['tbody', '.planos-container'],
@@ -137,15 +137,15 @@
             'admin/permissoes': ['#tbodyPerfis', '.admin-content']
         };
         
-        // Seletores padrão caso a página não esteja no mapa
+        // Seletores padrÃ£o caso a pÃ¡gina nÃ£o esteja no mapa
         const defaultSelectors = ['table', '.card-primary', '.cadastros-content', '.pedagogico-content', '.dashboard-content'];
         
-        // Obter seletores específicos ou usar padrão
+        // Obter seletores especÃ­ficos ou usar padrÃ£o
         const selectors = criticalElementsMap[pageName] || defaultSelectors;
         const maxAttempts = 30; // 1.5 segundos total (30 * 50ms)
         
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            // Verificar se todos os seletores críticos foram encontrados
+            // Verificar se todos os seletores crÃ­ticos foram encontrados
             const allFound = selectors.some(selector => {
                 try {
                     return document.querySelector(selector) !== null;
@@ -155,97 +155,94 @@
             });
             
             if (allFound) {
-                // Aguardar um frame adicional para garantir renderização completa
+                // Aguardar um frame adicional para garantir renderizaÃ§Ã£o completa
                 await new Promise(resolve => requestAnimationFrame(resolve));
                 return true;
             }
             
-            // Aguardar antes da próxima tentativa
+            // Aguardar antes da prÃ³xima tentativa
             await new Promise(resolve => setTimeout(resolve, 50));
         }
         
-        // Timeout: elementos não foram encontrados, mas continuar mesmo assim
-        console.warn(`Elementos críticos não encontrados para ${pageName} após ${maxAttempts} tentativas`);
+        // Timeout: elementos nÃ£o foram encontrados, mas continuar mesmo assim
+        console.warn(`Elementos crÃ­ticos nÃ£o encontrados para ${pageName} apÃ³s ${maxAttempts} tentativas`);
         return false;
     }
 
     async function executeScripts(scope) {
-        const scripts = scope.querySelectorAll('script:not([data-processed])');
-        const scriptPromises = [];
-        const loadedScripts = new Set(); // Rastrear scripts já carregados
+        const scripts = Array.from(scope.querySelectorAll('script:not([data-processed])'));
+        const loadedScripts = new Set(); // Rastrear scripts ja carregados na pagina atual
 
-        scripts.forEach(oldScript => {
+        for (const oldScript of scripts) {
             if (oldScript.src) {
-                // Script externo: verificar se já foi carregado
                 const scriptUrl = oldScript.src;
                 if (loadedScripts.has(scriptUrl)) {
-                    // Script já carregado, apenas remover o elemento antigo
                     oldScript.remove();
-                    return;
+                    continue;
                 }
-                
                 loadedScripts.add(scriptUrl);
-                
+
                 const newScript = document.createElement('script');
                 newScript.setAttribute('data-processed', 'true');
-                
+
                 Array.from(oldScript.attributes).forEach(attr => {
                     if (attr.name !== 'data-processed') {
                         newScript.setAttribute(attr.name, attr.value);
                     }
                 });
-                
-                const scriptPromise = new Promise((resolve) => {
-                    newScript.onload = () => {
-                        setTimeout(resolve, 20);
-                    };
+
+                const parent = oldScript.parentNode;
+                if (!parent) {
+                    continue;
+                }
+
+                await new Promise((resolve) => {
+                    newScript.onload = () => setTimeout(resolve, 20);
                     newScript.onerror = () => {
                         console.warn(`Script falhou ao carregar: ${oldScript.src}`);
-                        resolve(); // Não bloquear outros scripts
+                        resolve(); // Nao bloquear outros scripts
                     };
-                });
-                scriptPromises.push(scriptPromise);
-                
-                // Adicionar ao DOM antes de definir src
-                const parent = oldScript.parentNode;
-                if (parent) {
+
                     parent.insertBefore(newScript, oldScript);
                     newScript.src = oldScript.src;
                     parent.removeChild(oldScript);
-                }
+                });
             } else {
-                // Script inline: executar apenas uma vez
-                if (oldScript.hasAttribute('data-processed')) {
-                    oldScript.remove();
-                    return;
-                }
-                
-                oldScript.setAttribute('data-processed', 'true');
-                // Script inline já está no DOM, apenas marcar como processado
-                // O navegador já executou o script quando foi inserido
-            }
-        });
+                // Scripts inline inseridos via innerHTML nao executam automaticamente.
+                // Recriamos o elemento para forcar execucao na ordem correta.
+                const newScript = document.createElement('script');
+                newScript.setAttribute('data-processed', 'true');
 
-        // Aguardar todos os scripts externos carregarem
-        if (scriptPromises.length > 0) {
-            await Promise.all(scriptPromises);
+                Array.from(oldScript.attributes).forEach(attr => {
+                    if (attr.name !== 'data-processed') {
+                        newScript.setAttribute(attr.name, attr.value);
+                    }
+                });
+
+                newScript.textContent = oldScript.textContent || '';
+
+                const parent = oldScript.parentNode;
+                if (parent) {
+                    parent.insertBefore(newScript, oldScript);
+                    parent.removeChild(oldScript);
+                }
+            }
         }
-        
-        // Aguardar um pouco para garantir que scripts foram executados e funções estão disponíveis
-        // Usar requestAnimationFrame para garantir que estamos no próximo ciclo de renderização
+
+        // Aguardar um pouco para garantir que scripts foram executados e funcoes estao disponiveis
         await new Promise(resolve => requestAnimationFrame(resolve));
         await new Promise(resolve => setTimeout(resolve, 50));
     }
 
     async function simulateDOMContentLoaded() {
-        // Nota: As verificações de elementos críticos já foram feitas em waitForCriticalElements()
-        // Aqui apenas garantimos um frame adicional e então disparamos o evento
+        // Nota: As verificaÃ§Ãµes de elementos crÃ­ticos jÃ¡ foram feitas em waitForCriticalElements()
+        // Aqui apenas garantimos um frame adicional e entÃ£o disparamos o evento
         
-        // Aguardar um frame adicional para garantir que tudo está pronto
+        // Aguardar um frame adicional para garantir que tudo estÃ¡ pronto
         await new Promise(resolve => requestAnimationFrame(resolve));
         
         // Simular evento DOMContentLoaded para que todos os listeners sejam executados
-        // Esta é a abordagem padrão usada por frameworks como Turbolinks e é genérica
+        // Esta Ã© a abordagem padrÃ£o usada por frameworks como Turbolinks e Ã© genÃ©rica
         // Funciona para QUALQUER script que use addEventListener('DOMContentLoaded', ...)
         
         // Criar e disparar o evento no document
@@ -257,13 +254,13 @@
         // Disparar no document para que todos os listeners sejam notificados
         document.dispatchEvent(domContentLoadedEvent);
         
-        // Também disparar no window para scripts que podem escutar lá
+        // TambÃ©m disparar no window para scripts que podem escutar lÃ¡
         window.dispatchEvent(domContentLoadedEvent);
         
         // Aguardar um tick do event loop para garantir que listeners sejam processados
         await new Promise(resolve => setTimeout(resolve, 0));
         
-        // Disparar novamente para capturar listeners adicionados dinamicamente após o primeiro disparo
+        // Disparar novamente para capturar listeners adicionados dinamicamente apÃ³s o primeiro disparo
         document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
         window.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
         
@@ -283,10 +280,10 @@
 
         // Aguardar um pouco para garantir que os listeners do evento sejam processados
         setTimeout(() => {
-            // Mapear nomes de páginas para funções de inicialização conhecidas
+            // Mapear nomes de pÃ¡ginas para funÃ§Ãµes de inicializaÃ§Ã£o conhecidas
             const initFunctionMap = {
                 'cadastros/professores': () => {
-                    // Tentar função init primeiro, depois fallback para carregar
+                    // Tentar funÃ§Ã£o init primeiro, depois fallback para carregar
                     if (typeof initProfessores === 'function') {
                         initProfessores();
                     } else if (typeof carregarProfessores === 'function') {
@@ -490,16 +487,16 @@
                 }
             };
 
-            // Tentar chamar função de inicialização específica da página
+            // Tentar chamar funÃ§Ã£o de inicializaÃ§Ã£o especÃ­fica da pÃ¡gina
             if (pageName && initFunctionMap[pageName]) {
                 try {
                     initFunctionMap[pageName]();
                 } catch (error) {
-                    console.warn(`Erro ao chamar função de inicialização para ${pageName}:`, error);
+                    console.warn(`Erro ao chamar funÃ§Ã£o de inicializaÃ§Ã£o para ${pageName}:`, error);
                 }
             }
 
-            // Tentar chamar função genérica initPage se existir
+            // Tentar chamar funÃ§Ã£o genÃ©rica initPage se existir
             if (typeof initPage === 'function') {
                 try {
                     initPage();
@@ -519,12 +516,12 @@
             pageWrapper.appendChild(temp.firstChild);
         }
         
-        // Aguardar renderização do navegador (múltiplos frames para garantir)
+        // Aguardar renderizaÃ§Ã£o do navegador (mÃºltiplos frames para garantir)
         await new Promise(resolve => requestAnimationFrame(resolve));
         await new Promise(resolve => requestAnimationFrame(resolve));
         await new Promise(resolve => requestAnimationFrame(resolve));
         
-        // Aguardar elementos críticos específicos da página aparecerem no DOM
+        // Aguardar elementos crÃ­ticos especÃ­ficos da pÃ¡gina aparecerem no DOM
         // Isso garante que o HTML foi completamente renderizado antes de executar scripts
         await waitForCriticalElements(pageName || window.LIDERGEST_CURRENT_PAGE);
         
@@ -532,11 +529,11 @@
         await executeScripts(pageWrapper);
         
         // Simular DOMContentLoaded para que TODOS os listeners sejam executados
-        // Esta é a abordagem genérica que funciona para qualquer página
+        // Esta Ã© a abordagem genÃ©rica que funciona para qualquer pÃ¡gina
         // Funciona automaticamente para scripts que usam addEventListener('DOMContentLoaded', ...)
         await simulateDOMContentLoaded();
         
-        // Recriar ícones Lucide após conteúdo estar pronto
+        // Recriar Ã­cones Lucide apÃ³s conteÃºdo estar pronto
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
@@ -568,7 +565,7 @@
             });
 
             if (!response.ok) {
-                throw new Error('Falha ao carregar página');
+                throw new Error('Falha ao carregar pÃ¡gina');
             }
 
             const data = await response.json();
@@ -577,13 +574,13 @@
                     window.location.href = data.redirect;
                     return;
                 }
-                throw new Error(data.message || 'Erro ao carregar conteúdo');
+                throw new Error(data.message || 'Erro ao carregar conteÃºdo');
             }
 
             window.LIDERGEST_CURRENT_PAGE = data.page;
             window.LIDERGEST_PAGE_TITLE = data.title;
 
-            // Aguardar conteúdo ser inserido e scripts executarem
+            // Aguardar conteÃºdo ser inserido e scripts executarem
             await replaceContent(data.content, data.page);
             
             if (headerTitle) {
@@ -602,7 +599,7 @@
                 history.pushState({ page: data.page }, data.title, newUrl);
             }
         } catch (error) {
-            console.error('Erro na navegação AJAX:', error);
+            console.error('Erro na navegaÃ§Ã£o AJAX:', error);
             window.location.href = url;
         } finally {
             hideLoading();
@@ -610,7 +607,7 @@
     }
 
     sidebar.addEventListener('click', event => {
-        // Ignorar clicks gerados após rolagem em touch (evitar fechar o menu ao rolar)
+        // Ignorar clicks gerados apÃ³s rolagem em touch (evitar fechar o menu ao rolar)
         if (typeof touchMoved !== 'undefined' && touchMoved) {
             touchMoved = false;
             return;

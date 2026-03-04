@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/protect.php';
 require_once __DIR__ . '/../../includes/base_path.php';
 $baseUrl = lidergest_base_url();
@@ -7,25 +7,25 @@ $baseUrl = lidergest_base_url();
     <div class="mb-6">
         <h1 class="text-2xl font-semibold text-secondary-black">Dashboard Financeiro</h1>
         <p class="text-secondary-dark-gray mt-1 max-w-3xl">
-            VisÃ£o geral das finanÃ§as com indicadores e grÃ¡ficos.
+            Visão geral das finanças com indicadores e gráficos.
         </p>
     </div>
     
     <div class="card-primary mb-6">
         <div class="flex flex-wrap gap-4">
             <div class="min-w-40">
-                <label class="block text-sm font-medium text-secondary-dark-gray mb-2">PerÃ­odo</label>
+                <label class="block text-sm font-medium text-secondary-dark-gray mb-2">Período</label>
                 <select id="selectPeriodo" class="input-primary">
                     <option value="hoje">Hoje</option>
                     <option value="semana">Esta Semana</option>
-                    <option value="mes" selected>Este MÃªs</option>
+                    <option value="mes" selected>Este Mês</option>
                     <option value="trimestre">Este Trimestre</option>
                     <option value="ano">Este Ano</option>
                     <option value="custom">Personalizado</option>
                 </select>
             </div>
             <div class="min-w-32" id="divDataInicio" style="display: none;">
-                <label class="block text-sm font-medium text-secondary-dark-gray mb-2">Data InÃ­cio</label>
+                <label class="block text-sm font-medium text-secondary-dark-gray mb-2">Data Início</label>
                 <input type="date" id="inputDataInicio" class="input-primary">
             </div>
             <div class="min-w-32" id="divDataFim" style="display: none;">
@@ -33,7 +33,7 @@ $baseUrl = lidergest_base_url();
                 <input type="date" id="inputDataFim" class="input-primary">
             </div>
             <div class="min-w-40">
-                <label class="block text-sm font-medium text-secondary-dark-gray mb-2">Conta BancÃ¡ria</label>
+                <label class="block text-sm font-medium text-secondary-dark-gray mb-2">Conta Bancária</label>
                 <select id="selectConta" class="input-primary">
                     <option value="">Todas</option>
                 </select>
@@ -53,7 +53,7 @@ $baseUrl = lidergest_base_url();
             <div class="text-2xl font-bold text-green-600" id="statEntradasRealizado">R$ 0,00</div>
         </div>
         <div class="card-primary">
-            <div class="text-sm text-secondary-dark-gray mb-1">SaÃ­das Realizadas</div>
+            <div class="text-sm text-secondary-dark-gray mb-1">Saídas Realizadas</div>
             <div class="text-2xl font-bold text-red-600" id="statSaidasRealizado">R$ 0,00</div>
         </div>
         <div class="card-primary">
@@ -86,7 +86,7 @@ $baseUrl = lidergest_base_url();
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Conta</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Saldo Inicial</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Entradas</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">SaÃ­das</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Saídas</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Saldo Real</th>
                     </tr>
                 </thead>

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/protect.php';
 require_once __DIR__ . '/../../includes/base_path.php';
 $baseUrl = lidergest_base_url();

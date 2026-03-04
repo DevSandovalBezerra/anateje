@@ -75,73 +75,97 @@ require_once __DIR__ . '/../../includes/admin_components.php';
             </table>
         </div>
 
-        <form id="postForm" class="hidden p-4 rounded-lg border border-gray-200 bg-gray-50 space-y-3">
-            <input id="post_id" type="hidden">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <label class="md:col-span-2">
-                    <span class="text-sm font-medium text-gray-700">Titulo *</span>
-                    <input id="post_titulo" class="input-primary w-full" required>
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Slug (opcional)</span>
-                    <input id="post_slug" class="input-primary w-full">
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Status</span>
-                    <select id="post_status" class="input-primary w-full">
-                        <option value="draft">Rascunho</option>
-                        <option value="published">Publicado</option>
-                        <option value="archived">Arquivado</option>
-                    </select>
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Publicado em</span>
-                    <input id="post_publicado" type="datetime-local" class="input-primary w-full">
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Agendar para</span>
-                    <input id="post_scheduled_for" type="datetime-local" class="input-primary w-full">
-                </label>
-
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Categoria alvo</span>
-                    <select id="post_target_categoria" class="input-primary w-full">
-                        <option value="ALL">ALL</option>
-                        <option value="PARCIAL">PARCIAL</option>
-                        <option value="INTEGRAL">INTEGRAL</option>
-                    </select>
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Status associado</span>
-                    <select id="post_target_status" class="input-primary w-full">
-                        <option value="ALL">ALL</option>
-                        <option value="ATIVO">ATIVO</option>
-                        <option value="INATIVO">INATIVO</option>
-                    </select>
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">UF</span>
-                    <input id="post_target_uf" class="input-primary w-full" maxlength="2">
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Lotacao</span>
-                    <input id="post_target_lotacao" class="input-primary w-full">
-                </label>
-
-                <label class="md:col-span-2">
-                    <span class="text-sm font-medium text-gray-700">Conteudo</span>
-                    <textarea id="post_conteudo" class="input-primary w-full" rows="6"></textarea>
-                </label>
-            </div>
-            <div class="flex gap-2">
-                <button class="btn-primary px-4 py-2 text-sm" type="submit">Salvar</button>
-                <button class="btn-secondary px-4 py-2 text-sm" type="button" id="previewAudience">Prever publico</button>
-                <button class="btn-secondary px-4 py-2 text-sm" type="button" id="cancelPost">Cancelar</button>
-            </div>
-            <p id="audienceMsg" class="text-xs text-gray-600"></p>
-        </form>
-
         <p id="postMsg" class="text-sm mt-4"></p>
+    </div>
+</div>
+<div id="postModal" class="hidden fixed inset-0 z-50 admin-modal">
+    <div class="absolute inset-0 admin-modal-overlay" data-close-post-modal="1"></div>
+    <div class="relative flex min-h-screen items-center justify-center p-4">
+        <div id="postModalPanel" class="w-full rounded-lg border border-gray-200 bg-white shadow-2xl admin-modal-panel">
+            <div class="border-b border-gray-200 px-6 py-4">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p id="postModalMode" class="admin-modal-mode">Criacao</p>
+                        <h3 id="postModalTitle" class="admin-modal-title">Novo Comunicado</h3>
+                        <p class="admin-modal-subtitle">Defina conteudo, publicacao e segmentacao do comunicado.</p>
+                    </div>
+                    <button id="closePostModal" type="button" class="btn-secondary px-3 py-2 text-xs">Fechar</button>
+                </div>
+            </div>
+            <form id="postForm" class="space-y-4 p-6">
+                <input id="post_id" type="hidden">
+                <section class="admin-modal-section">
+                    <h4 class="mb-3 text-sm font-semibold text-gray-800">Conteudo e Publicacao</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 admin-modal-grid">
+                        <label class="md:col-span-2">
+                            <span class="text-sm font-medium text-gray-700">Titulo <span class="text-red-600">*</span></span>
+                            <input id="post_titulo" class="input-primary w-full" required>
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Slug (opcional)</span>
+                            <input id="post_slug" class="input-primary w-full">
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Status</span>
+                            <select id="post_status" class="input-primary w-full">
+                                <option value="draft">Rascunho</option>
+                                <option value="published">Publicado</option>
+                                <option value="archived">Arquivado</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Publicado em</span>
+                            <input id="post_publicado" type="datetime-local" class="input-primary w-full">
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Agendar para</span>
+                            <input id="post_scheduled_for" type="datetime-local" class="input-primary w-full">
+                        </label>
+                        <label class="md:col-span-2">
+                            <span class="text-sm font-medium text-gray-700">Conteudo</span>
+                            <textarea id="post_conteudo" class="input-primary w-full" rows="6"></textarea>
+                        </label>
+                    </div>
+                </section>
+                <section class="admin-modal-section">
+                    <h4 class="mb-3 text-sm font-semibold text-gray-800">Segmentacao</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 admin-modal-grid">
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Categoria alvo</span>
+                            <select id="post_target_categoria" class="input-primary w-full">
+                                <option value="ALL">ALL</option>
+                                <option value="PARCIAL">PARCIAL</option>
+                                <option value="INTEGRAL">INTEGRAL</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Status associado</span>
+                            <select id="post_target_status" class="input-primary w-full">
+                                <option value="ALL">ALL</option>
+                                <option value="ATIVO">ATIVO</option>
+                                <option value="INATIVO">INATIVO</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">UF</span>
+                            <input id="post_target_uf" class="input-primary w-full" maxlength="2">
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Lotacao</span>
+                            <input id="post_target_lotacao" class="input-primary w-full">
+                        </label>
+                    </div>
+                </section>
+                <div class="admin-modal-footer">
+                    <p id="audienceMsg" class="text-xs text-gray-600"></p>
+                    <div class="flex gap-2">
+                        <button class="btn-secondary px-4 py-2 text-sm" type="button" id="cancelPost">Cancelar</button>
+                        <button class="btn-secondary px-4 py-2 text-sm" type="button" id="previewAudience">Prever publico</button>
+                        <button id="postSubmitBtn" class="btn-primary px-4 py-2 text-sm" type="submit">Salvar comunicado</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -163,6 +187,11 @@ require_once __DIR__ . '/../../includes/admin_components.php';
     const msg = document.getElementById('postMsg');
     const audienceMsg = document.getElementById('audienceMsg');
     const form = document.getElementById('postForm');
+    const postModal = document.getElementById('postModal');
+    const postModalPanel = document.getElementById('postModalPanel');
+    const postModalTitle = document.getElementById('postModalTitle');
+    const postModalMode = document.getElementById('postModalMode');
+    const postSubmitBtn = document.getElementById('postSubmitBtn');
     const postBulkMeta = document.getElementById('postBulkMeta');
     const postBulkStatus = document.getElementById('postBulkStatus');
     const postBulkReason = document.getElementById('postBulkReason');
@@ -340,7 +369,12 @@ require_once __DIR__ . '/../../includes/admin_components.php';
     }
 
     function openForm(post) {
-        form.classList.remove('hidden');
+        const isEdit = !!(post && post.id);
+        if (postModalTitle) postModalTitle.textContent = isEdit ? 'Editar Comunicado' : 'Novo Comunicado';
+        if (postModalMode) postModalMode.textContent = isEdit ? 'Edicao' : 'Criacao';
+        if (postSubmitBtn) postSubmitBtn.textContent = isEdit ? 'Salvar alteracoes' : 'Salvar comunicado';
+        postModal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
         audienceMsg.textContent = '';
         el('post_id').value = post?.id || '';
         el('post_titulo').value = post?.titulo || '';
@@ -353,10 +387,18 @@ require_once __DIR__ . '/../../includes/admin_components.php';
         el('post_target_uf').value = (post?.target_uf || '').toUpperCase();
         el('post_target_lotacao').value = post?.target_lotacao || '';
         el('post_conteudo').value = post?.conteudo || '';
+        setTimeout(() => {
+            const t = el('post_titulo');
+            if (t && typeof t.focus === 'function') {
+                t.focus();
+                t.select();
+            }
+        }, 10);
     }
 
     function closeForm() {
-        form.classList.add('hidden');
+        postModal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
         form.reset();
         if (ui && typeof ui.clearFieldErrors === 'function') {
             ui.clearFieldErrors(form);
@@ -365,6 +407,12 @@ require_once __DIR__ . '/../../includes/admin_components.php';
         el('post_target_categoria').value = 'ALL';
         el('post_target_status').value = 'ALL';
         audienceMsg.textContent = '';
+        if (postModalTitle) postModalTitle.textContent = 'Novo Comunicado';
+        if (postModalMode) postModalMode.textContent = 'Criacao';
+        if (postSubmitBtn) {
+            postSubmitBtn.disabled = false;
+            postSubmitBtn.textContent = 'Salvar comunicado';
+        }
     }
 
     async function onAction(e) {
@@ -396,7 +444,7 @@ require_once __DIR__ . '/../../includes/admin_components.php';
             }
             const confirmed = ui && typeof ui.confirmDelete === 'function'
                 ? await ui.confirmDelete('este comunicado')
-                : confirm('Deseja excluir este comunicado?');
+                : false;
             if (!confirmed) return;
             try {
                 await window.anatejeApi(ep('/api/v1/posts.php?action=admin_delete'), {
@@ -504,6 +552,20 @@ require_once __DIR__ . '/../../includes/admin_components.php';
         window.location.href = ep('/api/v1/posts.php?' + params.toString());
     });
     document.getElementById('cancelPost').addEventListener('click', closeForm);
+    document.getElementById('closePostModal').addEventListener('click', closeForm);
+    postModal.addEventListener('click', (e) => {
+        if (e.target && e.target.getAttribute('data-close-post-modal') === '1') {
+            closeForm();
+        }
+    });
+    if (postModalPanel) {
+        postModalPanel.addEventListener('click', (e) => e.stopPropagation());
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !postModal.classList.contains('hidden')) {
+            closeForm();
+        }
+    });
     postFilterApply.addEventListener('click', () => {
         listFilters = normalizePostListFilters({
             q: postFilterQ.value || '',
@@ -563,7 +625,7 @@ require_once __DIR__ . '/../../includes/admin_components.php';
                 text: `Aplicar status ${status} para ${ids.length} comunicado(s)?`,
                 confirmText: 'Aplicar'
             })
-            : confirm(`Aplicar status ${status} para ${ids.length} comunicado(s)?`);
+            : false;
         if (!confirmed) return;
 
         try {
@@ -604,6 +666,11 @@ require_once __DIR__ . '/../../includes/admin_components.php';
         if (ui && typeof ui.clearFieldErrors === 'function') {
             ui.clearFieldErrors(form);
         }
+        const wasEdit = !!(el('post_id').value && parseInt(el('post_id').value, 10) > 0);
+        if (postSubmitBtn) {
+            postSubmitBtn.disabled = true;
+            postSubmitBtn.textContent = 'Salvando...';
+        }
 
         try {
             const body = collectBody();
@@ -635,6 +702,11 @@ require_once __DIR__ . '/../../includes/admin_components.php';
                 ]);
             }
             setMsg(err.message || 'Falha ao salvar comunicado', 'err');
+        } finally {
+            if (postSubmitBtn) {
+                postSubmitBtn.disabled = false;
+                postSubmitBtn.textContent = wasEdit ? 'Salvar alteracoes' : 'Salvar comunicado';
+            }
         }
     });
 

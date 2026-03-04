@@ -1,4 +1,4 @@
-﻿// ANATEJE - JS Contas a Pagar/Receber com Parcelas
+// ANATEJE - JS Contas a Pagar/Receber com Parcelas
 // Fluxo simples, leve e moderno
 
 let inicializandoContas = false;
@@ -55,7 +55,7 @@ async function listar() {
     console.error('listar error', err);
     const tbody = tbodyLanc();
     if (tbody) {
-      tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-secondary-dark-gray">Erro ao carregar lanÃ§amentos</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-secondary-dark-gray">Erro ao carregar lançamentos</td></tr>`;
     }
   }
 }
@@ -65,7 +65,7 @@ function renderLancamentos(items) {
   if (!tbody) return;
 
   if (!items || items.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-secondary-dark-gray">Nenhum lanÃ§amento encontrado</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-secondary-dark-gray">Nenhum lançamento encontrado</td></tr>`;
     return;
   }
 
@@ -156,7 +156,7 @@ async function carregarParcelas(id) {
     if (info && contaAtual) {
       info.innerHTML = `
         <div class="text-sm">
-          <p><strong>DescriÃ§Ã£o:</strong> ${escapeHtml(contaAtual.descricao || '')}</p>
+          <p><strong>Descrição:</strong> ${escapeHtml(contaAtual.descricao || '')}</p>
           <p><strong>Valor total:</strong> ${parseFloat(contaAtual.valor_total || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
         </div>
       `;
@@ -240,7 +240,7 @@ async function registrarPagamento(parcelaId, valorPago, dataPagamento) {
 }
 
 async function cancelarConta(id) {
-  if (!confirm('Cancelar este lanÃ§amento?')) return;
+  if (!confirm('Cancelar este lançamento?')) return;
   try {
     const form = new FormData();
     form.append('action', 'excluir');
@@ -253,7 +253,7 @@ async function cancelarConta(id) {
     const json = await resp.json();
     if (!json.success) throw new Error(json.message || 'Erro ao cancelar');
     await listar();
-    alert('LanÃ§amento cancelado.');
+    alert('Lançamento cancelado.');
   } catch (err) {
     console.error('cancelar error', err);
     alert('Erro ao cancelar: ' + err.message);
@@ -282,7 +282,7 @@ async function salvarLancamento(e) {
     if (!json.success) throw new Error(json.message || 'Erro ao criar');
     fecharModalLanc();
     await listar();
-    alert('LanÃ§amento criado com sucesso.');
+    alert('Lançamento criado com sucesso.');
   } catch (err) {
     console.error('criar error', err);
     alert('Erro ao salvar: ' + err.message);
@@ -357,11 +357,11 @@ async function initContas() {
   }, 100);
 }
 
-// InicializaÃ§Ã£o
+// Inicialização
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initContas);
 } else {
-  // Se o documento jÃ¡ estiver carregado, inicializar imediatamente
+  // Se o documento já estiver carregado, inicializar imediatamente
   initContas();
 }
 

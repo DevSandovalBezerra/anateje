@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/protect.php';
 require_once __DIR__ . '/../../includes/base_path.php';
 $baseUrl = lidergest_base_url();
@@ -6,9 +6,9 @@ $baseUrl = lidergest_base_url();
 <div class="cadastros-content" data-perfil="<?php echo $_SESSION['perfil_id'] ?? 0; ?>" data-unidade="<?php echo $_SESSION['unidade_id'] ?? ''; ?>">
     <div class="mb-6 flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-semibold text-secondary-black">Contas BancÃ¡rias</h1>
+            <h1 class="text-2xl font-semibold text-secondary-black">Contas Bancárias</h1>
             <p class="text-secondary-dark-gray mt-1 max-w-3xl">
-                Gerencie contas bancÃ¡rias, carteiras e investimentos do sistema.
+                Gerencie contas bancárias, carteiras e investimentos do sistema.
             </p>
         </div>
         <button id="btnNovaConta" class="btn-primary">
@@ -60,12 +60,12 @@ $baseUrl = lidergest_base_url();
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Nome da Conta</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Banco</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Tipo</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">AgÃªncia</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Agência</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Conta</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Saldo Real</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Saldo Previsto</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Status</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">AÃ§Ãµes</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Ações</th>
                     </tr>
                 </thead>
                 <tbody id="tbodyContas" class="divide-y divide-secondary-gray">

@@ -52,79 +52,6 @@ require_once __DIR__ . '/../../includes/admin_components.php';
             </table>
         </div>
 
-        <form id="campForm" class="hidden p-4 rounded-lg border border-gray-200 bg-gray-50 space-y-3">
-            <input id="camp_id" type="hidden">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Titulo *</span>
-                    <input id="camp_titulo" class="input-primary w-full" required>
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Canal</span>
-                    <select id="camp_canal" class="input-primary w-full">
-                        <option value="INAPP">INAPP</option>
-                        <option value="EMAIL">EMAIL</option>
-                        <option value="WHATSAPP">WHATSAPP</option>
-                    </select>
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Status</span>
-                    <select id="camp_status" class="input-primary w-full">
-                        <option value="draft">Rascunho</option>
-                        <option value="queued">Na fila</option>
-                        <option value="processing">Processando</option>
-                        <option value="done">Concluida</option>
-                        <option value="failed">Falhou</option>
-                    </select>
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Assunto</span>
-                    <input id="camp_assunto" class="input-primary w-full">
-                </label>
-                <label class="md:col-span-2">
-                    <span class="text-sm font-medium text-gray-700">Mensagem</span>
-                    <textarea id="camp_mensagem" class="input-primary w-full" rows="4"></textarea>
-                </label>
-            </div>
-
-            <div class="pt-2 border-t border-gray-200">
-                <h3 class="text-sm font-semibold text-gray-700 mb-2">Filtro de Segmentacao</h3>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-                    <label>
-                        <span class="text-sm text-gray-700">Categoria</span>
-                        <select id="camp_f_categoria" class="input-primary w-full">
-                            <option value="">Todas</option>
-                            <option value="PARCIAL">PARCIAL</option>
-                            <option value="INTEGRAL">INTEGRAL</option>
-                        </select>
-                    </label>
-                    <label>
-                        <span class="text-sm text-gray-700">Status</span>
-                        <select id="camp_f_status" class="input-primary w-full">
-                            <option value="">Todos</option>
-                            <option value="ATIVO">ATIVO</option>
-                            <option value="INATIVO">INATIVO</option>
-                        </select>
-                    </label>
-                    <label>
-                        <span class="text-sm text-gray-700">UF</span>
-                        <input id="camp_f_uf" maxlength="2" class="input-primary w-full" placeholder="Ex: SP">
-                    </label>
-                    <label>
-                        <span class="text-sm text-gray-700">ID Beneficio</span>
-                        <input id="camp_f_benefit" type="number" class="input-primary w-full" min="0" placeholder="0 = todos">
-                    </label>
-                </div>
-            </div>
-
-            <div class="flex flex-wrap gap-2">
-                <button class="btn-primary px-4 py-2 text-sm" type="submit">Salvar Campanha</button>
-                <button class="btn-secondary px-4 py-2 text-sm" type="button" id="previewCampanha">Simular Publico</button>
-                <button class="btn-secondary px-4 py-2 text-sm" type="button" id="cancelCamp">Cancelar</button>
-            </div>
-            <p id="campPreviewMsg" class="text-xs text-gray-700"></p>
-        </form>
-
         <div id="campLogsBox" class="hidden mt-6 p-4 rounded-lg border border-amber-200 bg-amber-50">
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-sm font-semibold text-gray-800">Logs da Campanha</h3>
@@ -186,6 +113,98 @@ require_once __DIR__ . '/../../includes/admin_components.php';
         <p id="campMsg" class="text-sm mt-4"></p>
     </div>
 </div>
+<div id="campModal" class="hidden fixed inset-0 z-50 admin-modal">
+    <div class="absolute inset-0 admin-modal-overlay" data-close-camp-modal="1"></div>
+    <div class="relative flex min-h-screen items-center justify-center p-4">
+        <div id="campModalPanel" class="w-full rounded-lg border border-gray-200 bg-white shadow-2xl admin-modal-panel">
+            <div class="border-b border-gray-200 px-6 py-4">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p id="campModalMode" class="admin-modal-mode">Criacao</p>
+                        <h3 id="campModalTitle" class="admin-modal-title">Nova Campanha</h3>
+                        <p class="admin-modal-subtitle">Configure mensagem, canal e segmentacao de envio.</p>
+                    </div>
+                    <button id="closeCampModal" type="button" class="btn-secondary px-3 py-2 text-xs">Fechar</button>
+                </div>
+            </div>
+            <form id="campForm" class="space-y-4 p-6">
+                <input id="camp_id" type="hidden">
+                <section class="admin-modal-section">
+                    <h4 class="mb-3 text-sm font-semibold text-gray-800">Mensagem</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 admin-modal-grid">
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Titulo <span class="text-red-600">*</span></span>
+                            <input id="camp_titulo" class="input-primary w-full" required>
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Canal</span>
+                            <select id="camp_canal" class="input-primary w-full">
+                                <option value="INAPP">INAPP</option>
+                                <option value="EMAIL">EMAIL</option>
+                                <option value="WHATSAPP">WHATSAPP</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Status</span>
+                            <select id="camp_status" class="input-primary w-full">
+                                <option value="draft">Rascunho</option>
+                                <option value="queued">Na fila</option>
+                                <option value="processing">Processando</option>
+                                <option value="done">Concluida</option>
+                                <option value="failed">Falhou</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Assunto</span>
+                            <input id="camp_assunto" class="input-primary w-full">
+                        </label>
+                        <label class="md:col-span-2">
+                            <span class="text-sm font-medium text-gray-700">Mensagem</span>
+                            <textarea id="camp_mensagem" class="input-primary w-full" rows="4"></textarea>
+                        </label>
+                    </div>
+                </section>
+                <section class="admin-modal-section">
+                    <h4 class="mb-3 text-sm font-semibold text-gray-800">Filtro de Segmentacao</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 admin-modal-grid">
+                        <label>
+                            <span class="text-sm text-gray-700">Categoria</span>
+                            <select id="camp_f_categoria" class="input-primary w-full">
+                                <option value="">Todas</option>
+                                <option value="PARCIAL">PARCIAL</option>
+                                <option value="INTEGRAL">INTEGRAL</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span class="text-sm text-gray-700">Status</span>
+                            <select id="camp_f_status" class="input-primary w-full">
+                                <option value="">Todos</option>
+                                <option value="ATIVO">ATIVO</option>
+                                <option value="INATIVO">INATIVO</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span class="text-sm text-gray-700">UF</span>
+                            <input id="camp_f_uf" maxlength="2" class="input-primary w-full" placeholder="Ex: SP">
+                        </label>
+                        <label>
+                            <span class="text-sm text-gray-700">ID Beneficio</span>
+                            <input id="camp_f_benefit" type="number" class="input-primary w-full" min="0" placeholder="0 = todos">
+                        </label>
+                    </div>
+                </section>
+                <div class="admin-modal-footer">
+                    <p id="campPreviewMsg" class="text-xs text-gray-700"></p>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="btn-secondary px-4 py-2 text-sm" type="button" id="cancelCamp">Cancelar</button>
+                        <button class="btn-secondary px-4 py-2 text-sm" type="button" id="previewCampanha">Simular publico</button>
+                        <button id="campSubmitBtn" class="btn-primary px-4 py-2 text-sm" type="submit">Salvar campanha</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script src="<?php echo $basePrefix; ?>assets/js/anateje-api.js"></script>
 <script>
@@ -204,6 +223,11 @@ require_once __DIR__ . '/../../includes/admin_components.php';
     const rows = document.getElementById('campRows');
     const msg = document.getElementById('campMsg');
     const form = document.getElementById('campForm');
+    const campModal = document.getElementById('campModal');
+    const campModalPanel = document.getElementById('campModalPanel');
+    const campModalTitle = document.getElementById('campModalTitle');
+    const campModalMode = document.getElementById('campModalMode');
+    const campSubmitBtn = document.getElementById('campSubmitBtn');
     const campBulkMeta = document.getElementById('campBulkMeta');
     const campBulkStatus = document.getElementById('campBulkStatus');
     const campBulkReason = document.getElementById('campBulkReason');
@@ -339,7 +363,12 @@ require_once __DIR__ . '/../../includes/admin_components.php';
     }
 
     function openForm(c) {
-        form.classList.remove('hidden');
+        const isEdit = !!(c && c.id);
+        if (campModalTitle) campModalTitle.textContent = isEdit ? 'Editar Campanha' : 'Nova Campanha';
+        if (campModalMode) campModalMode.textContent = isEdit ? 'Edicao' : 'Criacao';
+        if (campSubmitBtn) campSubmitBtn.textContent = isEdit ? 'Salvar alteracoes' : 'Salvar campanha';
+        campModal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
         previewMsg.textContent = '';
         el('camp_id').value = c?.id || '';
         el('camp_titulo').value = c?.titulo || '';
@@ -351,16 +380,30 @@ require_once __DIR__ . '/../../includes/admin_components.php';
         el('camp_f_status').value = c?.filtro?.status || '';
         el('camp_f_uf').value = c?.filtro?.uf || '';
         el('camp_f_benefit').value = c?.filtro?.benefit_id || '';
+        setTimeout(() => {
+            const t = el('camp_titulo');
+            if (t && typeof t.focus === 'function') {
+                t.focus();
+                t.select();
+            }
+        }, 10);
     }
 
     function closeForm() {
-        form.classList.add('hidden');
+        campModal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
         form.reset();
         if (ui && typeof ui.clearFieldErrors === 'function') {
             ui.clearFieldErrors(form);
         }
         el('camp_id').value = '';
         previewMsg.textContent = '';
+        if (campModalTitle) campModalTitle.textContent = 'Nova Campanha';
+        if (campModalMode) campModalMode.textContent = 'Criacao';
+        if (campSubmitBtn) {
+            campSubmitBtn.disabled = false;
+            campSubmitBtn.textContent = 'Salvar campanha';
+        }
     }
 
     function runLabel(run) {
@@ -507,7 +550,7 @@ require_once __DIR__ . '/../../includes/admin_components.php';
                 }
                 const confirmedDelete = ui && typeof ui.confirmDelete === 'function'
                     ? await ui.confirmDelete('esta campanha')
-                    : confirm('Deseja excluir esta campanha?');
+                    : false;
                 if (!confirmedDelete) return;
                 await window.anatejeApi(ep('/api/v1/campaigns.php?action=admin_delete'), {
                     method: 'POST',
@@ -531,7 +574,7 @@ require_once __DIR__ . '/../../includes/admin_components.php';
                         text: 'Deseja executar esta campanha agora?',
                         confirmText: 'Executar'
                     })
-                    : confirm('Executar esta campanha agora?');
+                    : false;
                 if (!confirmedRun) return;
                 const data = await window.anatejeApi(ep('/api/v1/campaigns.php?action=admin_run'), {
                     method: 'POST',
@@ -596,6 +639,20 @@ require_once __DIR__ . '/../../includes/admin_components.php';
         openForm(null);
     });
     document.getElementById('cancelCamp').addEventListener('click', closeForm);
+    document.getElementById('closeCampModal').addEventListener('click', closeForm);
+    campModal.addEventListener('click', (e) => {
+        if (e.target && e.target.getAttribute('data-close-camp-modal') === '1') {
+            closeForm();
+        }
+    });
+    if (campModalPanel) {
+        campModalPanel.addEventListener('click', (e) => e.stopPropagation());
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !campModal.classList.contains('hidden')) {
+            closeForm();
+        }
+    });
     selectAllCampRows.addEventListener('change', (e) => {
         if (!canBulkEdit) {
             e.currentTarget.checked = false;
@@ -634,7 +691,7 @@ require_once __DIR__ . '/../../includes/admin_components.php';
                 text: `Aplicar status ${status} para ${ids.length} campanha(s)?`,
                 confirmText: 'Aplicar'
             })
-            : confirm(`Aplicar status ${status} para ${ids.length} campanha(s)?`);
+            : false;
         if (!confirmed) return;
 
         try {
@@ -748,6 +805,11 @@ require_once __DIR__ . '/../../includes/admin_components.php';
         if (ui && typeof ui.clearFieldErrors === 'function') {
             ui.clearFieldErrors(form);
         }
+        const wasEdit = !!(el('camp_id').value && parseInt(el('camp_id').value, 10) > 0);
+        if (campSubmitBtn) {
+            campSubmitBtn.disabled = true;
+            campSubmitBtn.textContent = 'Salvando...';
+        }
 
         try {
             const body = {
@@ -786,6 +848,11 @@ require_once __DIR__ . '/../../includes/admin_components.php';
                 ]);
             }
             setMsg(err.message || 'Falha ao salvar campanha', 'err');
+        } finally {
+            if (campSubmitBtn) {
+                campSubmitBtn.disabled = false;
+                campSubmitBtn.textContent = wasEdit ? 'Salvar alteracoes' : 'Salvar campanha';
+            }
         }
     });
 

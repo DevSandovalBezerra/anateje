@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/protect.php';
 require_once __DIR__ . '/../../includes/base_path.php';
 $baseUrl = lidergest_base_url();
@@ -8,7 +8,7 @@ $baseUrl = lidergest_base_url();
         <div>
             <h1 class="text-2xl font-semibold text-secondary-black">Receitas e Despesas Fixas</h1>
             <p class="text-secondary-dark-gray mt-1 max-w-3xl">
-                Modelos padronizados de lanÃ§amentos recorrentes para geraÃ§Ã£o automÃ¡tica de contas a pagar/receber.
+                Modelos padronizados de lançamentos recorrentes para geração automática de contas a pagar/receber.
             </p>
         </div>
         <button id="btnNovoRegistro" class="btn-primary">
@@ -49,7 +49,7 @@ $baseUrl = lidergest_base_url();
                 <label class="block text-sm font-medium text-secondary-dark-gray mb-2">Buscar</label>
                 <div class="relative">
                     <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary-dark-gray"></i>
-                    <input type="text" id="inputBuscar" placeholder="Nome ou descriÃ§Ã£o..." class="input-primary pl-10">
+                    <input type="text" id="inputBuscar" placeholder="Nome ou descrição..." class="input-primary pl-10">
                 </div>
             </div>
             <div class="min-w-32">
@@ -76,7 +76,7 @@ $baseUrl = lidergest_base_url();
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Periodicidade</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Dia Venc.</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Status</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">AÃ§Ãµes</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Ações</th>
                     </tr>
                 </thead>
                 <tbody id="tbodyRegistros" class="divide-y divide-secondary-gray">

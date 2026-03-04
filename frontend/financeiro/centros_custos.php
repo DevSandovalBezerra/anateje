@@ -1,5 +1,5 @@
-﻿<?php
-// ANATEJE - Centros de Custos (ConteÃºdo)
+<?php
+// ANATEJE - Centros de Custos (Conteúdo)
 // Sistema de Gestao Financeira Associativa ANATEJE
 
 require_once __DIR__ . '/../../includes/base_path.php';
@@ -47,11 +47,11 @@ $baseUrl = lidergest_base_url();
                 <thead class="bg-secondary-light-gray">
                     <tr>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Centro de Custo</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">DescriÃ§Ã£o</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">ResponsÃ¡vel</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Descrição</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Responsável</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Unidade</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Status</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">AÃ§Ãµes</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Ações</th>
                     </tr>
                 </thead>
                 <tbody id="tbodyCentros" class="divide-y divide-secondary-gray">

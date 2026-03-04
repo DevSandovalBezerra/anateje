@@ -1,15 +1,15 @@
-﻿<?php
-// ANATEJE - FunÃ§Ã£o para Gerar Mensalidades
+<?php
+// ANATEJE - Função para Gerar Mensalidades
 // Sistema de Gestao Financeira Associativa ANATEJE
 // Substitui a stored procedure sp_gerar_mensalidades para hospedagem compartilhada
 
 require_once __DIR__ . '/../config/database.php';
 
 /**
- * Gera mensalidades para todos os contratos ativos de um mÃªs especÃ­fico
+ * Gera mensalidades para todos os contratos ativos de um mês específico
  * 
  * @param string $mes_referencia Formato YYYY-MM (ex: 2024-10)
- * @return array Resultado da operaÃ§Ã£o
+ * @return array Resultado da operação
  */
 function gerarMensalidades($mes_referencia)
 {
@@ -20,14 +20,14 @@ function gerarMensalidades($mes_referencia)
         if (!preg_match('/^\d{4}-\d{2}$/', $mes_referencia)) {
             return [
                 'success' => false,
-                'message' => 'Formato de data invÃ¡lido. Use YYYY-MM (ex: 2024-10)'
+                'message' => 'Formato de data inválido. Use YYYY-MM (ex: 2024-10)'
             ];
         }
 
-        // Calcular data de vencimento (primeiro dia do mÃªs seguinte)
+        // Calcular data de vencimento (primeiro dia do mês seguinte)
         $data_vencimento = date('Y-m-01', strtotime($mes_referencia . '-01 +1 month'));
 
-        // Buscar contratos ativos que ainda nÃ£o tÃªm mensalidade para o mÃªs
+        // Buscar contratos ativos que ainda não têm mensalidade para o mês
         $stmt = $db->prepare("
             SELECT c.id, c.valor_mensalidade
             FROM contratos c
@@ -97,9 +97,9 @@ function gerarMensalidades($mes_referencia)
 }
 
 /**
- * Gera mensalidades para o mÃªs atual
+ * Gera mensalidades para o mês atual
  * 
- * @return array Resultado da operaÃ§Ã£o
+ * @return array Resultado da operação
  */
 function gerarMensalidadesMesAtual()
 {
@@ -108,9 +108,9 @@ function gerarMensalidadesMesAtual()
 }
 
 /**
- * Gera mensalidades para o prÃ³ximo mÃªs
+ * Gera mensalidades para o próximo mês
  * 
- * @return array Resultado da operaÃ§Ã£o
+ * @return array Resultado da operação
  */
 function gerarMensalidadesProximoMes()
 {
@@ -121,7 +121,7 @@ function gerarMensalidadesProximoMes()
 /**
  * Atualiza status das mensalidades vencidas
  * 
- * @return array Resultado da operaÃ§Ã£o
+ * @return array Resultado da operação
  */
 function atualizarStatusMensalidadesVencidas()
 {
@@ -159,7 +159,7 @@ function atualizarStatusMensalidadesVencidas()
  * @param float $valor_pago Valor pago
  * @param string $forma_pagamento Forma de pagamento
  * @param string $comprovante Caminho do comprovante (opcional)
- * @return array Resultado da operaÃ§Ã£o
+ * @return array Resultado da operação
  */
 function processarPagamentoMensalidade($mensalidade_id, $valor_pago, $forma_pagamento, $comprovante = null)
 {
@@ -180,18 +180,18 @@ function processarPagamentoMensalidade($mensalidade_id, $valor_pago, $forma_paga
         if (!$mensalidade) {
             return [
                 'success' => false,
-                'message' => 'Mensalidade nÃ£o encontrada'
+                'message' => 'Mensalidade não encontrada'
             ];
         }
 
         if ($mensalidade['status'] === 'paga') {
             return [
                 'success' => false,
-                'message' => 'Mensalidade jÃ¡ foi paga'
+                'message' => 'Mensalidade já foi paga'
             ];
         }
 
-        // Iniciar transaÃ§Ã£o
+        // Iniciar transação
         $db->beginTransaction();
 
         try {
@@ -205,7 +205,7 @@ function processarPagamentoMensalidade($mensalidade_id, $valor_pago, $forma_paga
             ");
             $stmt->execute([$valor_pago, $mensalidade_id]);
 
-            // Buscar cobranÃ§a associada (se existir)
+            // Buscar cobrança associada (se existir)
             $stmt = $db->prepare("
                 SELECT id FROM cobrancas 
                 WHERE mensalidade_id = ? 
@@ -227,7 +227,7 @@ function processarPagamentoMensalidade($mensalidade_id, $valor_pago, $forma_paga
                 $comprovante
             ]);
 
-            // Atualizar status da cobranÃ§a (se existir)
+            // Atualizar status da cobrança (se existir)
             if ($cobranca) {
                 $stmt = $db->prepare("
                     UPDATE cobrancas 
@@ -260,10 +260,10 @@ function processarPagamentoMensalidade($mensalidade_id, $valor_pago, $forma_paga
 }
 
 /**
- * Gera relatÃ³rio de inadimplÃªncia
+ * Gera relatório de inadimplência
  * 
- * @param string $data_referencia Data de referÃªncia (opcional)
- * @return array Resultado da operaÃ§Ã£o
+ * @param string $data_referencia Data de referência (opcional)
+ * @return array Resultado da operação
  */
 function gerarRelatorioInadimplencia($data_referencia = null)
 {
@@ -303,10 +303,10 @@ function gerarRelatorioInadimplencia($data_referencia = null)
             'data_referencia' => $data_referencia
         ];
     } catch (Exception $e) {
-        logError("Erro ao gerar relatÃ³rio de inadimplÃªncia: " . $e->getMessage());
+        logError("Erro ao gerar relatório de inadimplência: " . $e->getMessage());
         return [
             'success' => false,
-            'message' => 'Erro interno do servidor ao gerar relatÃ³rio'
+            'message' => 'Erro interno do servidor ao gerar relatório'
         ];
     }
 }
@@ -345,7 +345,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             if (!$mensalidade_id || !$valor_pago || !$forma_pagamento) {
                 $result = [
                     'success' => false,
-                    'message' => 'ParÃ¢metros obrigatÃ³rios nÃ£o fornecidos'
+                    'message' => 'Parâmetros obrigatórios não fornecidos'
                 ];
             } else {
                 $result = processarPagamentoMensalidade($mensalidade_id, $valor_pago, $forma_pagamento, $comprovante);
@@ -360,7 +360,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         default:
             $result = [
                 'success' => false,
-                'message' => 'AÃ§Ã£o nÃ£o reconhecida'
+                'message' => 'Ação não reconhecida'
             ];
     }
 

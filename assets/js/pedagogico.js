@@ -1,5 +1,5 @@
-// LiderGest - JavaScript para Módulo Pedagógico
-// Sistema de Gestão Pedagógico-Financeira Líder School
+// LiderGest - JavaScript para MÃ³dulo PedagÃ³gico
+// Sistema de GestÃ£o PedagÃ³gico-Financeira LÃ­der School
 
 class PedagogicoAPI {
     constructor() {
@@ -9,14 +9,14 @@ class PedagogicoAPI {
             const tempConfig = new ApiConfig();
             this.baseUrl = tempConfig.baseUrl || tempConfig.getBaseUrl();
         } else {
-            console.warn('[PedagogicoAPI] ApiConfig não encontrado, usando "/lidergest" como fallback');
+            console.warn('[PedagogicoAPI] ApiConfig nÃ£o encontrado, usando "/lidergest" como fallback');
             this.baseUrl = '/lidergest';
         }
     }
 
-    // ==================== FREQUÊNCIA ====================
+    // ==================== FREQUÃŠNCIA ====================
 
-    // Listar frequência por turma e data
+    // Listar frequÃªncia por turma e data
     async listarFrequencia(turmaId, data) {
         try {
             const response = await fetch(`${this.baseUrl}/api/pedagogico/frequencia.php?action=listar&turma_id=${turmaId}&data=${data}`, {
@@ -25,12 +25,12 @@ class PedagogicoAPI {
             });
             return await response.json();
         } catch (error) {
-            console.error('Erro ao listar frequência:', error);
-            return { success: false, message: 'Erro de conexão' };
+            console.error('Erro ao listar frequÃªncia:', error);
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
-    // Registrar frequência
+    // Registrar frequÃªncia
     async registrarFrequencia(dados) {
         try {
             const formData = new FormData();
@@ -47,12 +47,12 @@ class PedagogicoAPI {
             });
             return await response.json();
         } catch (error) {
-            console.error('Erro ao registrar frequência:', error);
-            return { success: false, message: 'Erro de conexão' };
+            console.error('Erro ao registrar frequÃªncia:', error);
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
-    // Listar alunos da turma para frequência
+    // Listar alunos da turma para frequÃªncia
     async listarAlunosTurma(turmaId) {
         try {
             const response = await fetch(`${this.baseUrl}/api/pedagogico/frequencia.php?action=alunos_turma&turma_id=${turmaId}`, {
@@ -62,11 +62,11 @@ class PedagogicoAPI {
             return await response.json();
         } catch (error) {
             console.error('Erro ao listar alunos da turma:', error);
-            return { success: false, message: 'Erro de conexão' };
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
-    // Obter frequência de um aluno
+    // Obter frequÃªncia de um aluno
     async obterFrequenciaAluno(alunoId, dataInicio = null, dataFim = null) {
         try {
             let url = `${this.baseUrl}/api/pedagogico/frequencia.php?action=frequencia_aluno&aluno_id=${alunoId}`;
@@ -79,12 +79,12 @@ class PedagogicoAPI {
             });
             return await response.json();
         } catch (error) {
-            console.error('Erro ao obter frequência do aluno:', error);
-            return { success: false, message: 'Erro de conexão' };
+            console.error('Erro ao obter frequÃªncia do aluno:', error);
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
-    // Obter estatísticas de frequência da turma
+    // Obter estatÃ­sticas de frequÃªncia da turma
     async obterEstatisticasFrequencia(turmaId, dataInicio = null, dataFim = null) {
         try {
             let url = `${this.baseUrl}/api/pedagogico/frequencia.php?action=estatisticas_turma&turma_id=${turmaId}`;
@@ -97,8 +97,8 @@ class PedagogicoAPI {
             });
             return await response.json();
         } catch (error) {
-            console.error('Erro ao obter estatísticas de frequência:', error);
-            return { success: false, message: 'Erro de conexão' };
+            console.error('Erro ao obter estatÃ­sticas de frequÃªncia:', error);
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
@@ -118,11 +118,11 @@ class PedagogicoAPI {
             return await response.json();
         } catch (error) {
             console.error('Erro ao justificar falta:', error);
-            return { success: false, message: 'Erro de conexão' };
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
-    // Marcar presença em massa
+    // Marcar presenÃ§a em massa
     async marcarPresencaMassa(turmaId, dataAula, alunoIds, professorId) {
         try {
             const formData = new FormData();
@@ -139,8 +139,8 @@ class PedagogicoAPI {
             });
             return await response.json();
         } catch (error) {
-            console.error('Erro ao marcar presença em massa:', error);
-            return { success: false, message: 'Erro de conexão' };
+            console.error('Erro ao marcar presenÃ§a em massa:', error);
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
@@ -159,7 +159,7 @@ class PedagogicoAPI {
             return await response.json();
         } catch (error) {
             console.error('Erro ao listar notas:', error);
-            return { success: false, message: 'Erro de conexão' };
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
@@ -186,7 +186,7 @@ class PedagogicoAPI {
             return await response.json();
         } catch (error) {
             console.error('Erro ao criar nota:', error);
-            return { success: false, message: 'Erro de conexão' };
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
@@ -210,7 +210,7 @@ class PedagogicoAPI {
             return await response.json();
         } catch (error) {
             console.error('Erro ao atualizar nota:', error);
-            return { success: false, message: 'Erro de conexão' };
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
@@ -229,7 +229,7 @@ class PedagogicoAPI {
             return await response.json();
         } catch (error) {
             console.error('Erro ao excluir nota:', error);
-            return { success: false, message: 'Erro de conexão' };
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
@@ -248,7 +248,7 @@ class PedagogicoAPI {
             return await response.json();
         } catch (error) {
             console.error('Erro ao obter notas do aluno:', error);
-            return { success: false, message: 'Erro de conexão' };
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
@@ -272,7 +272,7 @@ class PedagogicoAPI {
             return await response.json();
         } catch (error) {
             console.error('Erro ao registrar notas em lote:', error);
-            return { success: false, message: 'Erro de conexão' };
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
@@ -286,7 +286,7 @@ class PedagogicoAPI {
             return await response.json();
         } catch (error) {
             console.error('Erro ao obter boletim:', error);
-            return { success: false, message: 'Erro de conexão' };
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
@@ -307,7 +307,7 @@ class PedagogicoAPI {
             return await response.json();
         } catch (error) {
             console.error('Erro ao listar anexos:', error);
-            return { success: false, message: 'Erro de conexão' };
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
@@ -332,7 +332,7 @@ class PedagogicoAPI {
             return await response.json();
         } catch (error) {
             console.error('Erro ao fazer upload:', error);
-            return { success: false, message: 'Erro de conexão' };
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
@@ -353,7 +353,7 @@ class PedagogicoAPI {
             return await response.json();
         } catch (error) {
             console.error('Erro ao atualizar anexo:', error);
-            return { success: false, message: 'Erro de conexão' };
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
@@ -372,7 +372,7 @@ class PedagogicoAPI {
             return await response.json();
         } catch (error) {
             console.error('Erro ao excluir anexo:', error);
-            return { success: false, message: 'Erro de conexão' };
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
@@ -381,7 +381,7 @@ class PedagogicoAPI {
         window.open(`${this.baseUrl}/api/pedagogico/anexos.php?action=download&id=${id}`, '_blank');
     }
 
-    // Obter estatísticas de anexos
+    // Obter estatÃ­sticas de anexos
     async obterEstatisticasAnexos(turmaId = null, dataInicio = null, dataFim = null) {
         try {
             let url = `${this.baseUrl}/api/pedagogico/anexos.php?action=estatisticas`;
@@ -395,8 +395,8 @@ class PedagogicoAPI {
             });
             return await response.json();
         } catch (error) {
-            console.error('Erro ao obter estatísticas de anexos:', error);
-            return { success: false, message: 'Erro de conexão' };
+            console.error('Erro ao obter estatÃ­sticas de anexos:', error);
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 
@@ -414,7 +414,7 @@ class PedagogicoAPI {
             return await response.json();
         } catch (error) {
             console.error('Erro ao obter anexos do aluno:', error);
-            return { success: false, message: 'Erro de conexão' };
+            return { success: false, message: 'Erro de conexÃ£o' };
         }
     }
 }
@@ -422,9 +422,9 @@ class PedagogicoAPI {
 // Instanciar API global
 const pedagogicoAPI = new PedagogicoAPI();
 
-// Funções utilitárias para o módulo pedagógico
+// FunÃ§Ãµes utilitÃ¡rias para o mÃ³dulo pedagÃ³gico
 class PedagogicoUtils {
-    // Formatar data para exibição
+    // Formatar data para exibiÃ§Ã£o
     static formatarData(data) {
         if (!data) return '';
         const date = new Date(data);
@@ -440,7 +440,7 @@ class PedagogicoUtils {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
-    // Obter ícone por tipo de arquivo
+    // Obter Ã­cone por tipo de arquivo
     static obterIconeTipoArquivo(tipo) {
         if (tipo.startsWith('image/')) return 'image';
         if (tipo === 'application/pdf') return 'file-text';
@@ -450,13 +450,13 @@ class PedagogicoUtils {
         return 'file';
     }
 
-    // Calcular percentual de presença
+    // Calcular percentual de presenÃ§a
     static calcularPercentualPresenca(presencas, total) {
         if (total === 0) return 0;
         return Math.round((presencas / total) * 100);
     }
 
-    // Obter cor por status de frequência
+    // Obter cor por status de frequÃªncia
     static obterCorStatusFrequencia(status) {
         switch (status) {
             case 'presente': return 'text-green-600 bg-green-100';
@@ -486,19 +486,19 @@ class PedagogicoUtils {
         ];
 
         if (arquivo.size > maxSize) {
-            return { valido: false, mensagem: 'Arquivo muito grande. Máximo 10MB' };
+            return { valido: false, mensagem: 'Arquivo muito grande. MÃ¡ximo 10MB' };
         }
 
         if (!allowedTypes.includes(arquivo.type)) {
-            return { valido: false, mensagem: 'Tipo de arquivo não permitido' };
+            return { valido: false, mensagem: 'Tipo de arquivo nÃ£o permitido' };
         }
 
         return { valido: true };
     }
 
-    // Gerar relatório de frequência em CSV
+    // Gerar relatÃ³rio de frequÃªncia em CSV
     static gerarRelatorioFrequenciaCSV(dados, nomeArquivo = 'relatorio_frequencia.csv') {
-        const headers = ['Data', 'Turma', 'Unidade', 'Total Alunos', 'Presenças', 'Faltas', 'Faltas Justificadas', '% Presença'];
+        const headers = ['Data', 'Turma', 'Unidade', 'Total Alunos', 'PresenÃ§as', 'Faltas', 'Faltas Justificadas', '% PresenÃ§a'];
         const csvContent = [
             headers.join(','),
             ...dados.map(item => [
@@ -524,19 +524,19 @@ class PedagogicoUtils {
         document.body.removeChild(link);
     }
 
-    // Gerar boletim em PDF (simulação)
+    // Gerar boletim em PDF (simulaÃ§Ã£o)
     static gerarBoletimPDF(alunoNome, dados) {
-        // Esta função seria implementada com uma biblioteca como jsPDF
+        // Esta funÃ§Ã£o seria implementada com uma biblioteca como jsPDF
         console.log('Gerando boletim PDF para:', alunoNome, dados);
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 icon: 'info',
                 title: 'Em desenvolvimento',
-                text: 'Funcionalidade de PDF será implementada com biblioteca específica',
+                text: 'Funcionalidade de PDF serÃ¡ implementada com biblioteca especÃ­fica',
                 confirmButtonColor: '#8B5CF6'
             });
         } else {
-            alert('Funcionalidade de PDF será implementada com biblioteca específica');
+            console.log('Funcionalidade de PDF sera implementada com biblioteca especifica');
         }
     }
 }

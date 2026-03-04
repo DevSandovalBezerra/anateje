@@ -1,7 +1,7 @@
-﻿<?php
+<?php
 // ANATEJE - API de Fluxo de Caixa
 // Sistema de Gestao Financeira Associativa ANATEJE
-// VisÃ£o diÃ¡ria, semanal e mensal conforme PRD
+// Visão diária, semanal e mensal conforme PRD
 
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/unidade_helper.php';
@@ -222,11 +222,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             financeiro_response($api->simular($filtros));
             break;
         default:
-            financeiro_response(['success' => false, 'message' => 'AÃ§Ã£o invÃ¡lida'], 404);
+            financeiro_response(['success' => false, 'message' => 'Ação inválida'], 404);
     }
 }
 
-financeiro_response(['success' => false, 'message' => 'MÃ©todo nÃ£o permitido'], 405);
+financeiro_response(['success' => false, 'message' => 'Método não permitido'], 405);
 
 
 

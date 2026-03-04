@@ -127,6 +127,8 @@ if (!preg_match('/^[a-f0-9]{64}$/', $csrfToken)) {
     <script src="<?php echo $baseUrl; ?>/assets/js/sweetalert-config.js"></script>
     <script src="<?php echo $baseUrl; ?>/assets/js/api-config.js"></script>
     <script>
+        // Disponivel desde o <head> para scripts inline das paginas roteadas.
+        window.LIDERGEST_BASE_URL = '<?php echo $baseUrl; ?>';
         window.LIDERGEST_PERFIL_ID = <?php echo (int) ($user['perfil_id'] ?? 0); ?>;
         window.LIDERGEST_PERMISSION_CODES = <?php echo json_encode(array_values(array_unique(array_map(function ($v) {
             return trim((string) $v);
@@ -232,7 +234,7 @@ if (!preg_match('/^[a-f0-9]{64}$/', $csrfToken)) {
             }
         });
     </script>
-    <script src="<?php echo $baseUrl; ?>/assets/js/navigation.js"></script>
+    <script src="<?php echo $baseUrl; ?>/assets/js/navigation.js?v=<?php echo (int) @filemtime(__DIR__ . '/../assets/js/navigation.js'); ?>"></script>
 </body>
 
 </html>

@@ -158,7 +158,11 @@ $basePrefix = isset($prefix) ? $prefix : '/';
                     'Acesso: ' + accessLabel(ev.access_scope),
                     'Minha inscricao: ' + (reg.status || 'sem inscricao')
                 ].filter(Boolean).join('\n');
-                alert(txt);
+                if (window.anatejeUi && typeof window.anatejeUi.info === 'function') {
+                    await window.anatejeUi.info('Detalhes do evento', txt);
+                } else if (typeof window.SweetAlertConfig !== 'undefined' && typeof window.SweetAlertConfig.info === 'function') {
+                    await window.SweetAlertConfig.info('Detalhes do evento', txt);
+                }
             }
         } catch (err) {
             setMsg(err.message || 'Falha ao processar acao', 'err');

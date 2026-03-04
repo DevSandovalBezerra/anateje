@@ -1,5 +1,5 @@
-﻿<?php
-// ANATEJE - API de OrÃ§amentos Financeiros
+<?php
+// ANATEJE - API de Orçamentos Financeiros
 
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/unidade_helper.php';
@@ -65,8 +65,8 @@ class OrcamentosAPI
 
             return ['success' => true, 'data' => $orcamentos];
         } catch (Exception $e) {
-            logError("Erro ao listar orÃ§amentos: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Erro ao listar orÃ§amentos'];
+            logError("Erro ao listar orçamentos: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao listar orçamentos'];
         }
     }
 
@@ -87,13 +87,13 @@ class OrcamentosAPI
             $orcamento = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$orcamento) {
-                return ['success' => false, 'message' => 'OrÃ§amento nÃ£o encontrado'];
+                return ['success' => false, 'message' => 'Orçamento não encontrado'];
             }
 
             return ['success' => true, 'data' => $orcamento];
         } catch (Exception $e) {
-            logError("Erro ao obter orÃ§amento: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Erro ao obter orÃ§amento'];
+            logError("Erro ao obter orçamento: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao obter orçamento'];
         }
     }
 
@@ -102,25 +102,25 @@ class OrcamentosAPI
         try {
             foreach (['ano', 'mes', 'centro_custo_id', 'categoria_id', 'valor_orcado'] as $campo) {
                 if (!isset($dados[$campo])) {
-                    return ['success' => false, 'message' => "Campo {$campo} Ã© obrigatÃ³rio"];
+                    return ['success' => false, 'message' => "Campo {$campo} é obrigatório"];
                 }
             }
 
             $ano = (int)$dados['ano'];
             $mes = (int)$dados['mes'];
             if ($mes < 1 || $mes > 12) {
-                return ['success' => false, 'message' => 'MÃªs invÃ¡lido'];
+                return ['success' => false, 'message' => 'Mês inválido'];
             }
 
             $unidadeSessao = getUserUnidadeId();
             $centro = $this->buscarCentro((int)$dados['centro_custo_id'], $unidadeSessao);
             if (!$centro) {
-                return ['success' => false, 'message' => 'Centro de custo invÃ¡lido para esta unidade'];
+                return ['success' => false, 'message' => 'Centro de custo inválido para esta unidade'];
             }
 
             $categoria = $this->buscarCategoria((int)$dados['categoria_id'], $unidadeSessao);
             if (!$categoria) {
-                return ['success' => false, 'message' => 'Categoria invÃ¡lida para esta unidade'];
+                return ['success' => false, 'message' => 'Categoria inválida para esta unidade'];
             }
 
             $stmt = $this->db->prepare("
@@ -143,13 +143,13 @@ class OrcamentosAPI
                 $_SESSION['user_id'] ?? null
             ]);
 
-            return ['success' => true, 'message' => 'OrÃ§amento cadastrado', 'data' => ['id' => $this->db->lastInsertId()]];
+            return ['success' => true, 'message' => 'Orçamento cadastrado', 'data' => ['id' => $this->db->lastInsertId()]];
         } catch (Exception $e) {
             if ($e->getCode() === '23000') {
-                return ['success' => false, 'message' => 'JÃ¡ existe orÃ§amento para esse perÃ­odo/centro/categoria'];
+                return ['success' => false, 'message' => 'Já existe orçamento para esse período/centro/categoria'];
             }
-            logError("Erro ao criar orÃ§amento: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Erro ao criar orÃ§amento'];
+            logError("Erro ao criar orçamento: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao criar orçamento'];
         }
     }
 
@@ -174,7 +174,7 @@ class OrcamentosAPI
             if (isset($dados['centro_custo_id'])) {
                 $centro = $this->buscarCentro((int)$dados['centro_custo_id'], getUserUnidadeId());
                 if (!$centro) {
-                    return ['success' => false, 'message' => 'Centro de custo invÃ¡lido'];
+                    return ['success' => false, 'message' => 'Centro de custo inválido'];
                 }
                 $campos[] = "centro_custo_id = ?";
                 $valores[] = $centro['id'];
@@ -183,7 +183,7 @@ class OrcamentosAPI
             if (isset($dados['categoria_id'])) {
                 $categoria = $this->buscarCategoria((int)$dados['categoria_id'], getUserUnidadeId());
                 if (!$categoria) {
-                    return ['success' => false, 'message' => 'Categoria invÃ¡lida'];
+                    return ['success' => false, 'message' => 'Categoria inválida'];
                 }
                 $campos[] = "categoria_id = ?";
                 $valores[] = $categoria['id'];
@@ -197,7 +197,7 @@ class OrcamentosAPI
             if (isset($dados['mes'])) {
                 $mes = (int)$dados['mes'];
                 if ($mes < 1 || $mes > 12) {
-                    return ['success' => false, 'message' => 'MÃªs invÃ¡lido'];
+                    return ['success' => false, 'message' => 'Mês inválido'];
                 }
                 $campos[] = "mes = ?";
                 $valores[] = $mes;
@@ -216,10 +216,10 @@ class OrcamentosAPI
             $stmt = $this->db->prepare($sql);
             $stmt->execute($valores);
 
-            return ['success' => true, 'message' => 'OrÃ§amento atualizado'];
+            return ['success' => true, 'message' => 'Orçamento atualizado'];
         } catch (Exception $e) {
-            logError("Erro ao atualizar orÃ§amento: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Erro ao atualizar orÃ§amento'];
+            logError("Erro ao atualizar orçamento: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao atualizar orçamento'];
         }
     }
 
@@ -234,10 +234,10 @@ class OrcamentosAPI
             $stmt = $this->db->prepare("DELETE FROM orcamentos WHERE id = ?");
             $stmt->execute([$id]);
 
-            return ['success' => true, 'message' => 'OrÃ§amento excluÃ­do'];
+            return ['success' => true, 'message' => 'Orçamento excluído'];
         } catch (Exception $e) {
-            logError("Erro ao excluir orÃ§amento: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Erro ao excluir orÃ§amento'];
+            logError("Erro ao excluir orçamento: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao excluir orçamento'];
         }
     }
 
@@ -288,12 +288,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         case 'obter':
             $id = (int)($_GET['id'] ?? 0);
             if (!$id) {
-                financeiro_response(['success' => false, 'message' => 'ID obrigatÃ³rio'], 400);
+                financeiro_response(['success' => false, 'message' => 'ID obrigatório'], 400);
             }
             financeiro_response($api->obter($id));
             break;
         default:
-            financeiro_response(['success' => false, 'message' => 'AÃ§Ã£o invÃ¡lida'], 404);
+            financeiro_response(['success' => false, 'message' => 'Ação inválida'], 404);
     }
 }
 
@@ -310,22 +310,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'atualizar':
             $id = (int)($_POST['id'] ?? 0);
             if (!$id) {
-                financeiro_response(['success' => false, 'message' => 'ID obrigatÃ³rio'], 400);
+                financeiro_response(['success' => false, 'message' => 'ID obrigatório'], 400);
             }
             financeiro_response($api->atualizar($id, $_POST));
             break;
         case 'excluir':
             $id = (int)($_POST['id'] ?? 0);
             if (!$id) {
-                financeiro_response(['success' => false, 'message' => 'ID obrigatÃ³rio'], 400);
+                financeiro_response(['success' => false, 'message' => 'ID obrigatório'], 400);
             }
             financeiro_response($api->excluir($id));
             break;
         default:
-            financeiro_response(['success' => false, 'message' => 'AÃ§Ã£o invÃ¡lida'], 404);
+            financeiro_response(['success' => false, 'message' => 'Ação inválida'], 404);
     }
 }
 
-financeiro_response(['success' => false, 'message' => 'MÃ©todo nÃ£o permitido'], 405);
+financeiro_response(['success' => false, 'message' => 'Método não permitido'], 405);
 
 

@@ -1,7 +1,7 @@
-﻿<?php
-// ANATEJE - API de LanÃ§amentos Financeiros Completa
+<?php
+// ANATEJE - API de Lançamentos Financeiros Completa
 // Sistema de Gestao Financeira Associativa ANATEJE
-// API completa conforme PRD, compatÃ­vel com sistema existente
+// API completa conforme PRD, compatível com sistema existente
 
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/unidade_helper.php';
@@ -126,8 +126,8 @@ class LancamentosAPI
             $lancamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return ['success' => true, 'data' => $lancamentos];
         } catch (Exception $e) {
-            logError("Erro ao listar lanÃ§amentos: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Erro ao listar lanÃ§amentos'];
+            logError("Erro ao listar lançamentos: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao listar lançamentos'];
         }
     }
 
@@ -152,7 +152,7 @@ class LancamentosAPI
             $lancamento = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$lancamento) {
-                return ['success' => false, 'message' => 'LanÃ§amento nÃ£o encontrado'];
+                return ['success' => false, 'message' => 'Lançamento não encontrado'];
             }
 
             $stmt = $this->db->prepare("SELECT * FROM lancamento_parcelas WHERE lancamento_id = ? ORDER BY numero_parcela ASC");
@@ -196,8 +196,8 @@ class LancamentosAPI
 
             return ['success' => true, 'data' => $lancamento];
         } catch (Exception $e) {
-            logError("Erro ao obter lanÃ§amento: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Erro ao obter lanÃ§amento'];
+            logError("Erro ao obter lançamento: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao obter lançamento'];
         }
     }
 
@@ -262,7 +262,7 @@ class LancamentosAPI
             }
             
             if (!$tipo_semantico || !in_array($tipo_semantico, ['receita', 'despesa', 'transferencia'])) {
-                return ['success' => false, 'message' => 'Tipo semÃ¢ntico invÃ¡lido. Use: receita, despesa ou transferencia'];
+                return ['success' => false, 'message' => 'Tipo semântico inválido. Use: receita, despesa ou transferencia'];
             }
 
             if ($tipo_semantico == 'transferencia') {
@@ -270,7 +270,7 @@ class LancamentosAPI
             }
 
             if (empty($dados['descricao']) || empty($dados['valor_total'])) {
-                return ['success' => false, 'message' => 'DescriÃ§Ã£o e valor sÃ£o obrigatÃ³rios'];
+                return ['success' => false, 'message' => 'Descrição e valor são obrigatórios'];
             }
 
             $valor_total = (float)$dados['valor_total'];
@@ -339,11 +339,11 @@ class LancamentosAPI
             }
 
             $this->db->commit();
-            return ['success' => true, 'message' => 'LanÃ§amento criado com sucesso', 'id' => $lancamento_id];
+            return ['success' => true, 'message' => 'Lançamento criado com sucesso', 'id' => $lancamento_id];
         } catch (Exception $e) {
             $this->db->rollBack();
-            logError("Erro ao criar lanÃ§amento: " . $e->getMessage(), ['dados' => $dados]);
-            return ['success' => false, 'message' => 'Erro ao criar lanÃ§amento'];
+            logError("Erro ao criar lançamento: " . $e->getMessage(), ['dados' => $dados]);
+            return ['success' => false, 'message' => 'Erro ao criar lançamento'];
         }
     }
 
@@ -351,11 +351,11 @@ class LancamentosAPI
     {
         try {
             if (empty($dados['conta_origem_id']) || empty($dados['conta_destino_id']) || empty($dados['valor_total'])) {
-                return ['success' => false, 'message' => 'Conta origem, conta destino e valor sÃ£o obrigatÃ³rios'];
+                return ['success' => false, 'message' => 'Conta origem, conta destino e valor são obrigatórios'];
             }
 
             if ($dados['conta_origem_id'] == $dados['conta_destino_id']) {
-                return ['success' => false, 'message' => 'Conta origem e destino nÃ£o podem ser iguais'];
+                return ['success' => false, 'message' => 'Conta origem e destino não podem ser iguais'];
             }
 
             $conta_origem_id = (int)$dados['conta_origem_id'];
@@ -372,7 +372,7 @@ class LancamentosAPI
             $conta_origem = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$conta_origem || $conta_origem['ativo'] != 1) {
-                return ['success' => false, 'message' => 'Conta origem nÃ£o encontrada ou inativa'];
+                return ['success' => false, 'message' => 'Conta origem não encontrada ou inativa'];
             }
 
             $stmt = $this->db->prepare("SELECT * FROM contas_bancarias WHERE id = ?");
@@ -380,14 +380,14 @@ class LancamentosAPI
             $conta_destino = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$conta_destino || $conta_destino['ativo'] != 1) {
-                return ['success' => false, 'message' => 'Conta destino nÃ£o encontrada ou inativa'];
+                return ['success' => false, 'message' => 'Conta destino não encontrada ou inativa'];
             }
 
             $usuario_id = $_SESSION['user_id'] ?? null;
             $unidadeSessao = getUserUnidadeId();
-            $titulo = !empty($dados['titulo']) ? sanitizeInput($dados['titulo']) : 'TransferÃªncia entre contas';
+            $titulo = !empty($dados['titulo']) ? sanitizeInput($dados['titulo']) : 'Transferência entre contas';
 
-            $descricao_saida = $titulo . ' - SaÃ­da';
+            $descricao_saida = $titulo . ' - Saída';
             $descricao_entrada = $titulo . ' - Entrada';
 
             $stmt = $this->db->prepare("
@@ -462,15 +462,15 @@ class LancamentosAPI
 
             return [
                 'success' => true,
-                'message' => 'TransferÃªncia realizada com sucesso',
+                'message' => 'Transferência realizada com sucesso',
                 'id' => $lancamento_saida_id,
                 'transferencia_id' => $transferencia_id,
                 'lancamento_saida_id' => $lancamento_saida_id,
                 'lancamento_entrada_id' => $lancamento_entrada_id
             ];
         } catch (Exception $e) {
-            logError("Erro ao criar transferÃªncia: " . $e->getMessage(), ['dados' => $dados]);
-            return ['success' => false, 'message' => 'Erro ao realizar transferÃªncia'];
+            logError("Erro ao criar transferência: " . $e->getMessage(), ['dados' => $dados]);
+            return ['success' => false, 'message' => 'Erro ao realizar transferência'];
         }
     }
 
@@ -482,15 +482,15 @@ class LancamentosAPI
             $lancamento_antigo = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$lancamento_antigo) {
-                return ['success' => false, 'message' => 'LanÃ§amento nÃ£o encontrado'];
+                return ['success' => false, 'message' => 'Lançamento não encontrado'];
             }
 
             if (in_array($lancamento_antigo['status'], ['quitado', 'pago']) && empty($dados['permitir_alteracao_quitado'])) {
-                return ['success' => false, 'message' => 'NÃ£o Ã© possÃ­vel alterar lanÃ§amento quitado'];
+                return ['success' => false, 'message' => 'Não é possível alterar lançamento quitado'];
             }
 
             if ($lancamento_antigo['tipo_semantico'] == 'transferencia') {
-                return ['success' => false, 'message' => 'TransferÃªncias nÃ£o podem ser alteradas diretamente. Use a funcionalidade de transferÃªncias.'];
+                return ['success' => false, 'message' => 'Transferências não podem ser alteradas diretamente. Use a funcionalidade de transferências.'];
             }
 
             $usuario_id = $_SESSION['user_id'] ?? null;
@@ -500,7 +500,7 @@ class LancamentosAPI
             if (isset($dados['tipo_semantico'])) {
                 $tipo_semantico = $dados['tipo_semantico'];
                 if (!in_array($tipo_semantico, ['receita', 'despesa'])) {
-                    return ['success' => false, 'message' => 'Tipo semÃ¢ntico invÃ¡lido para atualizaÃ§Ã£o'];
+                    return ['success' => false, 'message' => 'Tipo semântico inválido para atualização'];
                 }
                 $campos[] = "tipo_semantico = ?";
                 $params[] = $tipo_semantico;
@@ -571,10 +571,10 @@ class LancamentosAPI
                 $this->registrarAuditoria($usuario_id, 'lancamentos_financeiros', $id, 'update', $lancamento_antigo, $lancamento_novo);
             }
 
-            return ['success' => true, 'message' => 'LanÃ§amento atualizado com sucesso'];
+            return ['success' => true, 'message' => 'Lançamento atualizado com sucesso'];
         } catch (Exception $e) {
-            logError("Erro ao atualizar lanÃ§amento: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Erro ao atualizar lanÃ§amento'];
+            logError("Erro ao atualizar lançamento: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao atualizar lançamento'];
         }
     }
 
@@ -586,11 +586,11 @@ class LancamentosAPI
             $lancamento = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$lancamento) {
-                return ['success' => false, 'message' => 'LanÃ§amento nÃ£o encontrado'];
+                return ['success' => false, 'message' => 'Lançamento não encontrado'];
             }
 
             if (in_array($lancamento['status'], ['quitado', 'pago'])) {
-                return ['success' => false, 'message' => 'NÃ£o Ã© possÃ­vel excluir lanÃ§amento quitado. Use cancelar.'];
+                return ['success' => false, 'message' => 'Não é possível excluir lançamento quitado. Use cancelar.'];
             }
 
             $usuario_id = $_SESSION['user_id'] ?? null;
@@ -640,11 +640,11 @@ class LancamentosAPI
             }
 
             $this->db->commit();
-            return ['success' => true, 'message' => 'LanÃ§amento excluÃ­do com sucesso'];
+            return ['success' => true, 'message' => 'Lançamento excluído com sucesso'];
         } catch (Exception $e) {
             $this->db->rollBack();
-            logError("Erro ao excluir lanÃ§amento: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Erro ao excluir lanÃ§amento'];
+            logError("Erro ao excluir lançamento: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao excluir lançamento'];
         }
     }
 
@@ -656,16 +656,16 @@ class LancamentosAPI
             $original = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$original) {
-                return ['success' => false, 'message' => 'LanÃ§amento nÃ£o encontrado'];
+                return ['success' => false, 'message' => 'Lançamento não encontrado'];
             }
 
             if ($original['tipo_semantico'] == 'transferencia') {
-                return ['success' => false, 'message' => 'TransferÃªncias nÃ£o podem ser duplicadas'];
+                return ['success' => false, 'message' => 'Transferências não podem ser duplicadas'];
             }
 
             $dados = [
                 'tipo_semantico' => $original['tipo_semantico'] ?? ($original['tipo'] == 'receber' ? 'receita' : 'despesa'),
-                'titulo' => $original['titulo'] . ' (CÃ³pia)',
+                'titulo' => $original['titulo'] . ' (Cópia)',
                 'descricao' => $original['descricao'],
                 'valor_total' => $original['valor_total'],
                 'data_emissao' => date('Y-m-d'),
@@ -680,8 +680,8 @@ class LancamentosAPI
 
             return $this->criar($dados);
         } catch (Exception $e) {
-            logError("Erro ao duplicar lanÃ§amento: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Erro ao duplicar lanÃ§amento'];
+            logError("Erro ao duplicar lançamento: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao duplicar lançamento'];
         }
     }
 
@@ -689,7 +689,7 @@ class LancamentosAPI
     {
         try {
             if (empty($ids) || !is_array($ids)) {
-                return ['success' => false, 'message' => 'IDs sÃ£o obrigatÃ³rios'];
+                return ['success' => false, 'message' => 'IDs são obrigatórios'];
             }
 
             $usuario_id = $_SESSION['user_id'] ?? null;
@@ -719,7 +719,7 @@ class LancamentosAPI
                 case 'definir_data_pagamento':
                     $data_pagamento = $dados['data_pagamento'] ?? null;
                     if (!$data_pagamento) {
-                        throw new Exception('Data de pagamento Ã© obrigatÃ³ria');
+                        throw new Exception('Data de pagamento é obrigatória');
                     }
                     $stmt = $this->db->prepare("
                         UPDATE lancamento_parcelas 
@@ -732,7 +732,7 @@ class LancamentosAPI
                 case 'alterar_conta':
                     $conta_id = (int)($dados['conta_bancaria_id'] ?? 0);
                     if (!$conta_id) {
-                        throw new Exception('Conta bancÃ¡ria Ã© obrigatÃ³ria');
+                        throw new Exception('Conta bancária é obrigatória');
                     }
                     $stmt = $this->db->prepare("
                         UPDATE lancamentos_financeiros 
@@ -759,7 +759,7 @@ class LancamentosAPI
                     break;
 
                 default:
-                    throw new Exception('AÃ§Ã£o invÃ¡lida');
+                    throw new Exception('Ação inválida');
             }
 
             if ($usuario_id) {
@@ -769,11 +769,11 @@ class LancamentosAPI
             }
 
             $this->db->commit();
-            return ['success' => true, 'message' => 'AÃ§Ã£o em massa executada com sucesso'];
+            return ['success' => true, 'message' => 'Ação em massa executada com sucesso'];
         } catch (Exception $e) {
             $this->db->rollBack();
-            logError("Erro em aÃ§Ã£o em massa: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Erro ao executar aÃ§Ã£o em massa'];
+            logError("Erro em ação em massa: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao executar ação em massa'];
         }
     }
 
@@ -785,7 +785,7 @@ class LancamentosAPI
             $lancamento = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$lancamento) {
-                return ['success' => false, 'message' => 'LanÃ§amento nÃ£o encontrado'];
+                return ['success' => false, 'message' => 'Lançamento não encontrado'];
             }
 
             $usuario_id = $_SESSION['user_id'] ?? null;
@@ -809,11 +809,11 @@ class LancamentosAPI
             }
 
             $this->db->commit();
-            return ['success' => true, 'message' => 'LanÃ§amento quitado com sucesso'];
+            return ['success' => true, 'message' => 'Lançamento quitado com sucesso'];
         } catch (Exception $e) {
             $this->db->rollBack();
-            logError("Erro ao quitar lanÃ§amento: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Erro ao quitar lanÃ§amento'];
+            logError("Erro ao quitar lançamento: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao quitar lançamento'];
         }
     }
 }
@@ -845,12 +845,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         case 'obter':
             $id = (int)($_GET['id'] ?? 0);
             if (!$id) {
-                financeiro_response(['success' => false, 'message' => 'ID obrigatÃ³rio'], 400);
+                financeiro_response(['success' => false, 'message' => 'ID obrigatório'], 400);
             }
             financeiro_response($api->obter($id));
             break;
         default:
-            financeiro_response(['success' => false, 'message' => 'AÃ§Ã£o invÃ¡lida'], 404);
+            financeiro_response(['success' => false, 'message' => 'Ação inválida'], 404);
     }
 }
 
@@ -865,21 +865,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'atualizar':
             $id = (int)($input['id'] ?? 0);
             if (!$id) {
-                financeiro_response(['success' => false, 'message' => 'ID obrigatÃ³rio'], 400);
+                financeiro_response(['success' => false, 'message' => 'ID obrigatório'], 400);
             }
             financeiro_response($api->atualizar($id, $input));
             break;
         case 'excluir':
             $id = (int)($input['id'] ?? 0);
             if (!$id) {
-                financeiro_response(['success' => false, 'message' => 'ID obrigatÃ³rio'], 400);
+                financeiro_response(['success' => false, 'message' => 'ID obrigatório'], 400);
             }
             financeiro_response($api->excluir($id));
             break;
         case 'duplicar':
             $id = (int)($input['id'] ?? 0);
             if (!$id) {
-                financeiro_response(['success' => false, 'message' => 'ID obrigatÃ³rio'], 400);
+                financeiro_response(['success' => false, 'message' => 'ID obrigatório'], 400);
             }
             financeiro_response($api->duplicar($id));
             break;
@@ -888,23 +888,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $acao = $input['acao'] ?? '';
             $dados = $input['dados'] ?? [];
             if (empty($ids) || empty($acao)) {
-                financeiro_response(['success' => false, 'message' => 'IDs e aÃ§Ã£o sÃ£o obrigatÃ³rios'], 400);
+                financeiro_response(['success' => false, 'message' => 'IDs e ação são obrigatórios'], 400);
             }
             financeiro_response($api->acoesMassa($ids, $acao, $dados));
             break;
         case 'quitar':
             $id = (int)($input['id'] ?? 0);
             if (!$id) {
-                financeiro_response(['success' => false, 'message' => 'ID obrigatÃ³rio'], 400);
+                financeiro_response(['success' => false, 'message' => 'ID obrigatório'], 400);
             }
             financeiro_response($api->quitar($id, $input));
             break;
         default:
-            financeiro_response(['success' => false, 'message' => 'AÃ§Ã£o invÃ¡lida'], 404);
+            financeiro_response(['success' => false, 'message' => 'Ação inválida'], 404);
     }
 }
 
-financeiro_response(['success' => false, 'message' => 'MÃ©todo nÃ£o permitido'], 405);
+financeiro_response(['success' => false, 'message' => 'Método não permitido'], 405);
 
 
 

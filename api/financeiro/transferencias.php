@@ -1,10 +1,10 @@
-﻿<?php
-// ANATEJE - API de TransferÃªncias entre Contas
+<?php
+// ANATEJE - API de Transferências entre Contas
 // Sistema de Gestao Financeira Associativa ANATEJE
-// Cada transferÃªncia gera dois lanÃ§amentos vinculados conforme PRD
+// Cada transferência gera dois lançamentos vinculados conforme PRD
 //
-// NOTA: Esta API estÃ¡ sendo mantida para compatibilidade.
-// Para novas implementaÃ§Ãµes, use api/financeiro/lancamentos.php com tipo_semantico='transferencia'
+// NOTA: Esta API está sendo mantida para compatibilidade.
+// Para novas implementações, use api/financeiro/lancamentos.php com tipo_semantico='transferencia'
 
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/unidade_helper.php';
@@ -87,8 +87,8 @@ class TransferenciasAPI
             $transferencias = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return ['success' => true, 'data' => $transferencias];
         } catch (Exception $e) {
-            logError("Erro ao listar transferÃªncias: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Erro ao listar transferÃªncias'];
+            logError("Erro ao listar transferências: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao listar transferências'];
         }
     }
 
@@ -114,13 +114,13 @@ class TransferenciasAPI
             $transferencia = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$transferencia) {
-                return ['success' => false, 'message' => 'TransferÃªncia nÃ£o encontrada'];
+                return ['success' => false, 'message' => 'Transferência não encontrada'];
             }
 
             return ['success' => true, 'data' => $transferencia];
         } catch (Exception $e) {
-            logError("Erro ao obter transferÃªncia: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Erro ao obter transferÃªncia'];
+            logError("Erro ao obter transferência: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao obter transferência'];
         }
     }
 
@@ -128,11 +128,11 @@ class TransferenciasAPI
     {
         try {
             if (empty($dados['conta_origem_id']) || empty($dados['conta_destino_id']) || empty($dados['valor']) || empty($dados['data_transferencia'])) {
-                return ['success' => false, 'message' => 'Conta origem, conta destino, valor e data sÃ£o obrigatÃ³rios'];
+                return ['success' => false, 'message' => 'Conta origem, conta destino, valor e data são obrigatórios'];
             }
 
             if ($dados['conta_origem_id'] == $dados['conta_destino_id']) {
-                return ['success' => false, 'message' => 'Conta origem e destino nÃ£o podem ser iguais'];
+                return ['success' => false, 'message' => 'Conta origem e destino não podem ser iguais'];
             }
 
             $conta_origem_id = (int)$dados['conta_origem_id'];
@@ -149,7 +149,7 @@ class TransferenciasAPI
             $conta_origem = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$conta_origem || $conta_origem['ativo'] != 1) {
-                return ['success' => false, 'message' => 'Conta origem nÃ£o encontrada ou inativa'];
+                return ['success' => false, 'message' => 'Conta origem não encontrada ou inativa'];
             }
 
             $stmt = $this->db->prepare("SELECT * FROM contas_bancarias WHERE id = ?");
@@ -157,12 +157,12 @@ class TransferenciasAPI
             $conta_destino = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$conta_destino || $conta_destino['ativo'] != 1) {
-                return ['success' => false, 'message' => 'Conta destino nÃ£o encontrada ou inativa'];
+                return ['success' => false, 'message' => 'Conta destino não encontrada ou inativa'];
             }
 
             $usuario_id = $_SESSION['user_id'] ?? null;
             $unidadeSessao = getUserUnidadeId();
-            $titulo = !empty($dados['titulo']) ? sanitizeInput($dados['titulo']) : 'TransferÃªncia entre contas';
+            $titulo = !empty($dados['titulo']) ? sanitizeInput($dados['titulo']) : 'Transferência entre contas';
 
             $this->db->beginTransaction();
 
@@ -173,7 +173,7 @@ class TransferenciasAPI
                 $tipo_transferencia = 'resgate';
             }
 
-            $descricao_saida = $titulo . ' - SaÃ­da';
+            $descricao_saida = $titulo . ' - Saída';
             $descricao_entrada = $titulo . ' - Entrada';
 
             $stmt = $this->db->prepare("
@@ -246,15 +246,15 @@ class TransferenciasAPI
             $this->db->commit();
             return [
                 'success' => true,
-                'message' => 'TransferÃªncia realizada com sucesso',
+                'message' => 'Transferência realizada com sucesso',
                 'id' => $transferencia_id,
                 'lancamento_saida_id' => $lancamento_saida_id,
                 'lancamento_entrada_id' => $lancamento_entrada_id
             ];
         } catch (Exception $e) {
             $this->db->rollBack();
-            logError("Erro ao criar transferÃªncia: " . $e->getMessage(), ['dados' => $dados]);
-            return ['success' => false, 'message' => 'Erro ao realizar transferÃªncia'];
+            logError("Erro ao criar transferência: " . $e->getMessage(), ['dados' => $dados]);
+            return ['success' => false, 'message' => 'Erro ao realizar transferência'];
         }
     }
 
@@ -266,7 +266,7 @@ class TransferenciasAPI
             $transferencia = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$transferencia) {
-                return ['success' => false, 'message' => 'TransferÃªncia nÃ£o encontrada'];
+                return ['success' => false, 'message' => 'Transferência não encontrada'];
             }
 
             $usuario_id = $_SESSION['user_id'] ?? null;
@@ -291,11 +291,11 @@ class TransferenciasAPI
             }
 
             $this->db->commit();
-            return ['success' => true, 'message' => 'TransferÃªncia excluÃ­da com sucesso'];
+            return ['success' => true, 'message' => 'Transferência excluída com sucesso'];
         } catch (Exception $e) {
             $this->db->rollBack();
-            logError("Erro ao excluir transferÃªncia: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Erro ao excluir transferÃªncia'];
+            logError("Erro ao excluir transferência: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao excluir transferência'];
         }
     }
 }
@@ -319,12 +319,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         case 'obter':
             $id = (int)($_GET['id'] ?? 0);
             if (!$id) {
-                financeiro_response(['success' => false, 'message' => 'ID obrigatÃ³rio'], 400);
+                financeiro_response(['success' => false, 'message' => 'ID obrigatório'], 400);
             }
             financeiro_response($api->obter($id));
             break;
         default:
-            financeiro_response(['success' => false, 'message' => 'AÃ§Ã£o invÃ¡lida'], 404);
+            financeiro_response(['success' => false, 'message' => 'Ação inválida'], 404);
     }
 }
 
@@ -341,16 +341,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'excluir':
             $id = (int)($_POST['id'] ?? 0);
             if (!$id) {
-                financeiro_response(['success' => false, 'message' => 'ID obrigatÃ³rio'], 400);
+                financeiro_response(['success' => false, 'message' => 'ID obrigatório'], 400);
             }
             financeiro_response($api->excluir($id));
             break;
         default:
-            financeiro_response(['success' => false, 'message' => 'AÃ§Ã£o invÃ¡lida'], 404);
+            financeiro_response(['success' => false, 'message' => 'Ação inválida'], 404);
     }
 }
 
-financeiro_response(['success' => false, 'message' => 'MÃ©todo nÃ£o permitido'], 405);
+financeiro_response(['success' => false, 'message' => 'Método não permitido'], 405);
 
 
 

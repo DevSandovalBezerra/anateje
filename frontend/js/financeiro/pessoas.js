@@ -1,4 +1,4 @@
-﻿if (typeof window.pessoasData === 'undefined') {
+if (typeof window.pessoasData === 'undefined') {
     window.pessoasData = [];
     window.registroEditando = null;
 }
@@ -6,9 +6,9 @@
 pessoasData = window.pessoasData;
 registroEditando = window.registroEditando;
 
-// FunÃ§Ã£o helper segura para obter URL da API
+// Função helper segura para obter URL da API
 function getApiUrl(path) {
-    // Verificar se window.getApiUrl existe e nÃ£o Ã© a prÃ³pria funÃ§Ã£o (evitar recursÃ£o)
+    // Verificar se window.getApiUrl existe e não é a própria função (evitar recursão)
     if (typeof window.getApiUrl === 'function' && window.getApiUrl !== getApiUrl) {
         return window.getApiUrl(path);
     }
@@ -16,7 +16,7 @@ function getApiUrl(path) {
     if (typeof apiConfig !== 'undefined' && apiConfig && typeof apiConfig.getApiEndpoint === 'function') {
         return apiConfig.getApiEndpoint(path);
     }
-    // Ãšltimo fallback: caminho relativo
+    // Último fallback: caminho relativo
     return `../../api/${path}`;
 }
 
@@ -37,7 +37,7 @@ async function carregarPessoas() {
         if (!response.ok) {
             if (response.status === 401) {
                 if (typeof SweetAlertConfig !== 'undefined') {
-                    SweetAlertConfig.warning('SessÃ£o expirada', 'VocÃª serÃ¡ redirecionado para fazer login.').then(() => {
+                    SweetAlertConfig.warning('Sessão expirada', 'Você será redirecionado para fazer login.').then(() => {
                         window.location.href = '../auth/login.html';
                     });
                 }
@@ -168,7 +168,7 @@ async function excluirPessoa(id) {
     } else {
         const confirmacao = await SweetAlertConfig.confirm(
             'Excluir Pessoa',
-            'Tem certeza que deseja excluir esta pessoa? Esta aÃ§Ã£o nÃ£o pode ser desfeita.',
+            'Tem certeza que deseja excluir esta pessoa? Esta ação não pode ser desfeita.',
             'Excluir',
             'Cancelar'
         );
@@ -190,7 +190,7 @@ async function excluirPessoa(id) {
         const result = await response.json();
         if (result.success) {
             if (typeof SweetAlertConfig !== 'undefined') {
-                SweetAlertConfig.success('Sucesso', 'Pessoa excluÃ­da com sucesso!');
+                SweetAlertConfig.success('Sucesso', 'Pessoa excluída com sucesso!');
             }
             await carregarPessoas();
         } else {
@@ -243,11 +243,11 @@ function abrirModal() {
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium mb-1">EndereÃ§o</label>
+                        <label class="block text-sm font-medium mb-1">Endereço</label>
                         <textarea id="textareaEndereco" class="input-primary w-full" rows="2">${escapeHtml(pessoa.endereco || '')}</textarea>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium mb-1">ObservaÃ§Ãµes</label>
+                        <label class="block text-sm font-medium mb-1">Observações</label>
                         <textarea id="textareaObservacoes" class="input-primary w-full" rows="2">${escapeHtml(pessoa.observacoes || '')}</textarea>
                     </div>
                     <div>

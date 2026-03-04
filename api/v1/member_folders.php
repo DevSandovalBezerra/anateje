@@ -382,8 +382,8 @@ function member_folders_create_folder(PDO $db, int $parentId, string $name, int 
         anateje_error('NOT_FOUND', 'Pasta pai nao encontrada', 404);
     }
     $parentType = (string) ($parent['tipo'] ?? '');
-    if (!in_array($parentType, ['member', 'folder'], true)) {
-        anateje_error('VALIDATION', 'Nova pasta permitida apenas dentro de pasta de associado', 422);
+    if (!in_array($parentType, ['root', 'member', 'folder'], true)) {
+        anateje_error('VALIDATION', 'Nova pasta permitida apenas dentro da arvore de pastas de associados', 422);
     }
 
     $name = member_folders_normalize_name($name);
@@ -1081,12 +1081,38 @@ function member_folders_download(PDO $db, int $fileId): void
     exit;
 }
 
+function member_folders_file_counts(PDO $db): array
+{
+    $rows = $db->query("SELECT f.folder_id, COUNT(*) AS total
+        FROM member_files f
+        INNER JOIN member_folders mf ON mf.id = f.folder_id
+        WHERE f.status = 'active'
+          AND mf.status = 'active'
+        GROUP BY f.folder_id")->fetchAll(PDO::FETCH_ASSOC);
+
+    $counts = [];
+    foreach ($rows as $row) {
+        $folderId = (int) ($row['folder_id'] ?? 0);
+        if ($folderId <= 0) {
+            continue;
+        }
+        $counts[(string) $folderId] = (int) ($row['total'] ?? 0);
+    }
+
+    return $counts;
+}
+
 $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
 $userId = member_folders_now_user_id($auth);
 
 try {
     if ($method === 'GET') {
         $action = trim((string) ($_GET['action'] ?? 'admin_init'));
+        if ($action === 'init') {
+            $action = 'admin_init';
+        } elseif ($action === 'download') {
+            $action = 'admin_download';
+        }
 
         if ($action === 'admin_init') {
             anateje_require_permission($db, $auth, 'admin.pastas_associados.view');
@@ -1094,6 +1120,7 @@ try {
             member_folders_sync_member_nodes($db, (int) $root['id'], $userId);
             $listOptions = member_folders_list_options($_GET);
             anateje_ok([
+                'unidade_id' => 1,
                 'root' => [
                     'id' => (int) $root['id'],
                     'member_id' => null,
@@ -1106,6 +1133,20 @@ try {
             ]);
         }
 
+        if ($action === 'listar_arvore') {
+            anateje_require_permission($db, $auth, 'admin.pastas_associados.view');
+            $root = member_folders_ensure_root($db, $userId);
+            member_folders_sync_member_nodes($db, (int) $root['id'], $userId);
+            anateje_ok(member_folders_list_tree($db));
+        }
+
+        if ($action === 'contadores_arquivos') {
+            anateje_require_permission($db, $auth, 'admin.pastas_associados.view');
+            $root = member_folders_ensure_root($db, $userId);
+            member_folders_sync_member_nodes($db, (int) $root['id'], $userId);
+            anateje_ok(['counts' => member_folders_file_counts($db)]);
+        }
+
         if ($action === 'admin_tree') {
             anateje_require_permission($db, $auth, 'admin.pastas_associados.view');
             $root = member_folders_ensure_root($db, $userId);
@@ -1116,9 +1157,9 @@ try {
             ]);
         }
 
-        if ($action === 'admin_items') {
+        if ($action === 'admin_items' || $action === 'listar_itens') {
             anateje_require_permission($db, $auth, 'admin.pastas_associados.view');
-            $folderId = (int) ($_GET['folder_id'] ?? 0);
+            $folderId = (int) ($_GET['folder_id'] ?? ($_GET['pasta_id'] ?? 0));
             if ($folderId <= 0) {
                 $root = member_folders_ensure_root($db, $userId);
                 $folderId = (int) $root['id'];
@@ -1142,6 +1183,63 @@ try {
     if ($method === 'POST') {
         $input = member_folders_request_input();
         $action = trim((string) ($_GET['action'] ?? ($input['action'] ?? '')));
+        if ($action === 'criar_pasta') {
+            $action = 'admin_create_folder';
+        } elseif ($action === 'renomear_pasta') {
+            $action = 'admin_rename_folder';
+        } elseif ($action === 'renomear_arquivo') {
+            $action = 'admin_rename_file';
+        } elseif ($action === 'upload_arquivo') {
+            $action = 'admin_upload_file';
+            if (!isset($input['folder_id']) && isset($input['pasta_id'])) {
+                $input['folder_id'] = $input['pasta_id'];
+            }
+        } elseif ($action === 'mover_item') {
+            $action = 'admin_move_item';
+            if (!isset($input['item_type']) && isset($input['tipo'])) {
+                $input['item_type'] = $input['tipo'];
+            }
+            if (!isset($input['item_id']) && isset($input['id'])) {
+                $input['item_id'] = $input['id'];
+            }
+            if (!isset($input['target_folder_id']) && isset($input['novo_parent_id'])) {
+                $input['target_folder_id'] = $input['novo_parent_id'];
+            }
+            if (isset($input['item_type'])) {
+                $type = strtolower(trim((string) $input['item_type']));
+                if ($type === 'pasta') {
+                    $input['item_type'] = 'folder';
+                } elseif ($type === 'arquivo') {
+                    $input['item_type'] = 'file';
+                }
+            }
+        } elseif ($action === 'copiar_arquivo') {
+            $action = 'admin_copy_file';
+            if (!isset($input['file_id']) && isset($input['id'])) {
+                $input['file_id'] = $input['id'];
+            }
+            if (!isset($input['target_folder_id']) && isset($input['pasta_destino_id'])) {
+                $input['target_folder_id'] = $input['pasta_destino_id'];
+            }
+        }
+
+        if ($action === 'excluir_item') {
+            anateje_require_permission($db, $auth, 'admin.pastas_associados.delete');
+            $tipo = strtolower(trim((string) ($input['tipo'] ?? '')));
+            $id = (int) ($input['id'] ?? 0);
+            if ($id <= 0) {
+                anateje_error('VALIDATION', 'ID invalido para exclusao', 422);
+            }
+            if ($tipo === 'pasta' || $tipo === 'folder') {
+                member_folders_delete_folder($db, $id, $userId);
+                anateje_ok(['deleted' => true]);
+            }
+            if ($tipo === 'arquivo' || $tipo === 'file') {
+                member_folders_delete_file($db, $id, $userId);
+                anateje_ok(['deleted' => true]);
+            }
+            anateje_error('VALIDATION', 'Tipo invalido para exclusao', 422);
+        }
 
         if ($action === 'admin_create_folder') {
             anateje_require_permission($db, $auth, 'admin.pastas_associados.create');

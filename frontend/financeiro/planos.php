@@ -1,10 +1,10 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/protect.php';
 require_once __DIR__ . '/../../includes/base_path.php';
 $baseUrl = lidergest_base_url();
 ?>
 <!-- Header -->
-    <!-- ConteÃºdo -->
+    <!-- Conteúdo -->
     <main class="p-6">
         <!-- Cards de Resumo -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -65,17 +65,17 @@ $baseUrl = lidergest_base_url();
                         <tr>
                             <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Plano</th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Valor</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">PerÃ­odo</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Período</th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Associados</th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Status</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">AÃ§Ãµes</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Ações</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-secondary-gray">
                         <tr>
                             <td class="px-4 py-2">
                                 <div>
-                                    <p class="font-medium text-secondary-black">Plano BÃ¡sico</p>
+                                    <p class="font-medium text-secondary-black">Plano Básico</p>
                                     <p class="text-sm text-secondary-dark-gray">Acesso completo</p>
                                 </div>
                             </td>

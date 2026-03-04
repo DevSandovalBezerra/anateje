@@ -1074,32 +1074,38 @@ async function salvarLancamento() {
     }
 }
 
-// var permite reexecução segura quando o script é carregado novamente (navegação AJAX)
-var inicializandoLancamentos = false;
-var lancamentosInicializado = false;
+// Estado global idempotente para suportar reexecução via navegação AJAX.
+if (typeof window.lancamentosInitState === 'undefined') {
+    window.lancamentosInitState = {
+        inicializando: false,
+        inicializado: false,
+        handlers: {
+            btnNovoLancamento: null,
+            btnFiltrar: null,
+            inputBuscar: null,
+            checkAll: null
+        }
+    };
+}
 
-const handlers = {
-    btnNovoLancamento: null,
-    btnFiltrar: null,
-    inputBuscar: null,
-    checkAll: null
-};
+var lancamentosInitState = window.lancamentosInitState;
+var handlers = lancamentosInitState.handlers;
 
 async function initLancamentos() {
-    if (inicializandoLancamentos) {
+    if (lancamentosInitState.inicializando) {
         return;
     }
     
-    if (lancamentosInicializado) {
+    if (lancamentosInitState.inicializado) {
         return;
     }
     
-    inicializandoLancamentos = true;
+    lancamentosInitState.inicializando = true;
     
     setTimeout(async () => {
         const container = document.getElementById('tbodyLancamentos') || document.querySelector('.cadastros-content');
         if (!container) {
-            inicializandoLancamentos = false;
+            lancamentosInitState.inicializando = false;
             setTimeout(async () => {
                 if (document.getElementById('tbodyLancamentos') || document.querySelector('.cadastros-content')) {
                     await initLancamentos();
@@ -1157,8 +1163,8 @@ async function initLancamentos() {
         await carregarDadosAuxiliares();
         await carregarLancamentos();
         
-        lancamentosInicializado = true;
-        inicializandoLancamentos = false;
+        lancamentosInitState.inicializado = true;
+        lancamentosInitState.inicializando = false;
     }, 100);
 }
 

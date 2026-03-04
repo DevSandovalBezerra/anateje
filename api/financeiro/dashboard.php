@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // ANATEJE - API de Dashboard Financeiro
 // Sistema de Gestao Financeira Associativa ANATEJE
 // Indicadores financeiros conforme PRD
@@ -288,11 +288,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             financeiro_response($api->obterPorCentroCusto($filtros));
             break;
         default:
-            financeiro_response(['success' => false, 'message' => 'AÃ§Ã£o invÃ¡lida'], 404);
+            financeiro_response(['success' => false, 'message' => 'Ação inválida'], 404);
     }
 }
 
-financeiro_response(['success' => false, 'message' => 'MÃ©todo nÃ£o permitido'], 405);
+financeiro_response(['success' => false, 'message' => 'Método não permitido'], 405);
 
 
 

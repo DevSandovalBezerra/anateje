@@ -1,12 +1,12 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/protect.php';
 require_once __DIR__ . '/../../includes/base_path.php';
 $baseUrl = lidergest_base_url();
 ?>
 <!-- Header -->
-    <!-- ConteÃºdo -->
+    <!-- Conteúdo -->
     <div class="p-6">
-        <!-- Cards de EstatÃ­sticas -->
+        <!-- Cards de Estatísticas -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div class="card-primary">
                 <div class="flex items-center">
@@ -71,10 +71,10 @@ $baseUrl = lidergest_base_url();
             </div>
         </div>
 
-        <!-- HistÃ³rico de ConciliaÃ§Ãµes -->
+        <!-- Histórico de Conciliações -->
         <div class="card-primary">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-semibold text-secondary-black">HistÃ³rico de ConciliaÃ§Ãµes</h3>
+                <h3 class="text-lg font-semibold text-secondary-black">Histórico de Conciliações</h3>
                 <div class="flex space-x-2">
                     <button class="btn-secondary">
                         <i data-lucide="filter" class="w-4 h-4 mr-2"></i>
@@ -96,7 +96,7 @@ $baseUrl = lidergest_base_url();
                             <th class="text-left py-3 px-4 font-medium text-secondary-dark-gray">Registros</th>
                             <th class="text-left py-3 px-4 font-medium text-secondary-dark-gray">Conciliados</th>
                             <th class="text-left py-3 px-4 font-medium text-secondary-dark-gray">Status</th>
-                            <th class="text-left py-3 px-4 font-medium text-secondary-dark-gray">AÃ§Ãµes</th>
+                            <th class="text-left py-3 px-4 font-medium text-secondary-dark-gray">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -118,7 +118,7 @@ $baseUrl = lidergest_base_url();
                             </td>
                             <td class="py-4 px-4">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    ConcluÃ­da
+                                    Concluída
                                 </span>
                             </td>
                             <td class="py-4 px-4">
@@ -151,7 +151,7 @@ $baseUrl = lidergest_base_url();
                             </td>
                             <td class="py-4 px-4">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    ConcluÃ­da
+                                    Concluída
                                 </span>
                             </td>
                             <td class="py-4 px-4">
@@ -238,7 +238,7 @@ $baseUrl = lidergest_base_url();
     </div>
 
     <script>
-        // Inicializar Ã­cones
+        // Inicializar ícones
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
             window.lucide.createIcons();
         }

@@ -661,7 +661,14 @@ require_once __DIR__ . '/../../includes/admin_components.php';
                 }
                 const cur = btn.getAttribute('data-status');
                 const next = cur === 'ATIVO' ? 'INATIVO' : 'ATIVO';
-                const reason = prompt('Motivo da alteracao de status (opcional):', '') || '';
+                const reason = ui && typeof ui.promptText === 'function'
+                    ? (await ui.promptText({
+                        title: 'Atualizar status',
+                        text: 'Motivo da alteracao de status (opcional)',
+                        defaultValue: '',
+                        required: false
+                    }) || '')
+                    : '';
                 await window.anatejeApi(ep('/api/v1/members.php?action=admin_save_status'), {
                     method: 'POST',
                     body: { id, status: next, reason }
@@ -678,7 +685,7 @@ require_once __DIR__ . '/../../includes/admin_components.php';
                 }
                 const confirmed = ui && typeof ui.confirmDelete === 'function'
                     ? await ui.confirmDelete('este associado')
-                    : confirm('Deseja excluir este associado?');
+                    : false;
                 if (!confirmed) return;
                 await window.anatejeApi(ep('/api/v1/members.php?action=admin_delete'), {
                     method: 'POST',
@@ -896,7 +903,7 @@ require_once __DIR__ . '/../../includes/admin_components.php';
                     text: 'Confirma a importacao do CSV?',
                     confirmText: 'Importar'
                 })
-                : confirm('Confirma a importacao do CSV?');
+                : false;
             if (!confirmed) return;
 
             const data = await window.anatejeApi(ep('/api/v1/members.php?action=admin_import_csv_commit'), {
@@ -967,7 +974,7 @@ require_once __DIR__ . '/../../includes/admin_components.php';
                 text: `Aplicar status ${status} para ${ids.length} associado(s)?`,
                 confirmText: 'Aplicar'
             })
-            : confirm(`Aplicar status ${status} para ${ids.length} associado(s)?`);
+            : false;
         if (!confirmed) return;
 
         try {

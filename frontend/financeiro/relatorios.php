@@ -1,20 +1,20 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/protect.php';
 require_once __DIR__ . '/../../includes/base_path.php';
 $baseUrl = lidergest_base_url();
 ?>
 <!-- Header -->
-    <!-- ConteÃºdo -->
+    <!-- Conteúdo -->
     <main class="p-6">
         <!-- Filtros -->
         <div class="card-primary mb-6">
             <div class="flex flex-wrap gap-4">
                 <div class="min-w-48">
-                    <label class="block text-sm font-medium text-secondary-dark-gray mb-2">PerÃ­odo</label>
+                    <label class="block text-sm font-medium text-secondary-dark-gray mb-2">Período</label>
                     <select class="input-primary">
-                        <option>Ãšltimos 3 meses</option>
-                        <option>Ãšltimos 6 meses</option>
-                        <option>Ãšltimo ano</option>
+                        <option>Últimos 3 meses</option>
+                        <option>Últimos 6 meses</option>
+                        <option>Último ano</option>
                         <option>Personalizado</option>
                     </select>
                 </div>
@@ -28,17 +28,17 @@ $baseUrl = lidergest_base_url();
                     </select>
                 </div>
                 <div class="min-w-48">
-                    <label class="block text-sm font-medium text-secondary-dark-gray mb-2">Tipo de RelatÃ³rio</label>
+                    <label class="block text-sm font-medium text-secondary-dark-gray mb-2">Tipo de Relatório</label>
                     <select class="input-primary">
                         <option>Receitas</option>
-                        <option>InadimplÃªncia</option>
+                        <option>Inadimplência</option>
                         <option>Comparativo</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        <!-- GrÃ¡ficos -->
+        <!-- Gráficos -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <div class="card-primary">
                 <h3 class="text-lg font-semibold text-secondary-black mb-4">Receita Mensal</h3>
@@ -46,7 +46,7 @@ $baseUrl = lidergest_base_url();
             </div>
             
             <div class="card-primary">
-                <h3 class="text-lg font-semibold text-secondary-black mb-4">InadimplÃªncia</h3>
+                <h3 class="text-lg font-semibold text-secondary-black mb-4">Inadimplência</h3>
                 <canvas id="inadimplenciaChart" width="400" height="200"></canvas>
             </div>
         </div>
@@ -60,14 +60,14 @@ $baseUrl = lidergest_base_url();
                     <div class="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                         <div>
                             <p class="font-medium text-secondary-black">Receita Total</p>
-                            <p class="text-sm text-secondary-dark-gray">Ãšltimos 3 meses</p>
+                            <p class="text-sm text-secondary-dark-gray">Últimos 3 meses</p>
                         </div>
                         <p class="text-xl font-bold text-green-600">R$ 76.200</p>
                     </div>
                     
                     <div class="flex justify-between items-center p-3 bg-red-50 rounded-lg">
                         <div>
-                            <p class="font-medium text-secondary-black">InadimplÃªncia</p>
+                            <p class="font-medium text-secondary-black">Inadimplência</p>
                             <p class="text-sm text-secondary-dark-gray">Valor em aberto</p>
                         </div>
                         <p class="text-xl font-bold text-red-600">R$ 3.600</p>
@@ -75,7 +75,7 @@ $baseUrl = lidergest_base_url();
                     
                     <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
                         <div>
-                            <p class="font-medium text-secondary-black">Taxa de InadimplÃªncia</p>
+                            <p class="font-medium text-secondary-black">Taxa de Inadimplência</p>
                             <p class="text-sm text-secondary-dark-gray">Percentual</p>
                         </div>
                         <p class="text-xl font-bold text-blue-600">4.7%</p>
@@ -107,7 +107,7 @@ $baseUrl = lidergest_base_url();
                             </div>
                             <div>
                                 <p class="font-medium text-secondary-black">Isabella Santos</p>
-                                <p class="text-sm text-secondary-dark-gray">1 mÃªs em atraso</p>
+                                <p class="text-sm text-secondary-dark-gray">1 mês em atraso</p>
                             </div>
                         </div>
                         <p class="font-bold text-yellow-600">R$ 250</p>
@@ -120,7 +120,7 @@ $baseUrl = lidergest_base_url();
                             </div>
                             <div>
                                 <p class="font-medium text-secondary-black">Mateus Costa</p>
-                                <p class="text-sm text-secondary-dark-gray">1 mÃªs em atraso</p>
+                                <p class="text-sm text-secondary-dark-gray">1 mês em atraso</p>
                             </div>
                         </div>
                         <p class="font-bold text-orange-600">R$ 150</p>
@@ -135,7 +135,7 @@ $baseUrl = lidergest_base_url();
             window.lucide.createIcons();
         }
 
-        // GrÃ¡fico de Receita
+        // Gráfico de Receita
         const receitaCtx = document.getElementById('receitaChart').getContext('2d');
         new Chart(receitaCtx, {
             type: 'line',
@@ -160,7 +160,7 @@ $baseUrl = lidergest_base_url();
             }
         });
 
-        // GrÃ¡fico de InadimplÃªncia
+        // Gráfico de Inadimplência
         const inadimplenciaCtx = document.getElementById('inadimplenciaChart').getContext('2d');
         new Chart(inadimplenciaCtx, {
             type: 'doughnut',

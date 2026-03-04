@@ -1,5 +1,5 @@
-﻿<?php
-// ANATEJE - Categorias Financeiras (ConteÃºdo)
+<?php
+// ANATEJE - Categorias Financeiras (Conteúdo)
 // Sistema de Gestao Financeira Associativa ANATEJE
 
 require_once __DIR__ . '/../../includes/base_path.php';
@@ -50,11 +50,11 @@ $baseUrl = lidergest_base_url();
                     <tr>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Categoria</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Tipo</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">CÃ³digo</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Código</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Categoria Pai</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Unidade</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Status</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">AÃ§Ãµes</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Ações</th>
                     </tr>
                 </thead>
                 <tbody id="tbodyCategorias" class="divide-y divide-secondary-gray">

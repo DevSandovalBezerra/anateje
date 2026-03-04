@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // ANATEJE - API de Contas a Pagar/Receber com Parcelas
 
 require_once __DIR__ . '/../../config/database.php';
@@ -62,7 +62,7 @@ class ContasAPI
             $stmt->execute([$id]);
             $conta = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$conta) {
-                return ['success' => false, 'message' => 'Conta nÃ£o encontrada'];
+                return ['success' => false, 'message' => 'Conta não encontrada'];
             }
             $stmt = $this->db->prepare("SELECT * FROM lancamento_parcelas WHERE lancamento_id = ? ORDER BY numero_parcela ASC");
             $stmt->execute([$id]);
@@ -86,10 +86,10 @@ class ContasAPI
             $unidadeSessao = getUserUnidadeId();
 
             if (!$tipo || !in_array($tipo, ['pagar','receber'])) {
-                return ['success' => false, 'message' => 'Tipo invÃ¡lido'];
+                return ['success' => false, 'message' => 'Tipo inválido'];
             }
             if (!$descricao || $valor_total <= 0) {
-                return ['success' => false, 'message' => 'DescriÃ§Ã£o e valor sÃ£o obrigatÃ³rios'];
+                return ['success' => false, 'message' => 'Descrição e valor são obrigatórios'];
             }
 
             $this->db->beginTransaction();
@@ -118,7 +118,7 @@ class ContasAPI
                 $stmtParcela = $this->db->prepare("INSERT INTO lancamento_parcelas (lancamento_id, numero_parcela, valor_parcela, data_vencimento, status)
                                                      VALUES (?, ?, ?, ?, 'pendente')");
                 $stmtParcela->execute([$lancamento_id, $i, $valor_parcela, $data->format('Y-m-d')]);
-                // PrÃ³ximo mÃªs
+                // Próximo mês
                 $data->modify('+1 month');
             }
 
@@ -138,7 +138,7 @@ class ContasAPI
             $stmt = $this->db->prepare("UPDATE lancamento_parcelas SET valor_pago = ?, data_pagamento = ?, status = 'paga' WHERE id = ?");
             $stmt->execute([(float)$valor_pago, $data_pagamento, (int)$parcela_id]);
 
-            // Ajustar status do lanÃ§amento
+            // Ajustar status do lançamento
             $stmt = $this->db->prepare("SELECT lancamento_id FROM lancamento_parcelas WHERE id = ?");
             $stmt->execute([(int)$parcela_id]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -164,7 +164,7 @@ class ContasAPI
     public function excluir($id)
     {
         try {
-            // Cancelar lanÃ§amento e parcelas
+            // Cancelar lançamento e parcelas
             $stmt = $this->db->prepare("UPDATE lancamentos_financeiros SET status = 'cancelado' WHERE id = ?");
             $stmt->execute([(int)$id]);
             $stmt = $this->db->prepare("UPDATE lancamento_parcelas SET status = 'cancelada' WHERE lancamento_id = ?");
@@ -177,7 +177,7 @@ class ContasAPI
     }
 }
 
-// AutenticaÃ§Ã£o
+// Autenticação
 $auth = financeiro_require_auth('contas');
 
 $api = new ContasAPI();
@@ -195,11 +195,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             break;
         case 'obter':
             $id = (int)($_GET['id'] ?? 0);
-            if (!$id) { financeiro_response(['success' => false, 'message' => 'ID obrigatÃ³rio'], 400); }
+            if (!$id) { financeiro_response(['success' => false, 'message' => 'ID obrigatório'], 400); }
             financeiro_response($api->obter($id));
             break;
         default:
-            financeiro_response(['success' => false, 'message' => 'AÃ§Ã£o invÃ¡lida'], 404);
+            financeiro_response(['success' => false, 'message' => 'Ação inválida'], 404);
     }
 }
 
@@ -217,17 +217,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $parcela_id = (int)($_POST['parcela_id'] ?? 0);
             $valor_pago = $_POST['valor_pago'] ?? null;
             $data_pagamento = $_POST['data_pagamento'] ?? date('Y-m-d');
-            if (!$parcela_id || !$valor_pago) { financeiro_response(['success' => false, 'message' => 'Parcela e valor sÃ£o obrigatÃ³rios'], 400); }
+            if (!$parcela_id || !$valor_pago) { financeiro_response(['success' => false, 'message' => 'Parcela e valor são obrigatórios'], 400); }
             financeiro_response($api->registrarPagamento($parcela_id, $valor_pago, $data_pagamento));
             break;
         case 'excluir':
             $id = (int)($_POST['id'] ?? 0);
-            if (!$id) { financeiro_response(['success' => false, 'message' => 'ID obrigatÃ³rio'], 400); }
+            if (!$id) { financeiro_response(['success' => false, 'message' => 'ID obrigatório'], 400); }
             financeiro_response($api->excluir($id));
             break;
         default:
-            financeiro_response(['success' => false, 'message' => 'AÃ§Ã£o invÃ¡lida'], 404);
+            financeiro_response(['success' => false, 'message' => 'Ação inválida'], 404);
     }
 }
 
-financeiro_response(['success' => false, 'message' => 'MÃ©todo nÃ£o permitido'], 405);
+financeiro_response(['success' => false, 'message' => 'Método não permitido'], 405);

@@ -16,7 +16,6 @@ require_once __DIR__ . '/../../includes/admin_components.php';
             'Admin - Beneficios',
             'Cadastro, elegibilidade e organizacao dos beneficios.',
             [
-                ['id' => 'exportBeneficios', 'label' => 'Exportar CSV', 'class' => 'btn-secondary px-4 py-2 text-sm'],
                 ['id' => 'novoBeneficio', 'label' => 'Novo Beneficio', 'class' => 'btn-primary px-4 py-2 text-sm'],
             ]
         );
@@ -97,56 +96,88 @@ require_once __DIR__ . '/../../includes/admin_components.php';
             <div id="linkMsg" class="text-xs text-gray-700"></div>
         </div>
 
-        <form id="benefForm" class="hidden p-4 rounded-lg border border-gray-200 bg-gray-50 space-y-3">
-            <input id="benef_id" type="hidden">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Nome *</span>
-                    <input id="benef_nome" class="input-primary w-full" required>
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Link</span>
-                    <input id="benef_link" class="input-primary w-full">
-                </label>
-                <label class="md:col-span-2">
-                    <span class="text-sm font-medium text-gray-700">Descricao</span>
-                    <textarea id="benef_descricao" class="input-primary w-full" rows="3"></textarea>
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Status</span>
-                    <select id="benef_status" class="input-primary w-full">
-                        <option value="active">Ativo</option>
-                        <option value="inactive">Inativo</option>
-                    </select>
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Ordem</span>
-                    <input id="benef_sort" type="number" class="input-primary w-full" value="0">
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Categoria elegivel</span>
-                    <select id="benef_eligibility_categoria" class="input-primary w-full">
-                        <option value="ALL">ALL</option>
-                        <option value="PARCIAL">PARCIAL</option>
-                        <option value="INTEGRAL">INTEGRAL</option>
-                    </select>
-                </label>
-                <label>
-                    <span class="text-sm font-medium text-gray-700">Status elegivel</span>
-                    <select id="benef_eligibility_member_status" class="input-primary w-full">
-                        <option value="ALL">ALL</option>
-                        <option value="ATIVO">ATIVO</option>
-                        <option value="INATIVO">INATIVO</option>
-                    </select>
-                </label>
-            </div>
-            <div class="flex gap-2">
-                <button class="btn-primary px-4 py-2 text-sm" type="submit">Salvar</button>
-                <button class="btn-secondary px-4 py-2 text-sm" type="button" id="cancelBenef">Cancelar</button>
-            </div>
-        </form>
-
         <p id="benefMsg" class="text-sm mt-4"></p>
+    </div>
+</div>
+<div id="benefModal" class="hidden fixed inset-0 z-50 admin-modal">
+    <div class="absolute inset-0 admin-modal-overlay" data-close-benef-modal="1"></div>
+    <div class="relative flex min-h-screen items-center justify-center p-4">
+        <div id="benefModalPanel" class="w-full rounded-lg border border-gray-200 bg-white shadow-2xl admin-modal-panel">
+            <div class="border-b border-gray-200 px-6 py-4">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p id="benefModalMode" class="admin-modal-mode">Criacao</p>
+                        <h3 id="benefModalTitle" class="admin-modal-title">Novo Beneficio</h3>
+                        <p class="admin-modal-subtitle">Preencha os campos para cadastrar ou atualizar um beneficio.</p>
+                    </div>
+                    <button id="closeBenefModal" type="button" class="btn-secondary px-3 py-2 text-xs" aria-label="Fechar modal">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+            <form id="benefForm" class="space-y-4 p-6">
+                <input id="benef_id" type="hidden">
+
+                <section class="admin-modal-section">
+                    <h4 class="mb-3 text-sm font-semibold text-gray-800">Informacoes do Beneficio</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 admin-modal-grid">
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Nome <span class="text-red-600">*</span></span>
+                            <input id="benef_nome" class="input-primary w-full" required>
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Link</span>
+                            <input id="benef_link" class="input-primary w-full" placeholder="https://...">
+                        </label>
+                        <label class="md:col-span-2">
+                            <span class="text-sm font-medium text-gray-700">Descricao</span>
+                            <textarea id="benef_descricao" class="input-primary w-full" rows="3" placeholder="Detalhes do beneficio"></textarea>
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Status</span>
+                            <select id="benef_status" class="input-primary w-full">
+                                <option value="active">Ativo</option>
+                                <option value="inactive">Inativo</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Ordem</span>
+                            <input id="benef_sort" type="number" class="input-primary w-full" value="0" min="0">
+                        </label>
+                    </div>
+                </section>
+
+                <section class="admin-modal-section">
+                    <h4 class="mb-3 text-sm font-semibold text-gray-800">Elegibilidade</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 admin-modal-grid">
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Categoria elegivel</span>
+                            <select id="benef_eligibility_categoria" class="input-primary w-full">
+                                <option value="ALL">ALL</option>
+                                <option value="PARCIAL">PARCIAL</option>
+                                <option value="INTEGRAL">INTEGRAL</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span class="text-sm font-medium text-gray-700">Status elegivel</span>
+                            <select id="benef_eligibility_member_status" class="input-primary w-full">
+                                <option value="ALL">ALL</option>
+                                <option value="ATIVO">ATIVO</option>
+                                <option value="INATIVO">INATIVO</option>
+                            </select>
+                        </label>
+                    </div>
+                </section>
+
+                <div class="admin-modal-footer">
+                    <p class="text-xs text-gray-500">Campos com <span class="text-red-600">*</span> sao obrigatorios.</p>
+                    <div class="flex gap-2">
+                        <button class="btn-secondary px-4 py-2 text-sm" type="button" id="cancelBenef">Cancelar</button>
+                        <button id="benefSubmitBtn" class="btn-primary px-4 py-2 text-sm" type="submit">Salvar beneficio</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -166,6 +197,11 @@ require_once __DIR__ . '/../../includes/admin_components.php';
     const rows = document.getElementById('benefRows');
     const msg = document.getElementById('benefMsg');
     const form = document.getElementById('benefForm');
+    const benefModal = document.getElementById('benefModal');
+    const benefModalPanel = document.getElementById('benefModalPanel');
+    const benefModalTitle = document.getElementById('benefModalTitle');
+    const benefModalMode = document.getElementById('benefModalMode');
+    const benefSubmitBtn = document.getElementById('benefSubmitBtn');
     const benefBulkMeta = document.getElementById('benefBulkMeta');
     const benefBulkStatus = document.getElementById('benefBulkStatus');
     const benefBulkReason = document.getElementById('benefBulkReason');
@@ -284,7 +320,13 @@ require_once __DIR__ . '/../../includes/admin_components.php';
     }
 
     function openForm(data) {
-        form.classList.remove('hidden');
+        const isEdit = !!(data && data.id);
+        if (benefModalTitle) benefModalTitle.textContent = isEdit ? 'Editar Beneficio' : 'Novo Beneficio';
+        if (benefModalMode) benefModalMode.textContent = isEdit ? 'Edicao' : 'Criacao';
+        if (benefSubmitBtn) benefSubmitBtn.textContent = isEdit ? 'Salvar alteracoes' : 'Salvar beneficio';
+
+        benefModal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
         el('benef_id').value = data?.id || '';
         el('benef_nome').value = data?.nome || '';
         el('benef_link').value = data?.link || '';
@@ -293,10 +335,19 @@ require_once __DIR__ . '/../../includes/admin_components.php';
         el('benef_sort').value = data?.sort_order ?? 0;
         el('benef_eligibility_categoria').value = data?.eligibility_categoria || 'ALL';
         el('benef_eligibility_member_status').value = data?.eligibility_member_status || 'ALL';
+
+        setTimeout(() => {
+            const nome = el('benef_nome');
+            if (nome && typeof nome.focus === 'function') {
+                nome.focus();
+                nome.select();
+            }
+        }, 10);
     }
 
     function closeForm() {
-        form.classList.add('hidden');
+        benefModal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
         form.reset();
         if (ui && typeof ui.clearFieldErrors === 'function') {
             ui.clearFieldErrors(form);
@@ -304,6 +355,12 @@ require_once __DIR__ . '/../../includes/admin_components.php';
         el('benef_id').value = '';
         el('benef_eligibility_categoria').value = 'ALL';
         el('benef_eligibility_member_status').value = 'ALL';
+        if (benefModalTitle) benefModalTitle.textContent = 'Novo Beneficio';
+        if (benefModalMode) benefModalMode.textContent = 'Criacao';
+        if (benefSubmitBtn) {
+            benefSubmitBtn.disabled = false;
+            benefSubmitBtn.textContent = 'Salvar beneficio';
+        }
     }
 
     async function onAction(e) {
@@ -328,7 +385,7 @@ require_once __DIR__ . '/../../includes/admin_components.php';
             }
             const confirmed = ui && typeof ui.confirmDelete === 'function'
                 ? await ui.confirmDelete('este beneficio')
-                : confirm('Deseja excluir este beneficio?');
+                : false;
             if (!confirmed) return;
             try {
                 await window.anatejeApi(ep('/api/v1/benefits.php?action=admin_delete'), {
@@ -369,14 +426,21 @@ require_once __DIR__ . '/../../includes/admin_components.php';
         }
         openForm(null);
     });
-    document.getElementById('exportBeneficios').addEventListener('click', () => {
-        if (!can('admin.beneficios.export')) {
-            setMsg(deny('admin.beneficios.export'), 'err');
-            return;
-        }
-        window.location.href = ep('/api/v1/benefits.php?action=admin_export_csv');
-    });
     document.getElementById('cancelBenef').addEventListener('click', closeForm);
+    document.getElementById('closeBenefModal').addEventListener('click', closeForm);
+    benefModal.addEventListener('click', (e) => {
+        if (e.target && e.target.getAttribute('data-close-benef-modal') === '1') {
+            closeForm();
+        }
+    });
+    if (benefModalPanel) {
+        benefModalPanel.addEventListener('click', (e) => e.stopPropagation());
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !benefModal.classList.contains('hidden')) {
+            closeForm();
+        }
+    });
     el('link_filter_uf').addEventListener('input', (e) => {
         e.currentTarget.value = normalizeUfInput(e.currentTarget.value || '');
     });
@@ -420,7 +484,7 @@ require_once __DIR__ . '/../../includes/admin_components.php';
                 text: `Confirma ${modeLabel} o beneficio para os associados filtrados?`,
                 confirmText: 'Aplicar'
             })
-            : confirm(`Confirma ${modeLabel} o beneficio para os associados filtrados?`);
+            : false;
         if (!confirmed) return;
 
         try {
@@ -474,7 +538,7 @@ require_once __DIR__ . '/../../includes/admin_components.php';
                 text: `Aplicar status ${status} para ${ids.length} beneficio(s)?`,
                 confirmText: 'Aplicar'
             })
-            : confirm(`Aplicar status ${status} para ${ids.length} beneficio(s)?`);
+            : false;
         if (!confirmed) return;
 
         try {
@@ -499,6 +563,10 @@ require_once __DIR__ . '/../../includes/admin_components.php';
         e.preventDefault();
         if (ui && typeof ui.clearFieldErrors === 'function') {
             ui.clearFieldErrors(form);
+        }
+        if (benefSubmitBtn) {
+            benefSubmitBtn.disabled = true;
+            benefSubmitBtn.textContent = 'Salvando...';
         }
 
         try {
@@ -532,14 +600,16 @@ require_once __DIR__ . '/../../includes/admin_components.php';
                 ]);
             }
             setMsg(err.message || 'Falha ao salvar beneficio', 'err');
+        } finally {
+            if (benefSubmitBtn) {
+                benefSubmitBtn.disabled = false;
+                benefSubmitBtn.textContent = el('benef_id').value ? 'Salvar alteracoes' : 'Salvar beneficio';
+            }
         }
     });
 
     if (!can('admin.beneficios.create')) {
         document.getElementById('novoBeneficio').classList.add('hidden');
-    }
-    if (!can('admin.beneficios.export')) {
-        document.getElementById('exportBeneficios').classList.add('hidden');
     }
     if (!canBulkEdit) {
         selectAllBenefRows.disabled = true;

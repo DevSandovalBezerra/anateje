@@ -281,7 +281,7 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         }
         const confirmed = ui && typeof ui.confirmDelete === 'function'
             ? await ui.confirmDelete('este perfil')
-            : confirm('Deseja excluir este perfil?');
+            : false;
         if (!confirmed) {
             return;
         }

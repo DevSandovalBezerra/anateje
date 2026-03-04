@@ -1,4 +1,4 @@
-// Verificar se Swal está disponível antes de criar o objeto
+// Verificar se Swal estÃ¡ disponÃ­vel antes de criar o objeto
 // Usar window para disponibilizar globalmente
 if (typeof window.SweetAlertConfig === 'undefined') {
     var SweetAlertConfig;
@@ -89,7 +89,7 @@ if (typeof Swal !== 'undefined') {
         form: function(options) {
             return Swal.fire({
                 ...this.defaultOptions,
-                title: options.title || 'Formulário',
+                title: options.title || 'FormulÃ¡rio',
                 html: options.html || '',
                 showCancelButton: options.showCancelButton !== false,
                 confirmButtonText: options.confirmButtonText || 'Salvar',
@@ -124,58 +124,49 @@ if (typeof Swal !== 'undefined') {
                 cancelButtonText: 'Cancelar',
                 inputValidator: (value) => {
                     if (!value) {
-                        return 'Este campo é obrigatório!';
+                        return 'Este campo Ã© obrigatÃ³rio!';
                     }
                 }
             });
         }
     };
 } else {
-    // Fallback se SweetAlert não estiver carregado
+    // Fallback sem uso de alert/confirm/prompt nativos
     SweetAlertConfig = {
         success: function(title, text) {
-            alert(`${title}: ${text}`);
+            if (typeof console !== 'undefined') console.log((title || '') + ': ' + (text || ''));
             return Promise.resolve({ isConfirmed: true });
         },
         error: function(title, text) {
-            alert(`ERRO - ${title}: ${text}`);
+            if (typeof console !== 'undefined') console.error('ERRO - ' + (title || '') + ': ' + (text || ''));
             return Promise.resolve({ isConfirmed: true });
         },
         warning: function(title, text) {
-            alert(`ATENÇÃO - ${title}: ${text}`);
+            if (typeof console !== 'undefined') console.warn('ATENCAO - ' + (title || '') + ': ' + (text || ''));
             return Promise.resolve({ isConfirmed: true });
         },
         info: function(title, text) {
-            alert(`INFO - ${title}: ${text}`);
+            if (typeof console !== 'undefined') console.log('INFO - ' + (title || '') + ': ' + (text || ''));
             return Promise.resolve({ isConfirmed: true });
         },
         confirm: function(title, text) {
-            return Promise.resolve({ isConfirmed: confirm(`${title}\n${text}`) });
+            if (typeof console !== 'undefined') console.warn('CONFIRM indisponivel: ' + (title || '') + ' - ' + (text || ''));
+            return Promise.resolve({ isConfirmed: false });
         },
-        
         select: function(title, text, options) {
-            const selected = prompt(`${title}\n${text}\n\nOpções:\n${options.map((o, i) => `${i + 1}. ${o.text}`).join('\n')}\n\nDigite o número:`);
-            const index = parseInt(selected) - 1;
-            if (index >= 0 && index < options.length) {
-                return Promise.resolve({ value: options[index].value });
-            }
+            if (typeof console !== 'undefined') console.warn('SELECT indisponivel: ' + (title || '') + ' - ' + (text || ''));
             return Promise.resolve({ value: null });
         },
-        
         form: function(options) {
             return Promise.resolve({ value: options.preConfirm ? options.preConfirm() : null });
         },
-        
         html: function(options) {
-            return Promise.resolve({ isConfirmed: confirm(options.title || 'Confirmar?') });
+            if (typeof console !== 'undefined') console.warn('HTML modal indisponivel: ' + ((options && options.title) || ''));
+            return Promise.resolve({ isConfirmed: false });
         },
-        
         prompt: function(title, text, placeholder = '') {
-            const value = prompt(`${title}\n${text}`, placeholder);
-            return Promise.resolve({ 
-                isConfirmed: value !== null && value !== '', 
-                value: value 
-            });
+            if (typeof console !== 'undefined') console.warn('PROMPT indisponivel: ' + (title || '') + ' - ' + (text || ''));
+            return Promise.resolve({ isConfirmed: false, value: null });
         }
     };
 }

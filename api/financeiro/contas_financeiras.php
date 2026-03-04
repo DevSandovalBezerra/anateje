@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // ANATEJE - API de Contas Financeiras
 // Sistema de Gestao Financeira Associativa ANATEJE
 
@@ -84,7 +84,7 @@ class ContasFinanceirasAPI
             $conta = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$conta) {
-                return ['success' => false, 'message' => 'Conta nÃ£o encontrada'];
+                return ['success' => false, 'message' => 'Conta não encontrada'];
             }
 
             return ['success' => true, 'data' => $conta];
@@ -101,15 +101,15 @@ class ContasFinanceirasAPI
             $unidadeId = $unidadeSessao ?? ($dados['unidade_id'] ?? null);
 
             if (!$unidadeId) {
-                return ['success' => false, 'message' => 'Unidade obrigatÃ³ria'];
+                return ['success' => false, 'message' => 'Unidade obrigatória'];
             }
 
             if (empty($dados['nome'])) {
-                return ['success' => false, 'message' => 'Nome da conta Ã© obrigatÃ³rio'];
+                return ['success' => false, 'message' => 'Nome da conta é obrigatório'];
             }
 
             if (empty($dados['tipo'])) {
-                return ['success' => false, 'message' => 'Tipo da conta Ã© obrigatÃ³rio'];
+                return ['success' => false, 'message' => 'Tipo da conta é obrigatório'];
             }
 
             $stmt = $this->db->prepare("
@@ -162,7 +162,7 @@ class ContasFinanceirasAPI
             $conta = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$conta) {
-                return ['success' => false, 'message' => 'Conta nÃ£o encontrada'];
+                return ['success' => false, 'message' => 'Conta não encontrada'];
             }
 
             $campos = [];
@@ -216,10 +216,10 @@ class ContasFinanceirasAPI
             $stmt->execute($params);
 
             if ($stmt->rowCount() === 0) {
-                return ['success' => false, 'message' => 'Conta nÃ£o encontrada ou sem permissÃ£o'];
+                return ['success' => false, 'message' => 'Conta não encontrada ou sem permissão'];
             }
 
-            return ['success' => true, 'message' => 'Conta excluÃ­da com sucesso'];
+            return ['success' => true, 'message' => 'Conta excluída com sucesso'];
         } catch (Exception $e) {
             logError("Erro ao excluir conta financeira: " . $e->getMessage());
             return ['success' => false, 'message' => 'Erro interno ao excluir conta'];
@@ -227,7 +227,7 @@ class ContasFinanceirasAPI
     }
 }
 
-// ======= Controle da RequisiÃ§Ã£o =======
+// ======= Controle da Requisição =======
 $auth = financeiro_require_auth('contas_financeiras');
 
 $api = new ContasFinanceirasAPI();
@@ -246,12 +246,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         case 'obter':
             $id = (int)($_GET['id'] ?? 0);
             if (!$id) {
-                financeiro_response(['success' => false, 'message' => 'ID obrigatÃ³rio'], 400);
+                financeiro_response(['success' => false, 'message' => 'ID obrigatório'], 400);
             }
             financeiro_response($api->obter($id));
             break;
         default:
-            financeiro_response(['success' => false, 'message' => 'AÃ§Ã£o invÃ¡lida'], 404);
+            financeiro_response(['success' => false, 'message' => 'Ação inválida'], 404);
     }
 }
 
@@ -268,23 +268,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'atualizar':
             $id = (int)($_POST['id'] ?? 0);
             if (!$id) {
-                financeiro_response(['success' => false, 'message' => 'ID obrigatÃ³rio'], 400);
+                financeiro_response(['success' => false, 'message' => 'ID obrigatório'], 400);
             }
             financeiro_response($api->atualizar($id, $_POST));
             break;
         case 'excluir':
             $id = (int)($_POST['id'] ?? 0);
             if (!$id) {
-                financeiro_response(['success' => false, 'message' => 'ID obrigatÃ³rio'], 400);
+                financeiro_response(['success' => false, 'message' => 'ID obrigatório'], 400);
             }
             financeiro_response($api->excluir($id));
             break;
         default:
-            financeiro_response(['success' => false, 'message' => 'AÃ§Ã£o invÃ¡lida'], 404);
+            financeiro_response(['success' => false, 'message' => 'Ação inválida'], 404);
     }
 }
 
-financeiro_response(['success' => false, 'message' => 'MÃ©todo nÃ£o permitido'], 405);
+financeiro_response(['success' => false, 'message' => 'Método não permitido'], 405);
 
 
 

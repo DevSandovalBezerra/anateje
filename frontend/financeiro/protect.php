@@ -1,11 +1,11 @@
-﻿<?php
-// ANATEJE - ProteÃ§Ã£o das PÃ¡ginas Financeiras
+<?php
+// ANATEJE - Proteção das Páginas Financeiras
 // Sistema de Gestao Financeira Associativa ANATEJE
 
 require_once __DIR__ . '/../../includes/rbac.php';
 require_once __DIR__ . '/../../includes/base_path.php';
 
-// Verificar se estÃ¡ logado
+// Verificar se está logado
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['perfil_id'])) {
     $baseUrl = lidergest_base_url();
     $loginUrl = $baseUrl ? "{$baseUrl}/frontend/auth/login.html" : 'frontend/auth/login.html';
@@ -13,13 +13,13 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['perfil_id'])) {
     exit;
 }
 
-// Determinar qual pÃ¡gina estÃ¡ sendo acessada
+// Determinar qual página está sendo acessada
 $current_page = basename($_SERVER['PHP_SELF'], '.php');
 
-// Verificar permissÃ£o para a pÃ¡gina especÃ­fica
+// Verificar permissão para a página específica
 checkPermission('financeiro', $current_page);
 
-// Se chegou atÃ© aqui, o usuÃ¡rio tem permissÃ£o
+// Se chegou até aqui, o usuário tem permissão
 $user = [
     'id' => $_SESSION['user_id'],
     'nome' => $_SESSION['user_name'],

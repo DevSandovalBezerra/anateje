@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/protect.php';
 require_once __DIR__ . '/../../includes/base_path.php';
 $baseUrl = lidergest_base_url();
@@ -8,7 +8,7 @@ $baseUrl = lidergest_base_url();
         <div>
             <h1 class="text-2xl font-semibold text-secondary-black">Fluxo de Caixa</h1>
             <p class="text-secondary-dark-gray mt-1 max-w-3xl">
-                Visualize o fluxo de caixa diÃ¡rio, semanal ou mensal com projeÃ§Ãµes.
+                Visualize o fluxo de caixa diário, semanal ou mensal com projeções.
             </p>
         </div>
     </div>
@@ -16,21 +16,21 @@ $baseUrl = lidergest_base_url();
     <div class="card-primary mb-6">
         <div class="flex flex-wrap gap-4">
             <div class="min-w-40">
-                <label class="block text-sm font-medium text-secondary-dark-gray mb-2">VisualizaÃ§Ã£o</label>
+                <label class="block text-sm font-medium text-secondary-dark-gray mb-2">Visualização</label>
                 <select id="selectTipo" class="input-primary">
-                    <option value="diario">DiÃ¡rio</option>
+                    <option value="diario">Diário</option>
                     <option value="semanal">Semanal</option>
                     <option value="mensal" selected>Mensal</option>
                 </select>
             </div>
             <div class="min-w-40">
-                <label class="block text-sm font-medium text-secondary-dark-gray mb-2">Conta BancÃ¡ria</label>
+                <label class="block text-sm font-medium text-secondary-dark-gray mb-2">Conta Bancária</label>
                 <select id="selectConta" class="input-primary">
                     <option value="">Todas</option>
                 </select>
             </div>
             <div class="min-w-32">
-                <label class="block text-sm font-medium text-secondary-dark-gray mb-2">Data InÃ­cio</label>
+                <label class="block text-sm font-medium text-secondary-dark-gray mb-2">Data Início</label>
                 <input type="date" id="inputDataInicio" class="input-primary">
             </div>
             <div class="min-w-32">
@@ -56,12 +56,12 @@ $baseUrl = lidergest_base_url();
             <table class="min-w-full">
                 <thead class="bg-secondary-light-gray">
                     <tr>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">PerÃ­odo</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Período</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Entradas Realizado</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">SaÃ­das Realizado</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Saídas Realizado</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Entradas Previsto</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">SaÃ­das Previsto</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Saldo PerÃ­odo</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Saídas Previsto</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Saldo Período</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-secondary-dark-gray uppercase">Saldo Acumulado</th>
                     </tr>
                 </thead>

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/protect.php';
 require_once __DIR__ . '/../../includes/base_path.php';
 $baseUrl = lidergest_base_url();
@@ -12,10 +12,16 @@ $baseUrl = lidergest_base_url();
                     Controle compromissos financeiros da associacao com parcelas, vencimentos e status de quitacao.
                 </p>
             </div>
-            <a href="<?php echo $baseUrl; ?>/index.php?page=financeiro/lancamentos" class="btn-secondary">
-                <i data-lucide="file-text" class="w-4 h-4 mr-2"></i>
-                Abrir Lancamentos
-            </a>
+            <div class="flex flex-wrap gap-2">
+                <button id="btnNovaConta" class="btn-primary" type="button">
+                    <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                    Novo Lancamento
+                </button>
+                <a href="<?php echo $baseUrl; ?>/index.php?page=financeiro/lancamentos" class="btn-secondary">
+                    <i data-lucide="file-text" class="w-4 h-4 mr-2"></i>
+                    Abrir Lancamentos
+                </a>
+            </div>
         </div>
     </div>
 

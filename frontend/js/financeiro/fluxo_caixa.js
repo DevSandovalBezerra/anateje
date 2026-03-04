@@ -1,4 +1,4 @@
-﻿// Modo debug: localStorage lidergest_debug_fluxo=1 ou URL ?debug=fluxo
+// Modo debug: localStorage lidergest_debug_fluxo=1 ou URL ?debug=fluxo
 window.__fluxoCaixaDebug = (typeof localStorage !== 'undefined' && localStorage.getItem('lidergest_debug_fluxo') === '1') ||
     (typeof URLSearchParams !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === 'fluxo');
 if (window.__fluxoCaixaDebug) {
@@ -15,7 +15,7 @@ if (typeof window.fluxoCaixaData === 'undefined') {
 fluxoCaixaData = window.fluxoCaixaData;
 contasBancariasData = window.contasBancariasData;
 
-// FunÃ§Ã£o helper segura para obter URL da API
+// Função helper segura para obter URL da API
 function getApiUrl(path) {
     var branch = 'fallback';
     if (typeof window.getApiUrl === 'function' && window.getApiUrl !== getApiUrl) {
@@ -99,7 +99,7 @@ async function carregarFluxoCaixa() {
         if (result.success) {
             fluxoCaixaData = result.data || [];
             if (window.__fluxoCaixaDebug) {
-                console.log('[FluxoCaixa] API success', 'data.length=', Array.isArray(result.data) ? result.data.length : 'nÃ£o Ã© array');
+                console.log('[FluxoCaixa] API success', 'data.length=', Array.isArray(result.data) ? result.data.length : 'não é array');
             }
             if (window.__fluxoCaixaDebug) {
                 console.log('[FluxoCaixa] antes renderizarTabela');
@@ -193,7 +193,7 @@ function atualizarGrafico() {
                         tension: 0.4
                     },
                     {
-                        label: 'SaÃ­das Realizado',
+                        label: 'Saídas Realizado',
                         data: saidasRealizado,
                         borderColor: colors.error || 'rgba(239, 68, 68, 1)',
                         backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -255,10 +255,10 @@ function getThemeColors() {
     };
 }
 
-// var permite reexecuÃ§Ã£o segura quando o script Ã© carregado novamente (navegaÃ§Ã£o AJAX)
+// var permite reexecução segura quando o script é carregado novamente (navegação AJAX)
 var inicializandoFluxoCaixa = false;
 var fluxoCaixaInicializado = false;
-// Permitir re-init quando o script Ã© re-executado (ex.: navegaÃ§Ã£o AJAX para a mesma pÃ¡gina)
+// Permitir re-init quando o script é re-executado (ex.: navegação AJAX para a mesma página)
 if (typeof window.__fluxoCaixaListenerAttached !== 'undefined' && window.__fluxoCaixaListenerAttached) {
     fluxoCaixaInicializado = false;
 }
@@ -293,7 +293,7 @@ async function initFluxoCaixa() {
             const container = document.getElementById('tbodyFluxo') || document.querySelector('.cadastros-content');
             if (!container) {
                 if (window.__fluxoCaixaDebug) {
-                    console.log('[FluxoCaixa] container nÃ£o encontrado, reagendando');
+                    console.log('[FluxoCaixa] container não encontrado, reagendando');
                 }
                 inicializandoFluxoCaixa = false;
                 setTimeout(async () => {

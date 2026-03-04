@@ -6,6 +6,43 @@
         return null;
     }
 
+    function getSweetAlertConfig() {
+        if (typeof window !== 'undefined' && window.SweetAlertConfig) {
+            return window.SweetAlertConfig;
+        }
+        return null;
+    }
+
+    async function alertMessage(options) {
+        const opts = options && typeof options === 'object' ? options : {};
+        const type = String(opts.type || 'info');
+        const title = String(opts.title || 'Aviso');
+        const text = String(opts.text || '');
+
+        const cfg = getSweetAlertConfig();
+        if (cfg) {
+            if (type === 'success' && typeof cfg.success === 'function') return cfg.success(title, text, opts.timer || 0);
+            if (type === 'error' && typeof cfg.error === 'function') return cfg.error(title, text);
+            if (type === 'warning' && typeof cfg.warning === 'function') return cfg.warning(title, text);
+            if (typeof cfg.info === 'function') return cfg.info(title, text);
+        }
+
+        const swal = getSwal();
+        if (swal) {
+            return swal.fire({
+                title: title,
+                text: text,
+                icon: ['success', 'error', 'warning', 'info', 'question'].includes(type) ? type : 'info',
+                confirmButtonColor: '#a6764c'
+            });
+        }
+
+        if (typeof console !== 'undefined') {
+            console[type === 'error' ? 'error' : 'log']((title ? title + ': ' : '') + text);
+        }
+        return Promise.resolve({ isConfirmed: true });
+    }
+
     async function confirmAction(options) {
         const opts = options && typeof options === 'object' ? options : {};
         const title = String(opts.title || 'Confirmar acao');
@@ -32,7 +69,13 @@
             return !!(result && result.isConfirmed);
         }
 
-        return window.confirm(title + '\n' + text);
+        const cfg = getSweetAlertConfig();
+        if (cfg && typeof cfg.confirm === 'function') {
+            const result = await cfg.confirm(title, text, confirmText, cancelText);
+            return !!(result && result.isConfirmed);
+        }
+
+        return false;
     }
 
     async function confirmDelete(targetLabel) {
@@ -45,6 +88,47 @@
             icon: 'warning',
             danger: true
         });
+    }
+
+    async function promptText(options) {
+        const opts = options && typeof options === 'object' ? options : {};
+        const title = String(opts.title || 'Informe um valor');
+        const text = String(opts.text || '');
+        const placeholder = String(opts.placeholder || '');
+        const defaultValue = String(opts.defaultValue || '');
+        const required = !!opts.required;
+        const requiredMessage = String(opts.requiredMessage || 'Campo obrigatorio');
+        const confirmText = String(opts.confirmText || 'Confirmar');
+        const cancelText = String(opts.cancelText || 'Cancelar');
+
+        const swal = getSwal();
+        if (swal) {
+            const result = await swal.fire({
+                title: title,
+                text: text,
+                input: 'text',
+                inputValue: defaultValue,
+                inputPlaceholder: placeholder,
+                showCancelButton: true,
+                confirmButtonText: confirmText,
+                cancelButtonText: cancelText,
+                reverseButtons: true,
+                preConfirm: (value) => {
+                    const v = String(value || '').trim();
+                    if (required && !v) {
+                        swal.showValidationMessage(requiredMessage);
+                        return false;
+                    }
+                    return v;
+                }
+            });
+            if (!result || !result.isConfirmed) {
+                return null;
+            }
+            return String(result.value || '').trim();
+        }
+
+        return null;
     }
 
     function resolveFieldElement(form, fieldId) {
@@ -131,8 +215,14 @@
 
     if (typeof window !== 'undefined') {
         window.anatejeUi = {
+            success: function (title, text, timer) { return alertMessage({ type: 'success', title: title, text: text, timer: timer || 0 }); },
+            error: function (title, text) { return alertMessage({ type: 'error', title: title, text: text }); },
+            warning: function (title, text) { return alertMessage({ type: 'warning', title: title, text: text }); },
+            info: function (title, text) { return alertMessage({ type: 'info', title: title, text: text }); },
+            alertMessage: alertMessage,
             confirmAction: confirmAction,
             confirmDelete: confirmDelete,
+            promptText: promptText,
             clearFieldErrors: clearFieldErrors,
             setFieldError: setFieldError,
             applyValidationFromMessage: applyValidationFromMessage,
