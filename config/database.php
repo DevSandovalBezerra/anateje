@@ -24,11 +24,11 @@ class Database
         // Verificar se está em produção (hospedagem)
         $isProduction = (
             strpos($_SERVER['HTTP_HOST'] ?? '', 'sbsystems.com.br') !== false ||
-            strpos($_SERVER['HTTP_HOST'] ?? '', 'lidergest') !== false ||
+            strpos($_SERVER['HTTP_HOST'] ?? '', 'anateje') !== false ||
             strpos($_SERVER['SERVER_NAME'] ?? '', 'sbsystems.com.br') !== false ||
             (isset($_SERVER['SERVER_NAME']) && $_SERVER['SERVER_NAME'] !== 'localhost' && $_SERVER['SERVER_NAME'] !== '127.0.0.1')
         );
-        
+
         // Verificar variáveis de ambiente (prioridade)
         if (getenv('DB_HOST')) {
             return [
@@ -38,12 +38,12 @@ class Database
                 'password' => getenv('DB_PASS')
             ];
         }
-        
+
         if ($isProduction) {
             // CONFIGURAÇÃO DE PRODUÇÃO (HOSPEDAGEM)
             return [
                 'host' => 'localhost',
-                'db_name' => 'brunor90_lidergest',
+                'db_name' => 'brunor90_anateje',
                 'username' => 'brunor90_root',
                 'password' => 'k0gn022'
             ];
@@ -51,13 +51,13 @@ class Database
             // CONFIGURAÇÃO DE DESENVOLVIMENTO (LOCAL)
             return [
                 'host' => 'localhost',
-                'db_name' => 'brunor90_lidergest',
+                'db_name' => 'brunor90_anateje',
                 'username' => 'root',
                 'password' => ''
             ];
         }
     }
-    
+
     private $host;
     private $db_name;
     private $username;
@@ -75,7 +75,7 @@ class Database
         $this->username = $config['username'];
         $this->password = $config['password'];
     }
-    
+
     public function getConnection()
     {
         $this->conn = null;
@@ -157,17 +157,17 @@ function isDevelopment()
     if (defined('LIDERGEST_ENV')) {
         return LIDERGEST_ENV === 'development';
     }
-    
+
     // Detectar por hostname (localhost = dev)
     $host = $_SERVER['HTTP_HOST'] ?? '';
     if (empty($host)) {
         $host = $_SERVER['SERVER_NAME'] ?? '';
     }
-    
-    return strpos($host, 'localhost') !== false || 
-           strpos($host, '127.0.0.1') !== false ||
-           strpos($host, '.local') !== false ||
-           strpos($host, '.test') !== false;
+
+    return strpos($host, 'localhost') !== false ||
+        strpos($host, '127.0.0.1') !== false ||
+        strpos($host, '.local') !== false ||
+        strpos($host, '.test') !== false;
 }
 
 // Função para log de erros (sempre loga)
@@ -186,7 +186,7 @@ function logDebug($message, $context = [])
     if (!isDevelopment()) {
         return; // Não logar em produção
     }
-    
+
     $logMessage = date('Y-m-d H:i:s') . " [DEBUG] - " . $message;
     if (!empty($context)) {
         $logMessage .= " - Context: " . json_encode($context);

@@ -84,6 +84,7 @@ dashboard_components_styles();
         <div class="dash-surface p-6">
             <h2 class="text-lg font-semibold dash-title mb-4">Atalhos de gestao</h2>
             <div class="grid grid-cols-1 gap-2">
+                <?php dashboard_quick_link($basePrefix . 'index.php?page=dashboard/financeiro', 'Financeiro'); ?>
                 <?php dashboard_quick_link($basePrefix . 'index.php?page=admin/associados', 'Associados'); ?>
                 <?php dashboard_quick_link($basePrefix . 'index.php?page=admin/beneficios', 'Beneficios'); ?>
                 <?php dashboard_quick_link($basePrefix . 'index.php?page=admin/eventos', 'Eventos'); ?>

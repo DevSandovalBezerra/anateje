@@ -7,6 +7,19 @@ if (!function_exists('anateje_public_base_path')) {
     }
 }
 
+if (!function_exists('anateje_public_asset_href')) {
+    function anateje_public_asset_href(string $basePath, string $relativePath): string
+    {
+        $normalized = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relativePath);
+        $absolute = __DIR__ . '/../../' . $normalized;
+        $version = @filemtime($absolute);
+        if ($version === false) {
+            return $basePath . $relativePath;
+        }
+        return $basePath . $relativePath . '?v=' . $version;
+    }
+}
+
 if (!function_exists('anateje_public_nav_items')) {
     function anateje_public_nav_items(): array
     {
@@ -49,11 +62,11 @@ if (!function_exists('anateje_public_render_start')) {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700;800&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/tokens.css">
-    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/components-premium.css">
-    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/sections-premium.css">
-    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/public-pages.css">
-    <script src="<?php echo $basePath; ?>assets/vendor/lucide/lucide.min.js"></script>
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(anateje_public_asset_href($basePath, 'assets/css/tokens.css'), ENT_QUOTES, 'UTF-8'); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(anateje_public_asset_href($basePath, 'assets/css/components-premium.css'), ENT_QUOTES, 'UTF-8'); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(anateje_public_asset_href($basePath, 'assets/css/sections-premium.css'), ENT_QUOTES, 'UTF-8'); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(anateje_public_asset_href($basePath, 'assets/css/public-pages.css'), ENT_QUOTES, 'UTF-8'); ?>">
+    <script src="<?php echo htmlspecialchars(anateje_public_asset_href($basePath, 'assets/vendor/lucide/lucide.min.js'), ENT_QUOTES, 'UTF-8'); ?>"></script>
 </head>
 <body class="px-theme-shell pp-shell">
     <header class="px-navbar">
@@ -133,4 +146,3 @@ if (!function_exists('anateje_public_render_end')) {
         <?php
     }
 }
-

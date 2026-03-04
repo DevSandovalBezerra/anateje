@@ -79,9 +79,17 @@ function sidebar_sequence_for_profile($perfilId)
         'associado/comunicados',
     ];
 
-    if ((int) $perfilId === 1) {
+    $perfilId = (int) $perfilId;
+
+    if ($perfilId === 1) {
         $routes = array_values(array_filter($routes, function ($route) {
-            return $route !== 'dashboard/user';
+            return $route !== 'dashboard/user' && strpos((string) $route, 'associado/') !== 0;
+        }));
+    }
+
+    if ($perfilId === 2) {
+        $routes = array_values(array_filter($routes, function ($route) {
+            return $route === 'dashboard/user' || strpos((string) $route, 'associado/') === 0;
         }));
     }
 

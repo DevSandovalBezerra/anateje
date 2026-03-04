@@ -101,6 +101,26 @@ $basePrefix = isset($prefix) ? $prefix : '/';
     };
     let selectedProfileId = 0;
 
+    function isSystemProfile(profileId) {
+        return parseInt(profileId, 10) === 1;
+    }
+
+    function refreshDeleteButtonState() {
+        const btn = el('perfilDelete');
+        if (!btn) return;
+        if (!selectedProfileId || isSystemProfile(selectedProfileId) || !canEdit) {
+            btn.disabled = true;
+            btn.classList.add('opacity-60', 'cursor-not-allowed');
+            btn.title = selectedProfileId && isSystemProfile(selectedProfileId)
+                ? 'Perfil Admin nao pode ser excluido.'
+                : '';
+            return;
+        }
+        btn.disabled = false;
+        btn.classList.remove('opacity-60', 'cursor-not-allowed');
+        btn.title = '';
+    }
+
     function setMsg(text, type) {
         msg.textContent = text || '';
         msg.className = type === 'ok' ? 'text-sm mt-4 text-green-600' : 'text-sm mt-4 text-red-600';
@@ -194,6 +214,7 @@ $basePrefix = isset($prefix) ? $prefix : '/';
 
         renderProfiles();
         renderPermissions();
+        refreshDeleteButtonState();
     }
 
     function clearFormForNew() {
@@ -204,6 +225,7 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         el('perfil_ativo').checked = true;
         renderProfiles();
         renderPermissions();
+        refreshDeleteButtonState();
     }
 
     async function load() {
@@ -218,6 +240,7 @@ $basePrefix = isset($prefix) ? $prefix : '/';
                 selectProfile(selectedProfileId);
             } else {
                 renderPermissions();
+                refreshDeleteButtonState();
             }
         } catch (err) {
             setMsg(err.message || 'Falha ao carregar permissoes', 'err');
@@ -279,6 +302,10 @@ $basePrefix = isset($prefix) ? $prefix : '/';
             setMsg('Selecione um perfil para excluir.', 'err');
             return;
         }
+        if (isSystemProfile(id)) {
+            setMsg('Perfil Admin nao pode ser excluido.', 'err');
+            return;
+        }
         const confirmed = ui && typeof ui.confirmDelete === 'function'
             ? await ui.confirmDelete('este perfil')
             : false;
@@ -287,11 +314,16 @@ $basePrefix = isset($prefix) ? $prefix : '/';
         }
 
         try {
-            await window.anatejeApi(ep('/api/v1/permissions.php?action=admin_profile_delete'), {
+            const data = await window.anatejeApi(ep('/api/v1/permissions.php?action=admin_profile_delete'), {
                 method: 'POST',
                 body: { id }
             });
-            setMsg('Perfil excluido.', 'ok');
+            const moved = Number(data && data.moved_users ? data.moved_users : 0);
+            if (moved > 0) {
+                setMsg(`Perfil excluido. ${moved} usuario(s) foram realocados para outro perfil.`, 'ok');
+            } else {
+                setMsg('Perfil excluido.', 'ok');
+            }
             selectedProfileId = 0;
             await load();
         } catch (err) {

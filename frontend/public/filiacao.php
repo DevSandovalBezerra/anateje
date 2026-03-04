@@ -16,46 +16,50 @@ anateje_public_render_start(
     </div>
 </section>
 
-<section class="sx-section sx-section--compact">
-    <div class="px-container sx-split">
-        <article class="px-card px-card__body">
-            <h2 class="sx-header__title">Formulario de pre-cadastro</h2>
-            <form id="filiacaoForm" class="pp-form" novalidate>
-                <div class="pp-form__grid">
-                    <div class="pp-form__group">
-                        <label for="filiacao_nome">Nome completo</label>
-                        <input id="filiacao_nome" class="px-input" maxlength="150" required>
+<section class="sx-section sx-section--compact pp-filiacao-stage">
+    <div class="px-container sx-split pp-filiacao-split">
+        <article class="px-card px-card__body pp-filiacao-card pp-filiacao-card--form">
+            <div class="pp-crud-head">
+                <h2 class="pp-crud-title">Formulario de pre-cadastro</h2>
+                <p class="pp-crud-subtitle">Preencha os campos para iniciar sua filiacao.</p>
+            </div>
+            <form id="filiacaoForm" class="pp-form pp-form--crud" novalidate>
+                <section class="pp-crud-section">
+                    <h4 class="pp-crud-section__title">Informacoes da Filiacao</h4>
+                    <div class="pp-crud-grid">
+                        <label class="pp-crud-field" for="filiacao_nome">
+                            <span class="pp-crud-label">Nome completo <span class="pp-required">*</span></span>
+                            <input id="filiacao_nome" class="px-input pp-crud-input" maxlength="150" autocomplete="name" required>
+                        </label>
+                        <label class="pp-crud-field" for="filiacao_email">
+                            <span class="pp-crud-label">Email <span class="pp-required">*</span></span>
+                            <input id="filiacao_email" type="email" class="px-input pp-crud-input" maxlength="190" autocomplete="email" required>
+                        </label>
+                        <label class="pp-crud-field" for="filiacao_telefone">
+                            <span class="pp-crud-label">Telefone <span class="pp-required">*</span></span>
+                            <input id="filiacao_telefone" class="px-input pp-crud-input" maxlength="20" autocomplete="tel" required>
+                        </label>
+                        <label class="pp-crud-field" for="filiacao_uf">
+                            <span class="pp-crud-label">UF <span class="pp-required">*</span></span>
+                            <input id="filiacao_uf" class="px-input pp-crud-input" maxlength="2" autocomplete="address-level1" required>
+                        </label>
+                        <label class="pp-crud-field" for="filiacao_categoria">
+                            <span class="pp-crud-label">Categoria de interesse</span>
+                            <select id="filiacao_categoria" class="px-select pp-crud-input">
+                                <option value="PARCIAL">Parcial (0,5%)</option>
+                                <option value="INTEGRAL">Integral (1%)</option>
+                            </select>
+                        </label>
+                        <label class="pp-crud-field" for="filiacao_origem">
+                            <span class="pp-crud-label">Como conheceu a ANATEJE?</span>
+                            <input id="filiacao_origem" class="px-input pp-crud-input" maxlength="120" placeholder="Indicacao, evento, redes, etc.">
+                        </label>
+                        <label class="pp-crud-field pp-crud-field--full pp-consent">
+                            <input id="filiacao_consentimento" type="checkbox" required>
+                            Autorizo o contato da ANATEJE para continuidade da filiacao.
+                        </label>
                     </div>
-                    <div class="pp-form__group">
-                        <label for="filiacao_email">Email</label>
-                        <input id="filiacao_email" type="email" class="px-input" maxlength="190" required>
-                    </div>
-                    <div class="pp-form__group">
-                        <label for="filiacao_telefone">Telefone</label>
-                        <input id="filiacao_telefone" class="px-input" maxlength="20" required>
-                    </div>
-                    <div class="pp-form__group">
-                        <label for="filiacao_uf">UF</label>
-                        <input id="filiacao_uf" class="px-input" maxlength="2" required>
-                    </div>
-                    <div class="pp-form__group">
-                        <label for="filiacao_categoria">Categoria de interesse</label>
-                        <select id="filiacao_categoria" class="px-select">
-                            <option value="PARCIAL">Parcial (0,5%)</option>
-                            <option value="INTEGRAL">Integral (1%)</option>
-                        </select>
-                    </div>
-                    <div class="pp-form__group">
-                        <label for="filiacao_origem">Como conheceu a ANATEJE?</label>
-                        <input id="filiacao_origem" class="px-input" maxlength="120" placeholder="Indicacao, evento, redes, etc.">
-                    </div>
-                </div>
-                <div class="pp-form__group">
-                    <label>
-                        <input id="filiacao_consentimento" type="checkbox" required>
-                        Autorizo o contato da ANATEJE para continuidade da filiacao.
-                    </label>
-                </div>
+                </section>
                 <div class="pp-form__actions">
                     <button type="submit" class="px-btn px-btn--primary">Enviar pre-cadastro</button>
                     <a href="../../frontend/auth/login.html" class="px-btn px-btn--outline">Ja tenho acesso</a>
@@ -63,7 +67,7 @@ anateje_public_render_start(
                 <p id="filiacaoMsg" class="pp-form__msg"></p>
             </form>
         </article>
-        <aside class="px-card px-card__body">
+        <aside class="px-card px-card__body pp-filiacao-card pp-filiacao-card--help">
             <h2 class="sx-header__title">Proximo passo</h2>
             <ul class="pp-list">
                 <li>Validacao inicial do pre-cadastro pela equipe ANATEJE.</li>
@@ -150,4 +154,3 @@ anateje_public_render_start(
 </script>
 
 <?php anateje_public_render_end(); ?>
-

@@ -1,6 +1,6 @@
 # ANATEJE Design System
 
-Status: v1.1 (baseline para desenvolvimento)
+Status: v1.2 (baseline para desenvolvimento)
 Escopo: Site institucional + area do associado + painel admin
 
 ## 1) Objetivo
@@ -149,6 +149,31 @@ Uso:
 }
 ```
 
+### 4.5 Nuances de cor por secao (Home publica)
+
+A Home publica adota alternancia intencional de faixas para melhorar ritmo visual:
+
+- `home-section--dark`
+  - Fundo: `linear-gradient(165deg, #081a4a 0%, #0b2a82 58%, #0a2368 100%)`
+  - Titulos claros e texto de apoio azul-claro
+  - Cards com borda fria (`rgba(206, 222, 255, 0.24)`) e superficie escura translucida
+
+- `home-section--light`
+  - Fundo: `#ffffff`
+  - Titulos: `#0e2c66`
+  - Texto de apoio: `#4a607f`
+  - Cards com borda clara (`#d5dfef`) e sombra suave azulada
+
+- `home-footer-section`
+  - Fundo de fechamento institucional:
+    - `linear-gradient(180deg, #081949 0%, #051336 100%)`
+
+Classes oficiais desta composicao:
+- `home-section`
+- `home-section--dark`
+- `home-section--light`
+- `home-footer-section`
+
 ## 5) Tipografia
 
 Stack:
@@ -234,6 +259,34 @@ Categoria:
 - Parcial (0,5%)
 - Integral (1%)
 
+### 7.5 Card de valor (Home - bloco "Por que ANATEJE")
+
+Componente padrao para cards curtos de proposta de valor:
+
+- Estrutura:
+  - `home-values-grid` (container da grade)
+  - `home-value-card`
+  - `home-value-card__head` (grid: icone + titulo)
+  - `home-value-card__icon`
+  - `home-value-card__title`
+
+- Regras:
+  - Nao usar badge para titulo nesse bloco (evita truncamento e ruido visual)
+  - Titulo com quebra controlada:
+    - `min-width: 0`
+    - `overflow-wrap: break-word`
+    - `hyphens: auto`
+  - Barra superior sutil (`::before`) para reforco de hierarquia
+  - Altura elastica sem cortar conteudo (`min-height: 100%` no contexto da grade)
+  - Nuance visual base do card:
+    - Borda: `#cfdbef`
+    - Fundo: `linear-gradient(180deg, #ffffff 0%, #f7faff 100%)`
+    - Sombra: `0 12px 24px rgba(15, 38, 84, 0.12)`
+
+- Tipografia recomendada:
+  - Titulo: `clamp(0.98rem, 1.15vw, 1.08rem)`, peso heading
+  - Corpo: `0.95rem`, `line-height ~1.5`
+
 ## 8) Layout por dominio
 
 ### 8.1 Site publico
@@ -252,6 +305,8 @@ Regras:
 - Hero com CTA principal e CTA secundaria
 - CTA repetida ao longo da pagina
 - Rodape institucional em todas as paginas
+- Home com alternancia de faixas visuais (`dark -> light -> dark -> light -> dark`)
+- Cards de proposta de valor devem priorizar legibilidade e nao podem truncar titulos
 
 ### 8.2 Area do associado
 
@@ -330,6 +385,7 @@ Arquivos recomendados:
 - `assets/css/components.css` (componentes)
 - `assets/css/layout.css` (estrutura)
 - `assets/css/pages/*.css` (ajustes locais)
+- `assets/css/home-premium.css` (nuances da Home publica e variacoes de faixa)
 
 ## 13) Checklist de QA visual
 

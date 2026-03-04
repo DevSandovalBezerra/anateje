@@ -55,7 +55,7 @@ $basePath = '../../';
     </header>
 
     <main id="topo">
-        <section class="sx-section sx-hero">
+        <section class="sx-section sx-hero home-section home-section--dark">
             <span class="sx-orb sx-orb--left"></span>
             <span class="sx-orb sx-orb--right"></span>
             <div class="px-container sx-hero__grid">
@@ -95,7 +95,7 @@ $basePath = '../../';
             </div>
         </section>
 
-        <section class="sx-section" id="sobre">
+        <section class="sx-section home-section home-section--light" id="sobre">
             <div class="px-container sx-split">
                 <div>
                     <div class="sx-header">
@@ -107,17 +107,26 @@ $basePath = '../../';
                             </p>
                         </div>
                     </div>
-                    <div class="sx-grid-3">
-                        <article class="px-card px-card__body">
-                            <span class="px-badge px-badge--gold"><i data-lucide="users"></i>Representatividade</span>
+                    <div class="sx-grid-3 home-values-grid">
+                        <article class="px-card px-card__body home-value-card">
+                            <div class="home-value-card__head">
+                                <span class="home-value-card__icon"><i data-lucide="users"></i></span>
+                                <h3 class="home-value-card__title">Representatividade</h3>
+                            </div>
                             <p class="px-card__desc">Defesa organizada dos interesses da categoria em pauta nacional.</p>
                         </article>
-                        <article class="px-card px-card__body">
-                            <span class="px-badge px-badge--gold"><i data-lucide="handshake"></i>Rede de apoio</span>
+                        <article class="px-card px-card__body home-value-card">
+                            <div class="home-value-card__head">
+                                <span class="home-value-card__icon"><i data-lucide="handshake"></i></span>
+                                <h3 class="home-value-card__title">Rede de apoio</h3>
+                            </div>
                             <p class="px-card__desc">Parcerias e servicos que reduzem custos e ampliam oportunidades.</p>
                         </article>
-                        <article class="px-card px-card__body">
-                            <span class="px-badge px-badge--gold"><i data-lucide="megaphone"></i>Comunicacao ativa</span>
+                        <article class="px-card px-card__body home-value-card">
+                            <div class="home-value-card__head">
+                                <span class="home-value-card__icon"><i data-lucide="megaphone"></i></span>
+                                <h3 class="home-value-card__title">Comunicacao ativa</h3>
+                            </div>
                             <p class="px-card__desc">Informacao clara para acompanhar noticias, campanhas e eventos.</p>
                         </article>
                     </div>
@@ -129,7 +138,7 @@ $basePath = '../../';
             </div>
         </section>
 
-        <section class="sx-section" id="beneficios">
+        <section class="sx-section home-section home-section--dark" id="beneficios">
             <div class="px-container">
                 <div class="sx-header">
                     <div>
@@ -157,7 +166,7 @@ $basePath = '../../';
             </div>
         </section>
 
-        <section class="sx-section" id="eventos">
+        <section class="sx-section home-section home-section--light" id="eventos">
             <div class="px-container">
                 <div class="sx-header">
                     <div>
@@ -223,7 +232,7 @@ $basePath = '../../';
             </div>
         </section>
 
-        <section class="sx-section sx-section--compact" id="faq">
+        <section class="sx-section sx-section--compact home-section home-section--dark" id="faq">
             <div class="px-container sx-split">
                 <div>
                     <div class="sx-header">
@@ -255,7 +264,7 @@ $basePath = '../../';
         </section>
     </main>
 
-    <footer class="sx-section sx-section--tight" id="contato">
+    <footer class="sx-section sx-section--tight home-footer-section" id="contato">
         <div class="px-container">
             <hr class="px-divider">
             <div class="home-footer">

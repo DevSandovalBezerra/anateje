@@ -216,6 +216,45 @@ function permissions_load_payload(PDO $db): array
     ];
 }
 
+function permissions_pick_reassign_profile(PDO $db, int $excludeProfileId): ?int
+{
+    $excludeProfileId = (int) $excludeProfileId;
+
+    // Preferir um perfil chamado "Associado" quando existir.
+    $stAssoc = $db->prepare('SELECT id FROM perfis_acesso WHERE LOWER(TRIM(nome)) = ? AND id <> ? LIMIT 1');
+    $stAssoc->execute(['associado', $excludeProfileId]);
+    $assocId = (int) ($stAssoc->fetchColumn() ?: 0);
+    if ($assocId > 0) {
+        return $assocId;
+    }
+
+    // Evitar, quando possivel, o perfil 1 (admin global) como destino automatico.
+    $st = $db->prepare("SELECT p.id
+        FROM perfis_acesso p
+        LEFT JOIN usuarios u ON u.perfil_id = p.id
+        WHERE p.id <> ? AND p.ativo = 1 AND p.id <> 1
+        GROUP BY p.id
+        ORDER BY COUNT(u.id) ASC, p.id ASC
+        LIMIT 1");
+    $st->execute([$excludeProfileId]);
+    $candidate = (int) ($st->fetchColumn() ?: 0);
+    if ($candidate > 0) {
+        return $candidate;
+    }
+
+    $stAny = $db->prepare("SELECT p.id
+        FROM perfis_acesso p
+        LEFT JOIN usuarios u ON u.perfil_id = p.id
+        WHERE p.id <> ?
+        GROUP BY p.id
+        ORDER BY COUNT(u.id) ASC, p.id ASC
+        LIMIT 1");
+    $stAny->execute([$excludeProfileId]);
+    $fallback = (int) ($stAny->fetchColumn() ?: 0);
+
+    return $fallback > 0 ? $fallback : null;
+}
+
 permissions_ensure_schema($db);
 
 $action = $_GET['action'] ?? '';
@@ -265,6 +304,7 @@ if ($action === 'admin_profile_delete') {
     anateje_require_method(['POST']);
     $in = anateje_input();
     $id = (int) ($in['id'] ?? 0);
+    $reassignProfileId = (int) ($in['reassign_profile_id'] ?? 0);
 
     if ($id <= 0) {
         anateje_error('VALIDATION', 'Perfil invalido', 422);
@@ -273,19 +313,51 @@ if ($action === 'admin_profile_delete') {
         anateje_error('VALIDATION', 'Perfil Admin nao pode ser removido', 422);
     }
 
+    $stProfile = $db->prepare('SELECT id FROM perfis_acesso WHERE id = ? LIMIT 1');
+    $stProfile->execute([$id]);
+    if (!$stProfile->fetch(PDO::FETCH_ASSOC)) {
+        anateje_error('NOT_FOUND', 'Perfil nao encontrado', 404);
+    }
+
     $stUsers = $db->prepare('SELECT COUNT(*) FROM usuarios WHERE perfil_id = ?');
     $stUsers->execute([$id]);
     $usersCount = (int) $stUsers->fetchColumn();
+    if ($usersCount > 0 && $reassignProfileId <= 0) {
+        $picked = permissions_pick_reassign_profile($db, $id);
+        $reassignProfileId = $picked !== null ? (int) $picked : 0;
+    }
     if ($usersCount > 0) {
-        anateje_error('VALIDATION', 'Existem usuarios vinculados a este perfil', 422);
+        if ($reassignProfileId <= 0 || $reassignProfileId === $id) {
+            anateje_error('VALIDATION', 'Nao foi possivel encontrar um perfil de destino para os usuarios vinculados', 422, [
+                'linked_users' => $usersCount
+            ]);
+        }
+        $stTarget = $db->prepare('SELECT id FROM perfis_acesso WHERE id = ? LIMIT 1');
+        $stTarget->execute([$reassignProfileId]);
+        if (!$stTarget->fetch(PDO::FETCH_ASSOC)) {
+            anateje_error('VALIDATION', 'Perfil de destino para realocacao dos usuarios nao encontrado', 422, [
+                'reassign_profile_id' => $reassignProfileId
+            ]);
+        }
     }
 
     $db->beginTransaction();
     try {
+        $movedUsers = 0;
+        if ($usersCount > 0) {
+            $upUsers = $db->prepare('UPDATE usuarios SET perfil_id = ? WHERE perfil_id = ?');
+            $upUsers->execute([$reassignProfileId, $id]);
+            $movedUsers = (int) $upUsers->rowCount();
+        }
+
         $db->prepare('DELETE FROM perfil_permissoes WHERE perfil_id = ?')->execute([$id]);
         $db->prepare('DELETE FROM perfis_acesso WHERE id = ?')->execute([$id]);
         $db->commit();
-        anateje_ok(['deleted' => true]);
+        anateje_ok([
+            'deleted' => true,
+            'moved_users' => $movedUsers,
+            'reassign_profile_id' => $usersCount > 0 ? $reassignProfileId : null
+        ]);
     } catch (Exception $e) {
         $db->rollBack();
         logError('Erro permissions.admin_profile_delete: ' . $e->getMessage());
