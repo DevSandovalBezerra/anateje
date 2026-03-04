@@ -9,6 +9,33 @@ class RBAC
     private $db;
     private $permissionsCache = [];
 
+    private function normalizeDashboardName($dashboard)
+    {
+        $dashboard = strtolower(trim((string) $dashboard));
+        if ($dashboard === 'responsavel' || $dashboard === 'associado' || $dashboard === 'membro') {
+            return 'user';
+        }
+
+        return $dashboard;
+    }
+
+    private function normalizeDashboardList($dashboards)
+    {
+        if (!is_array($dashboards)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($dashboards as $dashboard) {
+            $dashboard = $this->normalizeDashboardName($dashboard);
+            if ($dashboard !== '' && !in_array($dashboard, $normalized, true)) {
+                $normalized[] = $dashboard;
+            }
+        }
+
+        return $normalized;
+    }
+
     // Estrutura generica de fallback
     private $permissionsFallback = [
         1 => [ // Admin Global
@@ -56,6 +83,9 @@ class RBAC
                 $parts = explode('.', $codigo);
                 if (count($parts) === 2) {
                     $page = $parts[1];
+                    if ($modulo === 'dashboard') {
+                        $page = $this->normalizeDashboardName($page);
+                    }
                     if (!isset($permissoesDB[$modulo])) {
                         $permissoesDB[$modulo] = [];
                     }
@@ -82,6 +112,10 @@ class RBAC
                 if (!isset($permissions[$modulo])) {
                     $permissions[$modulo] = $pages;
                 }
+            }
+
+            if (isset($permissions['dashboard'])) {
+                $permissions['dashboard'] = $this->normalizeDashboardList($permissions['dashboard']);
             }
 
             $this->permissionsCache[$perfil_id] = $permissions;
@@ -122,6 +156,12 @@ class RBAC
         if ($module === 'financeiro' && $page === 'rematricula') {
             return in_array('renovacao_filiacao', $userPermissions[$module], true);
         }
+        if ($module === 'financeiro' && $page === 'lancamentos') {
+            return in_array('contas', $userPermissions[$module], true);
+        }
+        if ($module === 'financeiro' && $page === 'contas') {
+            return in_array('lancamentos', $userPermissions[$module], true);
+        }
 
         return false;
     }
@@ -132,12 +172,14 @@ class RBAC
             return true;
         }
 
+        $dashboard = $this->normalizeDashboardName($dashboard);
         $userPermissions = $this->loadPermissionsFromDB($perfil_id);
         if (!isset($userPermissions['dashboard'])) {
             return false;
         }
 
-        return in_array($dashboard, $userPermissions['dashboard'], true);
+        $dashboards = $this->normalizeDashboardList($userPermissions['dashboard']);
+        return in_array($dashboard, $dashboards, true);
     }
 
     public function getUserPermissions($perfil_id)
@@ -194,7 +236,7 @@ class RBAC
         $prefix = lidergest_base_prefix();
         $permissions = $this->getUserPermissions($perfil_id);
 
-        $dashboards = $permissions['dashboard'] ?? [];
+        $dashboards = $this->normalizeDashboardList($permissions['dashboard'] ?? []);
         $target = '';
         if (in_array('admin', $dashboards, true)) {
             $target = 'dashboard/admin';
@@ -232,7 +274,7 @@ class RBAC
 
         if (!empty($permissions['dashboard'])) {
             $dashboardsPermitidos = [];
-            foreach ($permissions['dashboard'] as $dash) {
+            foreach ($this->normalizeDashboardList($permissions['dashboard']) as $dash) {
                 $dash = trim((string) $dash);
                 if ($dash !== '' && !in_array($dash, $dashboardsPermitidos, true)) {
                     $dashboardsPermitidos[] = $dash;

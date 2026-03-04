@@ -42,6 +42,8 @@ function sidebar_sequence_for_profile($perfilId)
 {
     $routes = [
         'dashboard/admin',
+        'admin/permissoes',
+        'cadastros/usuarios',
         'dashboard/financeiro',
         'dashboard/user',
         'admin/associados',
@@ -51,7 +53,6 @@ function sidebar_sequence_for_profile($perfilId)
         'admin/comunicados',
         'admin/campanhas',
         'admin/integracoes',
-        'admin/permissoes',
         'admin/auditoria',
         'financeiro/manual',
         'financeiro/lancamentos',
@@ -69,11 +70,9 @@ function sidebar_sequence_for_profile($perfilId)
         'financeiro/fluxo_caixa',
         'financeiro/conciliacao',
         'financeiro/relatorios',
-        'financeiro/contas',
         'financeiro/contas_financeiras',
         'financeiro/pagamentos',
         'financeiro/transferencias',
-        'cadastros/usuarios',
         'associado/perfil',
         'associado/meus_beneficios',
         'associado/meus_eventos',
@@ -109,8 +108,8 @@ function sidebar_route_meta($route)
         'admin/permissoes' => ['Permissoes', 'shield'],
         'admin/auditoria' => ['Auditoria', 'file-search'],
         'financeiro/manual' => ['Financeiro - Manual', 'book-open'],
-        'financeiro/lancamentos' => ['Financeiro - Lancamentos', 'file-text'],
-        'financeiro/contas_bancarias' => ['Financeiro - Contas Bancarias', 'credit-card'],
+        'financeiro/lancamentos' => ['Financeiro - Contas a Pagar/Receber', 'file-text'],
+        'financeiro/contas_bancarias' => ['Financeiro - Contas de Caixa/Banco', 'credit-card'],
         'financeiro/pessoas' => ['Financeiro - Pessoas', 'users'],
         'financeiro/categorias_financeiras' => ['Financeiro - Categorias', 'tags'],
         'financeiro/centros_custos' => ['Financeiro - Centros de Custo', 'building-2'],
@@ -125,8 +124,8 @@ function sidebar_route_meta($route)
         'financeiro/fluxo_caixa' => ['Financeiro - Fluxo de Caixa', 'trending-up'],
         'financeiro/conciliacao' => ['Financeiro - Conciliacao', 'check-circle-2'],
         'financeiro/relatorios' => ['Financeiro - Relatorios', 'bar-chart-3'],
-        'financeiro/contas' => ['Financeiro - Contas', 'wallet'],
-        'financeiro/contas_financeiras' => ['Financeiro - Contas Financeiras', 'landmark'],
+        'financeiro/contas' => ['Financeiro - Contas a Pagar/Receber', 'file-text'],
+        'financeiro/contas_financeiras' => ['Financeiro - Contas de Apoio', 'landmark'],
         'financeiro/pagamentos' => ['Financeiro - Pagamentos', 'hand-coins'],
         'financeiro/transferencias' => ['Financeiro - Transferencias', 'arrow-left-right'],
         'cadastros/usuarios' => ['Usuarios', 'user-cog'],
@@ -139,6 +138,11 @@ function sidebar_route_meta($route)
     $parts = explode('/', $route);
     $label = ucfirst(str_replace('_', ' ', $parts[1] ?? $route));
     return [$label, 'folder'];
+}
+
+function sidebar_is_financeiro_route($route)
+{
+    return strpos((string) $route, 'financeiro/') === 0;
 }
 ?>
 <aside id="sidebar"
@@ -158,7 +162,8 @@ function sidebar_route_meta($route)
             $rbac = new RBAC();
             $userPerfilId = isset($user) ? $user['perfil_id'] : 0;
             $routes = sidebar_sequence_for_profile((int) $userPerfilId);
-            foreach ($routes as $route):
+            $visibleRoutes = [];
+            foreach ($routes as $route) {
                 if (!preg_match('/^[a-z0-9_]+\/[a-z0-9_]+$/', $route)) {
                     continue;
                 }
@@ -167,6 +172,47 @@ function sidebar_route_meta($route)
                     continue;
                 }
                 if (!sidebar_page_exists($route)) {
+                    continue;
+                }
+                $visibleRoutes[] = $route;
+            }
+
+            $financeiroRoutes = array_values(array_filter($visibleRoutes, 'sidebar_is_financeiro_route'));
+            $financeiroGroupRendered = false;
+            foreach ($visibleRoutes as $route):
+                if (sidebar_is_financeiro_route($route)) {
+                    if ($financeiroGroupRendered) {
+                        continue;
+                    }
+                    $financeiroGroupRendered = true;
+                    $financeiroGroupActive = strpos((string) $currentPage, 'financeiro/') === 0;
+                    ?>
+                    <div id="sidebar-group-financeiro">
+                        <button type="button"
+                            class="nav-item financeiro-menu-header flex items-center justify-between w-full <?php echo $financeiroGroupActive ? 'active' : ''; ?>"
+                            onclick="toggleSubmenu('financeiro')">
+                            <span class="flex items-center">
+                                <i data-lucide="wallet" class="w-5 h-5 mr-3 financeiro-icon"></i>
+                                <span class="font-medium financeiro-text">Financeiro</span>
+                            </span>
+                            <i id="financeiro-arrow" data-lucide="chevron-down"
+                                class="w-4 h-4 transition-transform duration-200 <?php echo $financeiroGroupActive ? 'rotate-180' : ''; ?>"></i>
+                        </button>
+                        <div id="financeiro-submenu" class="<?php echo $financeiroGroupActive ? '' : 'hidden'; ?>">
+                            <?php foreach ($financeiroRoutes as $financeiroRoute):
+                                [$financeiroLabel, $financeiroIcon] = sidebar_route_meta($financeiroRoute);
+                                $financeiroIsActive = $currentPage === $financeiroRoute;
+                                ?>
+                                <a href="<?php echo $prefix; ?>index.php?page=<?php echo htmlspecialchars($financeiroRoute); ?>"
+                                    class="nav-submenu financeiro-submenu-item flex items-center <?php echo $financeiroIsActive ? 'active financeiro-active' : ''; ?>"
+                                    data-sidebar-route="<?php echo htmlspecialchars($financeiroRoute); ?>">
+                                    <i data-lucide="<?php echo htmlspecialchars($financeiroIcon); ?>" class="w-4 h-4 mr-2"></i>
+                                    <span><?php echo htmlspecialchars($financeiroLabel); ?></span>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <?php
                     continue;
                 }
                 [$label, $icon] = sidebar_route_meta($route);
@@ -286,7 +332,25 @@ function sidebar_route_meta($route)
     });
 
     async function userLogout() {
-        if (!confirm('Deseja realmente sair do sistema?')) return;
+        let confirmed = false;
+        if (window.anatejeUi && typeof window.anatejeUi.confirmAction === 'function') {
+            confirmed = await window.anatejeUi.confirmAction({
+                title: 'Sair do sistema',
+                text: 'Deseja realmente sair do sistema?',
+                confirmText: 'Sair',
+                cancelText: 'Cancelar',
+                icon: 'warning'
+            });
+        } else if (window.SweetAlertConfig && typeof window.SweetAlertConfig.confirm === 'function') {
+            const r = await window.SweetAlertConfig.confirm(
+                'Sair do sistema',
+                'Deseja realmente sair do sistema?',
+                'Sair',
+                'Cancelar'
+            );
+            confirmed = !!(r && r.isConfirmed);
+        }
+        if (!confirmed) return;
         const baseUrl = typeof window.LIDERGEST_BASE_URL !== 'undefined' ?
             window.LIDERGEST_BASE_URL : '<?php echo $baseUrl; ?>';
         const url = `${baseUrl}/api/auth/logout.php`;

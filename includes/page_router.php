@@ -8,6 +8,7 @@ class PageRouter
     private $rbac;
     private $basePath;
     private $pageMapping;
+    private $supportedDashboards = ['admin', 'financeiro', 'user'];
 
     public function __construct()
     {
@@ -60,7 +61,7 @@ class PageRouter
             'financeiro/fluxo_caixa' => 'financeiro/fluxo_caixa.php',
             'financeiro/conciliacao' => 'financeiro/conciliacao.php',
             'financeiro/relatorios' => 'financeiro/relatorios.php',
-            'financeiro/contas' => 'financeiro/contas.php',
+            'financeiro/contas' => 'financeiro/lancamentos.php',
             'financeiro/contas_financeiras' => 'financeiro/contas_financeiras.php',
             'financeiro/pagamentos' => 'financeiro/pagamentos.php',
             'financeiro/transferencias' => 'financeiro/transferencias.php',
@@ -69,13 +70,58 @@ class PageRouter
         ];
     }
 
+    private function normalizeDashboardName($dashboard)
+    {
+        $dashboard = strtolower(trim((string) $dashboard));
+        if ($dashboard === 'responsavel' || $dashboard === 'associado' || $dashboard === 'membro') {
+            return 'user';
+        }
+
+        return $dashboard;
+    }
+
+    private function normalizeDashboardList($dashboards)
+    {
+        if (!is_array($dashboards)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($dashboards as $dashboard) {
+            $dashboard = $this->normalizeDashboardName($dashboard);
+            if (in_array($dashboard, $this->supportedDashboards, true) && !in_array($dashboard, $normalized, true)) {
+                $normalized[] = $dashboard;
+            }
+        }
+
+        return $normalized;
+    }
+
+    private function normalizeRoute($page)
+    {
+        if ($page === 'financeiro/rematricula') {
+            return 'financeiro/renovacao_filiacao';
+        }
+
+        if ($page === 'financeiro/contas') {
+            return 'financeiro/lancamentos';
+        }
+
+        if (preg_match('/^dashboard\/[a-z0-9_]+$/', (string) $page)) {
+            $parts = explode('/', (string) $page, 2);
+            return 'dashboard/' . $this->normalizeDashboardName($parts[1] ?? '');
+        }
+
+        return $page;
+    }
+
     /**
      * Obtem a pagina padrao baseada no perfil do usuario
      */
     public function getDefaultPage($perfil_id)
     {
         $permissions = $this->rbac->getUserPermissions($perfil_id);
-        $dashboards = $permissions['dashboard'] ?? [];
+        $dashboards = $this->normalizeDashboardList($permissions['dashboard'] ?? []);
 
         if (in_array('admin', $dashboards, true)) {
             return 'dashboard/admin';
@@ -128,6 +174,9 @@ class PageRouter
 
         $module = $parts[0];
         $pageName = $parts[1];
+        if ($module === 'dashboard') {
+            $pageName = $this->normalizeDashboardName($pageName);
+        }
 
         return $this->rbac->canAccessPage($perfil_id, $module, $pageName);
     }
@@ -141,10 +190,7 @@ class PageRouter
             $page = $this->getDefaultPage($perfil_id);
         }
 
-        // Canonicaliza rota antiga para manter coerencia de titulo/menu.
-        if ($page === 'financeiro/rematricula') {
-            $page = 'financeiro/renovacao_filiacao';
-        }
+        $page = $this->normalizeRoute($page);
 
         if (!$this->isValidPageFormat($page)) {
             return [
