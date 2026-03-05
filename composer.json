@@ -1,0 +1,20 @@
+{
+    "name": "anateje/portal",
+    "description": "ANATEJE portal and API",
+    "type": "project",
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --configuration phpunit.xml"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
+

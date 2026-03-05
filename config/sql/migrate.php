@@ -1,30 +1,51 @@
 <?php
 
-if (PHP_SAPI !== 'cli') {
+$migrateIsCli = PHP_SAPI === 'cli';
+$migrateAllowWeb = defined('MIGRATE_ALLOW_WEB') && MIGRATE_ALLOW_WEB === true;
+
+if (!$migrateIsCli && !$migrateAllowWeb) {
     http_response_code(403);
     echo "Use somente via CLI.\n";
     exit(1);
 }
 
 // Evita headers de navegador ao carregar config compartilhada.
-$_SERVER['REQUEST_URI'] = '/api/cli-migrate';
+if ($migrateIsCli) {
+    $_SERVER['REQUEST_URI'] = '/api/cli-migrate';
+}
 $_SERVER['HTTP_HOST'] = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
 require_once __DIR__ . '/../database.php';
 
 function migrate_out(string $text): void
 {
-    fwrite(STDOUT, $text . PHP_EOL);
+    if (PHP_SAPI === 'cli') {
+        fwrite(STDOUT, $text . PHP_EOL);
+        return;
+    }
+
+    echo $text . "\n";
 }
 
 function migrate_err(string $text): void
 {
-    fwrite(STDERR, $text . PHP_EOL);
+    if (PHP_SAPI === 'cli') {
+        fwrite(STDERR, $text . PHP_EOL);
+        return;
+    }
+
+    echo '[ERR] ' . $text . "\n";
 }
 
 function migrate_usage(): void
 {
-    migrate_out('Uso: php config/sql/migrate.php [up|status]');
+    if (PHP_SAPI === 'cli') {
+        migrate_out('Uso: php config/sql/migrate.php [up|status]');
+        return;
+    }
+
+    migrate_out('Uso: /config/sql/migrate_web.php?cmd=status&token=SEU_TOKEN');
+    migrate_out('Uso: /config/sql/migrate_web.php?cmd=up&token=SEU_TOKEN');
 }
 
 function migrate_ensure_table(PDO $db): void
@@ -194,20 +215,25 @@ function migrate_run_up(PDO $db, array $files, array $applied): int
         migrate_out('Aplicando ' . $item['name'] . ' ...');
 
         try {
-            $db->beginTransaction();
             foreach ($stmts as $stmt) {
-                $db->exec($stmt);
+                $st = $db->prepare($stmt);
+                $st->execute();
+                if ($st->columnCount() > 0) {
+                    $st->fetchAll();
+                }
+                while ($st->nextRowset()) {
+                    if ($st->columnCount() > 0) {
+                        $st->fetchAll();
+                    }
+                }
+                $st->closeCursor();
             }
 
             $ins = $db->prepare('INSERT INTO schema_migrations (filename, checksum, batch) VALUES (?,?,?)');
             $ins->execute([$item['name'], $item['checksum'], $batch]);
-            $db->commit();
 
             migrate_out('OK (' . count($stmts) . ' statements)');
         } catch (Throwable $e) {
-            if ($db->inTransaction()) {
-                $db->rollBack();
-            }
             migrate_err('Erro em ' . $item['name'] . ': ' . $e->getMessage());
             return 1;
         }
@@ -237,7 +263,10 @@ function migrate_run_status(array $files, array $applied): int
     return 0;
 }
 
-$command = strtolower((string) ($argv[1] ?? 'up'));
+$rawCommand = $migrateIsCli
+    ? (string) (($argv[1] ?? 'up'))
+    : (string) ($_GET['cmd'] ?? 'status');
+$command = strtolower(trim($rawCommand));
 if (!in_array($command, ['up', 'status'], true)) {
     migrate_usage();
     exit(1);

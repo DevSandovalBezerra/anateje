@@ -2,3 +2,6 @@ dados/
 logs/
 lidergest/
 anasite/
+vendor/
+.phpunit.cache/
+tmp/phpunit_sessions/
