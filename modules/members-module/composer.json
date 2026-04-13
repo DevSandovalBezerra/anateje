@@ -1,0 +1,23 @@
+{
+    "name": "anateje/members-module",
+    "description": "Módulo de Associados (Admin).",
+    "type": "library",
+    "license": "proprietary",
+    "version": "0.1.0",
+    "require": {
+        "php": "^8.2",
+        "anateje/contracts": "^0.1",
+        "psr/http-server-handler": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Anateje\\MembersModule\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Anateje\\MembersModule\\Tests\\": "tests/"
+        }
+    }
+}
+

@@ -1,0 +1,22 @@
+{
+    "name": "anateje/integrations-module",
+    "description": "Módulo de Integrações (Mailchimp, WhatsApp, etc) do ANATEJE.",
+    "type": "library",
+    "license": "proprietary",
+    "version": "0.1.0",
+    "require": {
+        "php": "^8.2",
+        "anateje/contracts": "^0.1",
+        "psr/http-server-handler": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Anateje\\IntegrationsModule\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Anateje\\IntegrationsModule\\Tests\\": "tests/"
+        }
+    }
+}

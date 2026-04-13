@@ -2,8 +2,37 @@
     "name": "anateje/portal",
     "description": "ANATEJE portal and API",
     "type": "project",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "modules/*",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "anateje/contracts": "^0.1",
+        "anateje/health-module": "^0.1",
+        "anateje/audit-module": "^0.1",
+        "anateje/permissions-module": "^0.1",
+        "anateje/integrations-module": "^0.1",
+        "anateje/members-module": "^0.1",
+        "anateje/benefits-module": "^0.1",
+        "nikic/fast-route": "^1.3",
+        "nyholm/psr7": "^1.8",
+        "nyholm/psr7-server": "^1.1",
+        "psr/http-message": "^2.0",
+        "psr/http-server-handler": "^1.0"
+    },
     "require-dev": {
         "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Anateje\\": "src/"
+        }
     },
     "autoload-dev": {
         "psr-4": {
@@ -17,4 +46,3 @@
         "sort-packages": true
     }
 }
-

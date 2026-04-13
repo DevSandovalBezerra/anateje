@@ -11,5 +11,8 @@ RewriteRule ^ - [L]
 # Optional public alias kept for legacy links
 RewriteRule ^matricula\.php$ frontend/public/matricula.php [QSA,L]
 
+# Modular API (v2) entrypoint
+RewriteRule ^api/v2(?:/.*)?$ api/v2/index.php [QSA,L]
+
 # Front controller fallback
 RewriteRule ^ index.php [QSA,L]
