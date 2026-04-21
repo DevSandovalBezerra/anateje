@@ -16,46 +16,37 @@ if (!defined('BASE_PATH')) {
 
 require_once __DIR__ . '/paths.php';
 
+function loadEnvFile(string $path): void {
+    if (!file_exists($path)) return;
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (str_starts_with(trim($line), '#')) continue;
+        if (!str_contains($line, '=')) continue;
+        [$key, $value] = explode('=', $line, 2);
+        $key = trim($key);
+        $value = trim($value, " \t\n\r\0\x0B\"'");
+        if ($key && !isset($_ENV[$key]) && !getenv($key)) {
+            putenv("$key=$value");
+            $_ENV[$key] = $value;
+        }
+    }
+}
+// Only load .env if not in test environment
+if (!defined('TEST_DB_HOST')) {
+    loadEnvFile(BASE_PATH . '/.env');
+}
+
 class Database
 {
     // Detectar ambiente automaticamente
     private function getConfig()
     {
-        // Verificar se está em produção (hospedagem)
-        $isProduction = (
-            strpos($_SERVER['HTTP_HOST'] ?? '', 'sbsystems.com.br') !== false ||
-            strpos($_SERVER['HTTP_HOST'] ?? '', 'anateje') !== false ||
-            strpos($_SERVER['SERVER_NAME'] ?? '', 'sbsystems.com.br') !== false ||
-            (isset($_SERVER['SERVER_NAME']) && $_SERVER['SERVER_NAME'] !== 'localhost' && $_SERVER['SERVER_NAME'] !== '127.0.0.1')
-        );
-
-        // Verificar variáveis de ambiente (prioridade)
-        if (getenv('DB_HOST')) {
-            return [
-                'host' => getenv('DB_HOST'),
-                'db_name' => getenv('DB_NAME'),
-                'username' => getenv('DB_USER'),
-                'password' => getenv('DB_PASS')
-            ];
-        }
-
-        if ($isProduction) {
-            // CONFIGURAÇÃO DE PRODUÇÃO (HOSPEDAGEM)
-            return [
-                'host' => 'localhost',
-                'db_name' => 'brunor90_anateje',
-                'username' => 'brunor90_root',
-                'password' => 'k0gn022'
-            ];
-        } else {
-            // CONFIGURAÇÃO DE DESENVOLVIMENTO (LOCAL)
-            return [
-                'host' => 'localhost',
-                'db_name' => 'brunor90_anateje',
-                'username' => 'root',
-                'password' => ''
-            ];
-        }
+        return [
+            'host' => getenv('DB_HOST') ?: 'localhost',
+            'db_name' => getenv('DB_NAME') ?: 'brunor90_anateje',
+            'username' => getenv('DB_USER') ?: 'root',
+            'password' => getenv('DB_PASS') ?: ''
+        ];
     }
 
     private $host;
@@ -106,7 +97,7 @@ define('SITE_URL', 'http://localhost/anateje');
 define('SITE_VERSION', '1.0.0');
 
 // Configurações de segurança
-define('JWT_SECRET', 'lidergest_secret_key_2024');
+define('JWT_SECRET', getenv('JWT_SECRET') ?: 'lidergest_secret_key_2024');
 define('SESSION_TIMEOUT', 3600); // 1 hora
 define('SESSION_IDLE_TIMEOUT', 1800); // 30 minutos sem atividade
 define('SESSION_REGENERATE_INTERVAL', 900); // 15 minutos

@@ -16,6 +16,12 @@ putenv('DB_NAME=' . TEST_DB_NAME);
 putenv('DB_USER=' . TEST_DB_USER);
 putenv('DB_PASS=' . TEST_DB_PASS);
 
+// Também definir em $_ENV para compatibilidade
+$_ENV['DB_HOST'] = TEST_DB_HOST;
+$_ENV['DB_NAME'] = TEST_DB_NAME;
+$_ENV['DB_USER'] = TEST_DB_USER;
+$_ENV['DB_PASS'] = TEST_DB_PASS;
+
 $_SERVER['HTTP_HOST'] = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $_SERVER['SERVER_NAME'] = $_SERVER['SERVER_NAME'] ?? 'localhost';
 $_SERVER['REQUEST_URI'] = $_SERVER['REQUEST_URI'] ?? '/api/tests';

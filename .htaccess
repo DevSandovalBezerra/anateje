@@ -3,6 +3,11 @@
 RewriteEngine On
 RewriteBase /anateje/
 
+# Block access to .env files
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+
 # Serve existing files/directories directly
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d

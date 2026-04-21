@@ -1,3 +1,7 @@
+# Environment configuration (contains sensitive data)
+.env
+.env.local
+
 dados/
 logs/
 lidergest/
